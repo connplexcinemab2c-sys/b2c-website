@@ -1,0 +1,54 @@
+.app-privacy-policy {
+    background-color: #000;
+    color: #fff;
+}
+
+.app-privacy-policy .main-privacy .privacy-header {
+    display: none;
+}
+
+.privacy-policy .main-privacy {
+    color: #fff;
+}
+
+.main-privacy .privacy-header {
+    padding: 26px 0;
+    border-bottom: 1px solid #23211e;
+    text-align: center;
+}
+
+.main-privacy .privacy-header .privacy-header-title {
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 400;
+    color: #d3b15f;
+}
+
+.main-privacy .privacy-body {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px 0;
+}
+
+.main-privacy .privacy-body .privacy-item:not(:last-child) {
+    margin-bottom: 30px;
+}
+
+.main-privacy .privacy-body h4 {
+    color: #d3b15f;
+    font-size: 18px;
+    line-height: 24px;
+    margin-bottom: 7px;
+}
+
+.main-privacy .privacy-body p {
+    font-weight: 300;
+}
+
+.main-privacy .privacy-body ul {
+    padding-left: 15px;
+}
+
+.main-privacy .privacy-body ul li {
+    list-style: disc;
+}

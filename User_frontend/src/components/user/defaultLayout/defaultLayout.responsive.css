@@ -1,0 +1,199 @@
+@media (max-width: 1023px) {
+
+    .btm-head,
+    .top-link {
+        display: none;
+        -webkit-transition: all .5s ease-in-out;
+        -moz-transition: all .5s ease-in-out;
+    }
+
+    .top-head {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .header-action .header-search-icon {
+        border-radius: 50%;
+        min-width: 28px;
+        min-height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background-color: #ffffffcc;
+        margin-right: 10px;
+    }
+
+    .header-action .header-search-icon svg {
+        color: #000;
+        font-size: 18px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-action .main-city-select .city-name {
+        max-width: 90px;
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .header-action .main-city-select .select-icon.arrow {
+        margin-left: -10px;
+    }
+
+    .mobile-navigation {
+        display: block;
+        position: unset;
+    }
+
+    .is-sticky .profile-right-slider {
+        margin-right: 0px;
+    }
+
+    .main-footer .footer-menu-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 15px;
+    }
+
+    .main-footer .footer-logo-col {
+        width: 100%;
+    }
+
+    .main-footer .footer-menu-col {
+        width: calc(33.33% - 10px);
+    }
+}
+
+@media (max-width: 767px) {
+    .head-logo {
+        width: 130px;
+    }
+
+    .select-city-modal .select-city-modal-inner {
+        padding: 15px 10px 10px;
+    }
+
+    .select-city-modal .select-city-modal-inner .modal-inner {
+        padding: 0 5px 5px;
+    }
+
+    .header-action .user-profile-head img {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+    }
+
+    .header-action .header-search-icon {
+        min-width: 24px;
+        min-height: 24px;
+    }
+
+    .main-footer .footer-menu-col {
+        width: calc(50% - 7.5px);
+    }
+
+    .select-city-modal .popular-city-wrapper .popular-city-item .popular-city-name {
+        font-size: 11px;
+    }
+
+    .select-city-modal .popular-city-wrapper{
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 549px) {
+
+    
+    .select-city-modal .popular-city-wrapper{
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* .main-header {
+        position: unset;
+        background-color: #000;
+    } */
+
+    .mobile-navigation .mobile-nav-box {
+        max-width: 250px;
+    }
+
+    .select-city-modal .popular-city-header{
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .select-city-modal .popular-city-header .city-input-box{
+        width: 100%;
+    }
+
+    .header-action .main-city-select .select-icon.map {
+        display: none;
+    }
+
+    .header-action .header-search-icon {
+        background-color: transparent;
+        min-width: unset;
+        min-height: unset;
+    }
+
+    .header-action .header-search-icon svg {
+        color: #d3b15f;
+    }
+
+    .head-logo {
+        width: 110px;
+    }
+
+    .header-action .main-city-select {
+        margin-right: 5px;
+    }
+
+    .mobile-navigation .mobile-nav-header .mobile-nav-logo img {
+        width: 110px;
+    }
+
+    .mobile-navigation .mobile-nav-header .mobile-nav-close {
+        min-width: 20px;
+        min-height: 20px;
+        max-width: 20px;
+        max-height: 20px;
+        font-weight: 600
+    }
+
+    .main-footer .footer-menu-col {
+        flex: 1 0 auto;
+    }
+
+    .main-footer .footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .main-footer .footer-desc-wrap .footer-desc-content,
+    .main-footer .footer-desc-wrap p {
+        text-align: justify;
+    }
+
+    .select-city-modal .popular-city-wrapper {
+        gap: 15px;
+    }
+
+    .select-city-modal .popular-city-wrapper .popular-city-item {
+        flex-basis: unset;
+        width: calc(100vw / 3 - 31px);
+    }
+}
+
+@media (max-width: 321px) {
+    
+    .select-city-modal .popular-city-wrapper{
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .select-city-modal .popular-city-wrapper .popular-city-item {
+        flex-basis: unset;
+        width: calc(100vw / 2 - 45px);
+    }
+}

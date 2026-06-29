@@ -1,0 +1,309 @@
+.app-about .main-about {
+  background-color: #000;
+}
+
+.main-about .about-content {
+  padding: 30px 0;
+  max-width: 1000px;
+  margin: 0 auto;
+  color: #fff;
+}
+
+.main-about .about-content .about-content-left {
+  text-align: center;
+}
+
+.main-about .about-content h3 {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  color: #d3b15f;
+}
+
+.main-about .about-content p {
+  font-size: 16px;
+  line-height: 30px;
+  font-weight: 300;
+}
+
+.main-about .about-feature {
+  background-color: #000;
+  padding: 60px 0;
+}
+
+.main-about .about-feature .cus-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.main-about .about-feature .heading .title {
+  max-width: 550px;
+  text-align: center;
+  font-size: 30px;
+  line-height: 36px;
+  color: #d3b15f;
+  margin: 0 auto;
+  margin-bottom: 50px;
+}
+
+.download-btn-box {
+  display: flex;
+  justify-content: center;
+}
+
+.main-about .about-feature-box-border {
+  padding: 10px;
+  background-color: #23211e;
+  height: 100%;
+}
+
+.main-about .about-feature-box {
+  padding: 50px 30px;
+  border: 2px solid rgba(164, 172, 179, 0.4);
+  height: 100%;
+}
+
+.main-about .about-feature-box .about-feature-icon {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.main-about .about-feature-box .about-feature-icon img {
+  height: 75px;
+  width: auto;
+}
+
+.main-about .about-feature-box .about-feature-bottom {
+  text-align: center;
+  color: #fff;
+}
+
+.main-about .about-feature-box .about-feature-title {
+  text-transform: uppercase;
+  font-size: 18px;
+  line-height: 24px;
+  margin-bottom: 15px;
+  color: #d3b15f;
+}
+
+.main-about .about-feature-box .about-feature-content {
+  font-weight: 300;
+}
+
+.main-about .about-partner {
+  padding: 60px 0;
+}
+
+.main-about .about-partner .partner-slider-img {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 5px;
+  display: flex;
+}
+
+.main-about .about-partner .heading .title {
+  max-width: 550px;
+  text-align: center;
+  font-size: 30px;
+  line-height: 36px;
+  color: #d3b15f;
+  margin: 0 auto;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
+.main-about .about-content ul {
+  padding-left: 15px;
+}
+
+.main-about .about-content ul li {
+  list-style: disc;
+}
+
+
+
+
+/* start investor sidebar css */
+.inevestor-flex {
+  display: flex;
+  width: 100%;
+  margin-bottom: 50px;
+  gap: 20px;
+}
+
+.inverstor-left-main {
+  width: 100%;
+  flex: 0 0 30%;
+  max-width: 30%;
+  background-color: #23211e;
+  border-radius: 12px;
+}
+
+.inverstor-right-main {
+  width: 100%;
+  flex: 0 0 70%;
+  max-width: 70%;
+  background-color: #23211e;
+  border-radius: 12px;
+  padding: 25px;
+}
+
+.investor-list-main {
+  padding: 16px 0;
+  overflow-y: auto;
+  /* height: calc(100vh - 65px); */
+}
+
+.investor-submenulist .investor-listitem {
+  margin-bottom: 5px;
+}
+
+.investor-list-main .investor-list {
+  padding: 0px;
+}
+
+.investor-list .investor-listitem {
+  padding: 0;
+  /* border-bottom: 1px solid #aa834012; */
+}
+
+.investor-link-box {
+  width: 100%;
+}
+
+.investor-list-main .investor-list-link {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 300;
+  color: #FFFFFF;
+  display: flex;
+  width: 100%;
+  padding: 12px 15px;
+  text-decoration: none;
+  transition: 0.5s all;
+}
+
+/* .investor-list-main .investor-list-link:last-child{
+  border-bottom: none;
+} */
+.investor-list-main .investor-list-link.active {
+  color: #d3b15f;
+  font-weight: 300;
+  background-color: #130d00;
+  transition: 0.5s all;
+  position: relative;
+}
+
+.investor-list-main .investor-list-link.active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  border-radius: 0px 10px 10px 0px;
+  background-color: #d3b15f;
+  -webkit-border-radius: 0px 10px 10px 0px;
+  -moz-border-radius: 0px 10px 10px 0px;
+  -ms-border-radius: 0px 10px 10px 0px;
+  -o-border-radius: 0px 10px 10px 0px;
+}
+
+.investor-listitem .investor-expandless-icon,
+.investor-listitem .investor-expandmore-icon {
+  position: absolute;
+  right: 14px;
+  top: 10px;
+  color: #d3b15f;
+  height: 30px;
+  width: 30px;
+  object-fit: contain;
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 2px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* end investor sidebar css */
+
+.inestor-page-title-box .inestor-page-title {
+  font-size: 22px;
+  line-height: 30px;
+  color: #d3b15f;
+  text-transform: capitalize;
+  margin-bottom: 15px;
+}
+
+.investor-card-main-flex {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  /* gap: 25px; */
+}
+
+.investor-card {
+  border-bottom: 1px solid #aa834021;
+  /* border-radius: 12px; */
+  padding: 15px 0px;
+  position: relative;
+  overflow: hidden;
+  transition: 0.5s all;
+}
+
+.investor-content-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.investor-card .investor-card-title {
+  font-size: 14px;
+  line-height: 22px;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.investor-card-icon {
+  color: #d3b15f;
+  height: 30px;
+  width: 30px;
+  object-fit: contain;
+  transition: 0.5s all;
+}
+
+.investor-card-icon:hover {
+  color: #fff;
+  transition: 0.5s all;
+}
+
+.investor-submenu-collapse {
+  padding-left: 15px;
+}
+
+.investor-content-main .investor-content-title {
+  font-size: 18px;
+  line-height: 25px;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.investor-content-main .investor-mail-link {
+  font-size: 16px;
+  line-height: 22px;
+  color: #d3b15f;
+  margin-bottom: 10px;
+  display: block;
+}

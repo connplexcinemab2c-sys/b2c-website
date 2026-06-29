@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connplex Franchise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <center>
+      <table
+        style="
+          width: 100%;
+          max-width: 450px;
+          padding: 0px;
+          overflow: hidden;
+          color: #bcbcbc;
+          background-color: #191510;
+          font-family: 'Work Sans', sans-serif;
+        "
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        align="center"
+      >
+        <tbody>
+          <tr>
+            <td style="text-align: center; padding: 30px 0">
+              <img
+                src="https://appworkdemo.com/designer-template/template-one/images/connplexLogo.png"
+                alt="company logo"
+                width="150"
+                height="35"
+                style="margin: auto"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td
+              style="
+                background-color: #23211e;
+                border-radius: 0px;
+                padding: 15px 15px 30px 15px;
+                text-align: center;
+              "
+            >
+              <table
+                width="100%"
+                cellspacing="0"
+                cellpadding="0"
+                border="0"
+                align="center"
+              >
+                <tbody>
+                  <tr>
+                    <td
+                      style="
+                        font-size: 20px;
+                        line-height: 26px;
+                        font-weight: 500;
+                      "
+                    >
+                      Apply Coupon
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="height: 20px">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <table
+                        width="100%"
+                        cellspacing="0"
+                        cellpadding="0"
+                        border="0"
+                      >
+                        <tbody>
+                          <tr>
+                            <td
+                              style="
+                                background: #e9b139;
+                                color: #000;
+                                border-radius: 10px 10px 0px 0px;
+                                padding: 10px 20px;
+                              "
+                            >
+                              <div class="rotated">
+                                <p style="font-weight: 500; margin: 0px">
+                                  <%= data.couponDescription %>
+                                </p>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td
+                              style="
+                                text-align: start;
+                                background-color: #fff;
+                                border-radius: 0px 0px 10px 10px;
+                                padding: 10px 20px;
+                              "
+                            >
+                              <table
+                                width="100%"
+                                cellspacing="0"
+                                cellpadding="0"
+                                border="0"
+                              >
+                                <tbody>
+                                  <tr>
+                                    <td>
+                                      <div
+                                        style="
+                                          color: #000;
+                                          font-weight: 600;
+                                          font-size: 20px;
+                                        "
+                                      >
+                                        <%= data.couponTitle %>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <div
+                                        style="
+                                          color: #000;
+                                          font-weight: 500;
+                                          font-size: 13px;
+                                          text-align: end;
+                                        "
+                                      >
+                                        <%= data.couponDescription %>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td
+                                      colspan="2"
+                                      style="
+                                        border-bottom: 1px solid #bcbcbc;
+                                        padding: 5px 0px;
+                                      "
+                                    ></td>
+                                  </tr>
+                                  <tr>
+                                    <td colspan="2" style="padding-top: 5px">
+                                      <p
+                                        style="
+                                          margin: 5px 0px;
+                                          color: #000;
+                                          font-size: 15px;
+                                        "
+                                      >
+                                        Use Code <%= data.couponTitle %> &amp;
+                                        <%= data.couponDescription %>
+                                      </p>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </center>
+  </body>
+</html>

@@ -1,0 +1,390 @@
+.ticket-main {
+    margin: 0 auto;
+    max-width: 600px;
+    width: 100%;
+    background: #23211e;
+    padding: 20px 40px;
+    text-align: center;
+}
+
+.ticket-logo-sec {
+    text-align: center;
+}
+
+.ticket-logo-sec .ticket-logo {
+    width: clamp(150px, 50%, 200px);
+    margin-bottom: 20px;
+}
+
+.feedback-sec {
+    margin-bottom: 20px;
+}
+
+.feedback-sec .feedback-title {
+    color: #d3b15f;
+    font-size: 24px;
+    line-height: 30px;
+    margin-bottom: 8px;
+}
+
+.cus-rating label {
+    font-size: 31px;
+}
+
+.cus-rating .MuiRating-icon.MuiRating-iconEmpty {
+    color: rgb(255 255 255 / 50%);
+}
+
+.ticket-content-sec {
+    background-color: #fff;
+    box-sizing: border-box;
+    padding: 55px 22px 10px 22px;
+    position: relative;
+    width: 100%;
+    border-radius: 20px;
+}
+
+.ticket-content-sec .ticket-round {
+    background: #23211e;
+    border-radius: 50%;
+    position: absolute;
+   
+}
+
+.ticket-content-sec .ticket-round-top {
+    top: -12px;
+    left: 47%;
+    height: 60px;
+    width: 73px;
+    transform: translateX(-50%);
+}
+.ticket-content-sec .welcome-title{
+    color: #000;
+    font-size: 16px;
+    line-height: 20px;
+    text-transform: uppercase;
+}
+.ticket-content-sec .welcome-my{
+    margin: 16px 0 16px 0;
+    border-bottom: 4px dotted;
+    padding-bottom: 10px;
+    font-size: 14px;
+}
+.welcome-title .welcome-name{
+    color: #ffb400;
+}
+.seat-movie-details {
+    text-align: start;
+}
+.ticket-qr-sec{
+    width: 136px;
+    height: 136px;
+    padding: 13px;
+    border-radius: 20px;
+    margin: auto;
+    border: 1px solid #000;
+}
+.cus-center{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.ticket-content-sec .book-id-text{
+    margin: 16px 0;
+    text-align: center;
+    width: 100%;
+    font-size: 13px;
+}
+.movie-details-box {
+    margin-bottom: 10px;
+}
+.align-start{
+    justify-content: start;
+    margin-bottom: 10px;
+}
+.moview-name-show{
+    padding-left: 10px;
+    display: flex;
+    flex-direction: column;
+}
+.movie-details .movie-details-box{
+    padding: 20px 0;
+    border-top: 1px dashed #000;
+    /* border-bottom: 1px dashed #000; */
+}
+.movie-details-box .film-ic{
+    width: 30px;
+    margin-right: 5px;
+}
+.movie-details-box .movie-title{
+    font-size: 23px;
+    font-weight: 600;
+    margin: 0 0 0px 5px;
+    text-transform: uppercase;
+}
+.movie-details-box .movie-name{
+    margin: 10px 0 5px 0px;
+}
+.movie-details-box .movie-time{
+    font-size: 14px;
+    text-align: start;
+}
+.br-bottom{
+    border-bottom: 1px solid #f7f7f7;
+}
+.ticket-detail-sec {
+    border-top: 15px dotted #23211e;
+    position: relative;
+    padding: 20px 0 30px 0px;
+}
+.ticket-content-sec .ticket-round-left {
+    left: -62px;
+    z-index: 20;
+    height: 54px;
+    width: 58px;
+    top: -33px;
+}
+.ticket-content-sec .ticket-round-right {
+    right: -62px;
+    top: 15px;
+    height: 54px;
+    width: 58px;
+}
+.ticket-content-sec .ticket-round-bottom {
+    left: 40%;
+    bottom: -35px;
+    height: 60px;
+    width: 73px;
+}
+.ticket-con-sec .title-con-text{
+font-size: 14px;
+font-weight: 700;
+}
+.foodItem {
+background-color: #23211e;
+padding: 10px;
+color: #fff;
+border-radius: 8px;
+}
+.foodItem .heading-fb {
+    margin-bottom: 5px;
+}
+.foodItem .title-con-text {
+    font-size: 12px;
+    font-weight: 500;
+}
+.ticket-con-sec{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.ticket-footer-sec{
+    padding: 30px 22px 2px 22px;
+}
+.ticket-footer-sec .gst-text{
+font-size: 12px;
+color: #fff;
+margin-bottom: 12px;
+}
+.ticket-footer-sec .smart-theatre{
+font-size: 17px;
+color: #fff;
+margin-bottom: 6px;
+}
+.ticket-footer-btn .term-btn{
+border: 1px solid #fff;
+font-size: 12px;
+color: #FFF;
+padding: 4px 16px;
+border-radius: 8px;
+margin-bottom: 10px;
+text-transform: capitalize;
+font-weight: 400;
+}
+.ticket-social-sec{
+    margin: 16px 0 20px 0;
+}
+.ticket-footer-sec .pay-img{
+width: 150px;
+margin-top: 15px;
+height: 32px;
+}
+.ticket-social-link{
+    width: 30px;
+    height: 30px;
+    background: #f1c40f;
+    border-radius: 50%;
+    padding: 5px;
+    margin-right: 15px;
+}
+.mt-4{
+    margin-top: 4px;
+}
+.ticket-term-modal .ticket-term-modal-inner{
+    max-width: 348px !important;
+    width: 100%;
+}
+.ticket-term-modal-inner .ticket-modal-text{
+margin-bottom: 5px;
+}
+.support-img{
+    width: 40px;
+    height: 40px;
+}
+.help-radio-btn .MuiSvgIcon-fontSizeMedium path{
+fill: #FFF;
+}
+
+.radio-list-lable .radio-list svg {
+    color: #fff;
+}
+.help-modal-footer{
+    margin-top: 15px;
+}
+.help-modal-footer .btn{
+min-width: 90px;
+height: 40px;
+margin-right: 15px;
+}
+
+/* .movie-tabflex{
+    display: flex;
+    align-items: center;
+    justify-content:center;
+    gap:10px;
+} */
+
+.movie-details .seat-movie-details{
+    border-top: 0px;
+    padding: 12px 0;
+}
+
+.start-cust{
+    flex-direction: column;
+    align-items: start;
+    border-right: 1px solid rgb(0 0 0 / 20%);
+    padding-right: 10px;
+}
+
+.flex-movie-content{
+    display: flex;
+    margin-bottom: 10px;
+}
+.mb-20{
+    margin-bottom: 20px;
+}
+.mt-10{
+    margin-top: 10px;
+}
+
+.title-coupon-list {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 23px;
+    margin-bottom: 19px;
+}
+
+.mb-20px{
+    margin-bottom: 20px;
+}
+
+.coupon-details{
+    margin-top: 20px;
+}
+
+.coupon-details .foodItem .heading-fb {
+    margin-bottom: 0px;
+    background: #e9b139;
+    padding: 8px;
+    color: #000;
+    font-weight: 500;
+    border-radius: 8px 8px 0px 0px;
+}
+
+.coupon-details .foodItem{
+    padding: 0px;
+}
+
+.bg-coupon-contain {
+    background: #23211e;
+    padding: 10px;
+    border-radius: 0px 0px 8px 8px;
+}
+
+.coupon-details .foodItem .title-con-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.ticket-con-sec:last-child {
+    margin-bottom: 0px;
+}
+
+.ticking-show-details .ticket-details-book-confirm {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ticking-show-details .ticket-details-book-confirm .booking-detail-label {
+    color: #000 !important;
+    font-size: 21px;
+    /* font-weight: 600 !important; */
+}
+
+.ticking-show-details .ticket-details-book-confirm .bold-confirmation {
+    font-weight: 600 !important;
+}
+
+.ticking-show-details .payment-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.ticking-total-show {
+    border-top: 1px dashed #000;
+}
+
+.total-title-tick {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0px;
+}
+
+.total-title-tick span {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+@media (max-width:767px){
+    .flex-movie-content{
+        flex-direction: column;
+    }
+    .start-cust{
+        border-right: 0px;
+        padding-right: 0px;
+    }
+    .moview-name-show{
+        padding-left: 0px;
+    }
+    .ticketing-download .movie-details-box .movie-title{
+        text-align: start;
+    }
+    .foodItem .title-con-text {
+        font-size: 11px;
+        text-align: start;
+    }
+    .ticket-con-sec{
+        gap: 10px
+    }
+
+    .total-title-tick span {
+        font-size: 14px;
+        font-weight: 600;
+    }
+}

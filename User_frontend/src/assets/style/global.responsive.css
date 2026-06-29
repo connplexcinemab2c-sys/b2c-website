@@ -1,0 +1,365 @@
+@media (max-width: 1199px) {
+  .account-ad-slider .ad-slider-img img {
+    max-height: 90px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .no-found-img-box {
+    padding: 20px;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .no-found-img-box img {
+    width: 100px;
+    height: 100px;
+  }
+
+  .no-found-svg-box {
+    gap: 10px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .no-found-svg-box svg {
+    padding: 10px;
+    font-size: 75px;
+  }
+}
+
+@media (max-width: 991px) {
+  .account-ad-slider .ad-slider-img img {
+    max-height: 68px;
+  }
+}
+
+@media (max-width: 767px) {
+  .account-ad-slider .ad-slider-img img {
+    max-height: 60px;
+  }
+
+  html {
+    scroll-padding-block-start: 135px;
+  }
+
+  .movie-slider .movie-slider-heading h5 {
+    padding-top: 15px;
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  .movie-slider .movie-slider-inner .swiper {
+    padding: 15px 7px 20px;
+  }
+
+  .main-trial-membership {
+    padding: 40px 0;
+  }
+
+  .main-trial-membership .main-trial-container .MuiGrid-item {
+    width: 100%;
+    text-align: center;
+  }
+
+  .newsletter-content h4 {
+    font-size: 24px;
+    line-height: 30px;
+    font-weight: 500;
+  }
+
+  .card-content-btn {
+    display: none;
+  }
+
+  .banner-image .banner-image-content .banner-title {
+    font-size: 30px;
+    line-height: 36px;
+  }
+  .banner-image .banner-image-content .banner-description {
+    font-size: 16px;
+    line-height: 36px;
+  }
+
+  .search-modal .search-modal-inner {
+    padding: 15px 10px 10px;
+  }
+
+  .search-modal .search-modal-inner .modal-inner {
+    padding: 0 5px 5px;
+  }
+
+  .search-modal .search-btn-box-wrapper {
+    padding-bottom: 8px;
+  }
+
+  .search-modal .search-btn-box {
+    gap: 10px;
+  }
+
+  .search-modal .search-btn-box .btn {
+    font-size: 12px;
+  }
+
+  /* Loader */
+  .spinner-box {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 4;
+    position: fixed;
+  }
+
+  .configure-border-1 {
+    width: 50px;
+    height: 50px;
+  }
+
+  .configure-border-2 {
+    width: 50px;
+    height: 50px;
+  }
+
+  .account-ad-slider {
+    border-radius: 6px;
+  }
+
+  .movie-slider
+    .movie-slider-inner
+    .swiper
+    :is(.swiper-button-prev, .swiper-button-next) {
+    display: none;
+  }
+
+  .comming-soon-content-main {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 549px) {
+  .account-ad-slider .ad-slider-img img {
+    max-height: 31.81px;
+  }
+
+  html {
+    scroll-padding-block-start: 130px;
+  }
+
+  button.btn,
+  .btn {
+    padding: 8px 16px;
+  }
+
+  .movie-slider .movie-slider-inner .swiper {
+    padding: 10px 7px 20px;
+  }
+
+  .movie-slider .movie-slider-heading h5 {
+    font-size: 16px;
+    line-height: 22px;
+  }
+
+  .card-img {
+    border-radius: 6px;
+  }
+
+  .main-card .card-rating-like {
+    padding: 2px;
+    gap: 5px;
+  }
+
+  .main-card .card-rating-box,
+  .main-card .card-like-box {
+    gap: 2px;
+  }
+
+  .main-card .card-rating-box span,
+  .main-card .card-like-box span {
+    font-size: 10px;
+    font-weight: 300;
+  }
+
+  .main-card .card-rating-box svg,
+  .main-card .card-like-box svg {
+    font-size: 16px;
+  }
+
+  .card-content {
+    border-radius: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .card-content-title {
+    padding: 3px 0 0;
+  }
+
+  .card-content-title h6 {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .card-content-action {
+    font-size: 9px;
+    line-height: 12px;
+  }
+
+  .newsletter-content h4 {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .main-trial-membership {
+    padding: 30px 0;
+  }
+
+  .trial-mail .MuiInput-underline input,
+  .trial-mail button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+  }
+
+  .trial-mail button {
+    font-weight: 300;
+  }
+
+  .banner-image .banner-image-content .banner-title {
+    font-size: 24px;
+    line-height: 30px;
+  }
+
+  .no-found-img-box {
+    padding: 15px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .no-found-img-box img {
+    width: 70px;
+    height: 70px;
+  }
+
+  .no-found-svg-box {
+    gap: 5px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .no-found-svg-box svg {
+    font-size: 55px;
+  }
+
+  .common-modal .common-modal-inner {
+    padding: 10px 7px;
+  }
+
+  .common-modal .common-modal-inner .modal-inner {
+    padding: 5px 9px 10px 7px;
+  }
+
+  .franchise-modal .modal-inner .franchise-modal-action .store-btns img {
+    width: 100px;
+  }
+
+  .franchise-modal .modal-inner .franchise-modal-action {
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .franchise-modal .modal-inner .apply-button {
+    max-width: 100%;
+  }
+
+  .review-modal .movie-review-box .movie-review-title,
+  .review-modal .connplex-review-box .connplex-review-title {
+    font-size: 14px;
+    line-height: 20px;
+    margin-bottom: 5px;
+  }
+
+  .review-modal .movie-review-box {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+
+  .review-modal .connplex-review-body textarea {
+    margin-top: 10px;
+  }
+
+  .review-modal .connplex-review-body {
+    gap: 15px;
+  }
+
+  .review-modal .review-star-box .review-star-item svg {
+    font-size: 20px;
+  }
+
+  .review-modal .review-star-box .review-star-icon svg {
+    font-size: 18px;
+  }
+
+  .review-modal .review-star-box {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .product-card {
+    border: 1px solid #ffb40033;
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  .product-card .add-wishlist-btn {
+    right: 5px;
+    top: 5px;
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+  }
+
+  .product-card .add-wishlist-btn svg {
+    font-size: 14px;
+  }
+
+  .product-card .product-content {
+    margin-top: 3px;
+  }
+
+  .product-card .product-content .product-title {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .product-card .product-content .product-price {
+    font-size: 12px;
+    line-height: 18px;
+    margin-top: 2px;
+  }
+
+  .product-card .product-content .product-action {
+    margin-top: 5px;
+    gap: 5px;
+  }
+
+  .product-card .product-content .product-action .add-cart-btn {
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+  }
+
+  .product-card .product-content .product-action .add-cart-btn svg {
+    font-size: 14px;
+  }
+
+  .product-card .product-content .product-action .buy-now-btn {
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+}

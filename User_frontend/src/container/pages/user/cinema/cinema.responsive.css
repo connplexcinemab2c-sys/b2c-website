@@ -1,0 +1,118 @@
+@media (max-width: 1023px) {
+  .main-cinema .cinema-body .cinema-box img {
+    height: 300px;
+    max-height: 200px;
+  }
+
+  .main-cinema .cinema-body {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .main-cinema .cinema-body .cinema-box {
+    flex-direction: column;
+  }
+
+  .main-cinema .cinema-body .cinema-box .cinema-box-content {
+    position: unset;
+    height: unset;
+  }
+
+  .main-cinema .cinema-body .cinema-box:hover .cinema-box-content {
+    height: unset;
+  }
+
+  .main-cinema .cinema-body .cinema-box .cinema-box-content .cinema-address {
+    height: unset;
+    opacity: 1;
+    margin-top: 10px;
+  }
+
+  .main-cinema .cinema-body .cinema-box:hover .cinema-box-content .cinema-address {
+    height: unset;
+  }
+}
+
+@media (max-width: 767px) {
+  .main-cinema-inner .cinema-inner-slider img{
+    height: 200px;
+  }
+  .main-cinema .cinema-header .cinema-header-inner {
+    padding: 20px 0;
+  }
+
+  .main-cinema .cinema-header .cinema-header-title {
+    font-size: 24px;
+    line-height: 30px;
+  }
+
+  .main-cinema .cinema-body {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 20px;
+  }
+
+  .main-cinema .cinema-body .cinema-box img {
+    height: auto;
+  }
+
+  .main-cinema .cinema-body .cinema-box .cinema-box-content .cinema-address {
+    margin-top: 5px;
+  }
+
+  .main-cinema-inner .cinema-header .cinema-header-title {
+    font-size: 20px;
+    line-height: 26px;
+    margin-bottom: 5px;
+  }
+
+  .main-cinema-inner .cinema-header .theatre-location svg {
+    font-size: 16px;
+    color: #d3b15f;
+  }
+
+  .main-cinema-inner .cinema-header .theatre-location {
+    font-size: 12px;
+    line-height: 16px;
+    gap: 3px;
+  }
+
+  .main-cinema-inner .cinema-inner-slider {
+    height: 200px;
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 549px) {
+  .main-cinema-inner .cinema-inner-slider img{
+    height: 140px;
+  }
+
+  .main-cinema .cinema-body .cinema-box img {
+    height: 150px;
+  }
+
+  .main-cinema .cinema-body .cinema-box .cinema-box-content {
+    padding: 10px;
+  }
+
+  .main-cinema .cinema-body .cinema-box .cinema-box-content .cinema-title {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .main-cinema .cinema-body .cinema-box .cinema-box-content .cinema-address,
+  .main-cinema .cinema-body .cinema-box .cinema-box-content .cinema-city {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .main-cinema-inner .cinema-header {
+    padding: 20px 0;
+  }
+
+  .main-cinema-inner .cinema-inner-slider {
+    height: 140px;
+    min-height: 140px;
+    margin-bottom: 15px;
+  }
+}

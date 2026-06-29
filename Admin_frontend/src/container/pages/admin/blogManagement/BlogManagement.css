@@ -1,0 +1,17 @@
+.custom-form-group {
+  padding: 5.5px 15px;
+  background: #fff;
+  border-radius: 5px;
+  overflow: auto;
+  min-height: 36px;
+  color: #191510ad;
+}
+
+.blog-grp-btn {
+  display: flex;
+  gap: 10px;
+}
+
+.mobile-blog-grp-btn{
+  gap: 10px;
+}

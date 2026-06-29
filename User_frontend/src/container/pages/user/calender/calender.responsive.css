@@ -1,0 +1,174 @@
+@media (max-width: 1023px) {
+    .main-calender .calender-filter-left {
+        padding: 0;
+    }
+
+    .main-calender .calender-filter-left .swiper-button-prev,
+    .main-calender .calender-filter-left .swiper-button-next {
+        display: none;
+    }
+
+    .main-calender .calender-filter-left .swiper-slide {
+        width: auto !important;
+    }
+
+    .main-calender .upcoming-card-wrapper {
+        grid-template-columns: repeat(4, 1fr);
+        column-gap: 10px;
+    }
+
+    .main-calender .calender-body {
+        padding: 20px 0 40px;
+    }
+
+    .main-calender .upcoming-heading {
+        margin-bottom: 20px;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 767px) {
+    .main-calender .calender-filter {
+        padding: 8px 0;
+        top: 58.47px;
+    }
+
+    .main-calender .calender-filter-left .calender-filter-item {
+        margin: 0;
+        height: auto;
+        padding: 10px 10px 7px;
+    }
+
+    .main-calender .calender-filter-left .calender-filter-item:hover {
+        height: auto;
+        margin: 0;
+    }
+
+    .main-calender .calender-filter-left .calender-filter-item .filter-month {
+        font-size: 13px;
+        line-height: 19px;
+        margin-top: 12px;
+    }
+
+    .main-calender .calender-filter-left .calender-filter-item .filter-year {
+        padding: 0;
+        font-size: 11px;
+        line-height: 17px;
+    }
+
+    .main-calender .calender-filter-right .filter-dropdown-main .filter-drop-btn {
+        padding: 4px 8px 4px 12px;
+    }
+
+    .main-calender .upcoming-card-wrapper {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .main-calender .upcoming-heading .upcoming-heading-year {
+        font-size: 12px;
+        line-height: 18px;
+        width: 38px;
+        height: 38px;
+    }
+
+    .main-calender .upcoming-heading {
+        gap: 10px;
+    }
+
+    .main-calender .upcoming-heading .upcoming-heading-month {
+        font-size: 16px;
+        line-height: 26px;
+    }
+
+    .main-calender .upcoming-wrapper-box:not(:last-child) {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+    }
+
+    .main-calender .calender-body {
+        padding: 20px 0 30px;
+    }
+
+    .main-calender .upcoming-card .upcoming-card-title {
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 300;
+        letter-spacing: 1px;
+    }
+
+    .main-calender .upcoming-card .upcoming-card-release,
+    .main-calender .upcoming-card .upcoming-card-details {
+        font-size: 12px;
+        line-height: 18px;
+        letter-spacing: 0.5px;
+    }
+
+    .main-calender .upcoming-card .upcoming-card-details {
+        padding: 30px 6px;
+    }
+
+    .main-calender .upcoming-card .upcoming-card-icon,
+    .main-calender .upcoming-card .upcoming-card-img::after {
+        width: 30px;
+        height: 30px;
+    }
+
+    .main-calender .upcoming-card .upcoming-card-icon svg {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 549px) {
+    .main-calender .calender-filter {
+        top: 54.09px;
+    }
+
+    .main-calender .upcoming-card-wrapper {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .main-calender .upcoming-card .upcoming-card-release,
+    .main-calender .upcoming-card .upcoming-card-details {
+        font-size: 10px;
+        line-height: 14px;
+    }
+
+    .main-calender .upcoming-card .upcoming-card-title {
+        margin-top: 3px;
+    }
+
+    .main-calender .upcoming-card .upcoming-card-title {
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    .main-calender .calender-filter-right {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0;
+    }
+
+    .main-calender .calender-filter-right .filter-dropdown-main .filter-drop-btn {
+        padding: 4px 0 4px 4px;
+    }
+
+    .main-calender .upcoming-heading .upcoming-heading-year {
+        width: unset;
+        height: unset;
+        border-radius: 100rem;
+        padding: 2px 5px;
+    }
+
+    .main-calender .calender-body {
+        padding: 15px 0 30px;
+    }
+
+    .main-calender .upcoming-heading {
+        margin-bottom: 15px;
+    }
+
+    .main-calender .upcoming-wrapper-box:not(:last-child) {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+    }
+}

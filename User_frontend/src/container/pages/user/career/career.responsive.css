@@ -1,0 +1,29 @@
+@media (max-width: 767px) {
+    .main-career .main-career-wrapper {
+        padding: 40px 0;
+    }
+}
+
+@media (max-width: 549px) {
+    .main-career .main-career-wrapper {
+        padding: 30px 0;
+    }
+
+    .main-career .career-img img {
+        height: auto;
+    }
+
+    .main-career .career-form {
+        padding: 15px 10px 20px;
+    }
+
+    .main-career .career-form .file-upload-box .file-label svg {
+        font-size: 30px;
+    }
+
+    .main-career .career-form .career-form-title {
+        font-size: 18px;
+        line-height: 24px;
+        margin-bottom: 10px;
+    }
+}

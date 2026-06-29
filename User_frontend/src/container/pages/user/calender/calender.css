@@ -1,0 +1,238 @@
+.main-calender {
+    background-color: #000
+}
+
+.main-calender .calender-filter {
+    position: sticky;
+    top: 73.81px;
+    z-index: 2;
+    background-color: #000;
+    border-bottom: 1px solid #23211e;
+}
+
+.main-calender .calender-filter .cus-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.main-calender .calender-filter-right {
+    width: calc(40% - 5px);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.main-calender .calender-filter-right .filter-dropdown-main {
+    width: 100%;
+    max-width: 130px;
+}
+
+.main-calender .calender-filter-left {
+    width: calc(60% - 5px);
+    max-width: 500px;
+    padding: 0 32px;
+    position: relative;
+}
+
+.main-calender .calender-filter-left .swiper-button-prev {
+    left: 0;
+}
+
+.main-calender .calender-filter-left .swiper-button-next {
+    right: 0;
+}
+
+.main-calender .calender-filter-left .swiper-button-prev,
+.main-calender .calender-filter-left .swiper-button-next {
+    background: #4e4c41;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0;
+    z-index: 2;
+}
+
+.main-calender .calender-filter-left .swiper-button-prev:after,
+.main-calender .calender-filter-left .swiper-button-next:after {
+    font-size: 12px;
+    font-weight: bolder;
+    color: #191510;
+}
+
+.main-calender .calender-filter-left .calender-filter-item {
+    background-color: #23211e;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 15px;
+    margin: 15px 0;
+    height: 70px;
+    width: 100%;
+    cursor: pointer;
+    transition: 0.3s all ease-in-out;
+}
+
+.main-calender .calender-filter-left .calender-filter-item:hover {
+    background-color: #e4e4e4;
+    color: #000;
+    height: 85px;
+    margin: 7.5px 0;
+}
+
+.main-calender .calender-filter-left .calender-filter-item .filter-year {
+    background: radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 30%, #8A6E2F 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #fff 0%, #FDB931 8%, #9f7928 25%, #8A6E2F 62.5%, #5d4a1f 100%);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    padding: 2px 10px;
+    color: #fff;
+}
+
+.main-calender .calender-filter-left .calender-filter-item .filter-month {
+    margin-top: 20px;
+    text-transform: uppercase;
+    font-size: 16px;
+    line-height: 22px;
+}
+
+.main-calender .calender-body {
+    padding: 30px 0 60px;
+}
+
+.main-calender .upcoming-wrapper-box:not(:last-child) {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #23211e;
+}
+
+.main-calender .upcoming-heading {
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.main-calender .upcoming-heading .upcoming-heading-month {
+    font-size: 20px;
+    line-height: 26px;
+    color: #fff;
+}
+
+.main-calender .upcoming-heading .upcoming-heading-year {
+    background-color: #d3b15f;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.main-calender .upcoming-card-wrapper {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+}
+
+.main-calender .upcoming-card {
+    overflow: hidden;
+}
+
+.main-calender .upcoming-card .upcoming-card-img {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+}
+
+.main-calender .upcoming-card .upcoming-card-img::after {
+    position: absolute;
+    content: "";
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    width: 40px;
+    height: 40px;
+    transition: 0.3s all ease-in-out;
+}
+
+.main-calender .upcoming-card .upcoming-card-img:hover::after {
+    width: 100%;
+    height: 100%;
+}
+
+.main-calender .upcoming-card .upcoming-card-img img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 3/4.5;
+    object-fit: cover;
+}
+
+.main-calender .upcoming-card .upcoming-card-title {
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 400;
+    text-transform: uppercase;
+    color: #fff;
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.main-calender .upcoming-card .upcoming-card-release {
+    color: #d3b15f;
+}
+
+.main-calender .upcoming-card .upcoming-card-details {
+    color: #fff;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+    padding: 40px 10px;
+    right: 100%;
+    top: 100%;
+    transition: 0.5s all ease-in-out;
+    font-weight: 300;
+}
+
+.main-calender .upcoming-card .upcoming-card-img:hover .upcoming-card-details {
+    right: 0;
+    top: 0;
+}
+
+.main-calender .upcoming-card .upcoming-card-details :is(.card-details-genre, .card-details-lang) {
+    text-transform: uppercase;
+}
+
+.main-calender .upcoming-card .upcoming-card-details .card-details-label {
+    font-weight: 500;
+}
+
+.main-calender .upcoming-card .upcoming-card-icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 40px;
+    z-index: 1;
+}
+
+.main-calender .upcoming-card .upcoming-card-icon svg {
+    color: #fff;
+}

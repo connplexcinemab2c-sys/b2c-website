@@ -1,0 +1,15 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 707 105" width="707" height="105">
+	<title>screenImg-svg</title>
+	<defs>
+		<linearGradient id="g1" x2="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,95.29,-651.424,0,353.17,1.003)">
+			<stop offset="0" stop-color="#d49e2f"/>
+			<stop offset="1" stop-color="#181510"/>
+		</linearGradient>
+	</defs>
+	<style>
+		.s0 { opacity: .2;fill: url(#g1) } 
+		.s1 { fill: none;stroke: #d49e2f;stroke-linecap: round;stroke-width: 4 } 
+	</style>
+	<path id="Layer" class="s0" d="m3 20.6c0 0 325.8-44.2 699.8 0 1.2 81.5 0 82.8 0 82.8h-699.8z"/>
+	<path id="Layer" class="s1" d="m3.4 23c0 0 174-16.6 349-16.6 175 0 351.1 16.6 351.1 16.6"/>
+</svg>

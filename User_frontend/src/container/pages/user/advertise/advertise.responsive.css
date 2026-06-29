@@ -1,0 +1,36 @@
+@media (max-width: 767px) {
+    .main-advertise .main-advertise-wrapper {
+        padding: 40px 0;
+    }
+
+    .main-advertise .banner-image {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .main-advertise .banner-image .banner-image-content {
+        position: unset;
+        transform: unset;
+        padding-top: 30px;
+    }
+}
+
+@media (max-width: 549px) {
+    .main-advertise .main-advertise-wrapper {
+        padding: 30px 0;
+    }
+
+    .main-advertise .advertise-img img {
+        height: auto;
+    }
+
+    .main-advertise .advertise-form {
+        padding: 15px 10px 20px;
+    }
+
+    .main-advertise .advertise-form .advertise-form-title {
+        font-size: 18px;
+        line-height: 24px;
+        margin-bottom: 10px;
+    }
+}

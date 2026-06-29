@@ -1,0 +1,2 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="512" height="512" x="0" y="0" viewBox="0 0 24 24"
+ class=""><g><path d="M18 23H6a1 1 0 0 1 0-2h12a1 1 0 0 1 0 2zm5-17v8a5 5 0 0 1-5 5H6a5 5 0 0 1-5-5V6a5 5 0 0 1 5-5h12a5 5 0 0 1 5 5zM5 8a1 1 0 0 0 1 1h6a1 1 0 0 0 0-2H6a1 1 0 0 0-1 1zm14 4a1 1 0 0 0-1-1H6a1 1 0 0 0 0 2h12a1 1 0 0 0 1-1z" fill="#bcbcbc" opacity="1" data-original="#000000" class=""/></g></svg>

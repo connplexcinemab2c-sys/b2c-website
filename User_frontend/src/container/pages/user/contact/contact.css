@@ -1,0 +1,162 @@
+.main-contact .contact-experience{
+    background-color: #000;
+    padding: 60px 0 220px;
+    position: relative;
+}
+.main-contact .contact-experience .cus-container{
+    max-width: 1000px;
+}
+.main-contact .contact-experience-left .title{
+    color: #d3b15f;
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 500;
+}
+.main-contact .contact-experience-left .owner-name-box{
+    margin-top: 20px;
+}
+.main-contact .contact-experience-left .owner-name{
+    color: #fff;
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 400;
+    position: relative;
+    padding-right: 60px;
+    display: inline-block;
+}
+.main-contact .contact-experience-left .owner-name::after{
+    position: absolute;
+    content: "";
+    width: 40px;
+    height: 2px;
+    background-color: #fff;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 0;
+}
+.main-contact .contact-experience-left .owner-designation{
+    color: #fff;
+    font-weight: 400;
+}
+.main-contact .contact-experience-right .history-box-wrapper{
+    display: flex;
+    justify-content: space-between;
+    gap: 50px;
+}
+.main-contact .contact-experience-right{
+    display: flex;
+    justify-content: flex-end;
+    text-align: center;
+}
+.main-contact .contact-experience-right .history-box-icon{
+    color: #d3b15f;
+    font-size: 80px;
+    line-height: 90px;
+    font-weight: 600;
+}
+.main-contact .contact-experience-right .history-box-text{
+    margin-top: 5px;
+    color: #fff;
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 400;
+    max-width: 250px;
+}
+.main-contact .contact-form-wrapper{
+    padding: 0 0 60px;
+    margin-top: -140px;
+    background-color: #fff;
+}
+.main-contact .contact-form-wrapper .cus-container{
+    max-width: 1000px;
+}
+.main-contact .contact-form-wrapper .contact-form-box{
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 4px 54px 10px #0000001a;
+    border-radius: 12px;
+    position: relative;
+}
+.main-contact .contact-form-box .contact-map iframe{
+    width: 100%;
+    min-height: 100%;
+    height: 350px;
+    border-radius: 6px;
+}
+.main-contact .contact-form .contact-form-title{
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.main-contact .contact-form input,
+.main-contact .contact-form textarea{
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    line-height: 20px;
+    font-family: inherit;
+}
+.main-contact .contact-form .form-control fieldset{
+    border-color: rgba(0, 0, 0, 0.23);
+    border-width: 1px;
+    border-radius: 100rem;
+}
+.main-contact .contact-form textarea{
+    border-radius: 12px;
+    border-color: rgba(0, 0, 0, 0.23);
+    resize: vertical;
+}
+.main-contact .contact-form textarea:focus{
+    outline: none;
+    border: 1px solid currentColor;
+}
+.main-contact .contact-form .form-control .Mui-focused fieldset{
+    border: 1px solid currentColor;
+}
+.main-contact .contact-form .submit-button{
+    width: 100%;
+    background:#000;
+}
+
+.main-contact .contact-info{
+    padding: 0 0 60px;
+    background-color: #fff;
+}
+.main-contact .contact-info .contact-info-title{
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-align: center;
+}
+.main-contact .contact-info .contact-info-box{
+    display: flex;
+    justify-content: space-evenly;
+    gap: 20px;
+}
+.main-contact .contact-info .contact-info-col{
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    max-width: 300px;
+}
+.main-contact .contact-info .contact-info-col .contact-info-icon{
+    align-items: center;
+    justify-content: center;
+    display: inline-flex;
+    background-color: #d3b15f;
+    min-width: 50px;
+    min-height: 50px;
+    max-width: 50px;
+    max-height: 50px;
+    border-radius: 50%;
+}
+.main-contact .contact-info .contact-info-content{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.main-contact .contact-experience-left .owner-name.owner-after-remover:after {
+    display: none;
+}

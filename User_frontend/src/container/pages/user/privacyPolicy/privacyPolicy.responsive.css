@@ -1,0 +1,17 @@
+@media (max-width: 767px) {
+    .main-privacy .privacy-header {
+        padding: 20px 0;
+    }
+
+    .main-privacy .privacy-body{
+        padding: 20px 0 30px;
+    }
+
+    .main-privacy .privacy-header .privacy-header-title {
+        font-size: 24px;
+        line-height: 30px;
+    }
+    .main-privacy .privacy-body h4 {
+        font-weight: 500;
+    }
+}

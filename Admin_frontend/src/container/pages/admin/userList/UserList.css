@@ -1,0 +1,134 @@
+.user-tab-listing .tab-user-contain {
+  border-bottom: 1px solid #19151081;
+}
+
+.tabs-user-list .MuiTabs-indicator {
+  background-color: #000000;
+}
+
+.tab-user-contain .tab-label-details {
+  text-transform: capitalize;
+  font-family: "poppins-regular";
+  font-size: 14px;
+  line-height: 22px;
+  padding: 8px 20px;
+  min-height: unset;
+}
+
+.tab-user-contain .tab-label-details.Mui-selected {
+  border-radius: 8px 8px 0px 0px;
+  color: #000000;
+  font-weight: 600;
+}
+
+.bg-setting-profile .user-bg-show {
+  width: 100%;
+  border-radius: 8px 8px 0px 0px;
+  height: 150px;
+  object-fit: cover;
+  -webkit-border-radius: 8px 8px 0px 0px;
+  -moz-border-radius: 8px 8px 0px 0px;
+  -ms-border-radius: 8px 8px 0px 0px;
+  -o-border-radius: 8px 8px 0px 0px;
+}
+
+.setting-show-body {
+  padding: 15px;
+}
+
+.card-user-setting {
+  background: #c1bdb7;
+  border-radius: 8px;
+  overflow: hidden;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -ms-border-radius: 8px;
+  -o-border-radius: 8px;
+}
+
+.tab-user-contain .tabs-user-list {
+  min-height: unset;
+}
+
+.tab-custom-panel-users .children-tab-main {
+  padding: 15px 0px;
+}
+
+.user-tab-listing {
+  padding: 20px 0px 0px 0px;
+}
+.cursor {
+  cursor: pointer;
+  text-decoration: underline;
+}
+.justify-content-end {
+  justify-content: flex-end;
+}
+
+.general-info-card {
+  background: #51493c38;
+  border-radius: 10px;
+}
+
+.general-info-body {
+  padding: 20px 15px;
+}
+
+.flex-end-user {
+  justify-content: end;
+  display: flex;
+}
+
+.setting-show-body {
+  margin-top: -72px;
+}
+
+.setting-profile-show {
+  max-width: max-content;
+  margin: auto;
+}
+
+.user-show-profile {
+  height: 90px;
+  width: 90px;
+  border: 3px solid #c1bdb7;
+  border-radius: 50%;
+}
+
+.textcenter-profile-details {
+  text-align: center;
+  margin: 5px 0px;
+}
+
+.textcenter-profile-details .user-name-profile {
+  font-family: "poppins-semibold";
+  font-size: 18px;
+  line-height: 23px;
+  margin-bottom: 5px;
+}
+
+.user-profile-icon .grey-button button,
+.user-profile-icon .grey-button button:hover {
+  background: #c1bdb7;
+  min-width: unset;
+  padding: 5px;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.edit-icon {
+  height: 14px;
+}
+
+.user-profile-icon {
+  position: absolute;
+  right: 5px;
+  max-width: max-content;
+  bottom: 7px;
+}
+
+.setting-max-profile {
+  position: relative;
+  max-width: 90px;
+  margin: auto;
+}

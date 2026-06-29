@@ -1,0 +1,83 @@
+@media (max-width: 1023px) {
+    .main-booking-info .booking-info-header {
+        padding: 30px 0;
+    }
+}
+
+@media (max-width: 767px) {
+    .main-booking-info .booking-info-header {
+        padding: 20px 0;
+    }
+
+    .main-booking-info .booking-info-header .confirm-icon {
+        min-width: 40px;
+        min-height: 40px;
+        max-width: 40px;
+        max-height: 40px;
+    }
+
+    .main-booking-info .booking-info-header .confirm-icon svg {
+        font-size: 24px;
+    }
+
+    .main-booking-info .booking-info-header .confirm-text {
+        font-size: 20px;
+        line-height: 26px;
+        margin-top: 10px;
+    }
+
+    .main-booking-info .booking-info-body {
+        padding: 20px;
+    }
+
+    .main-booking-info .booking-info-body .booking-qr-info:after {
+        left: calc(100% + 5px);
+    }
+
+    .main-booking-info .booking-info-body .booking-qr-info::before {
+        right: calc(100% + 5px);
+    }
+
+    .main-booking-info .booking-info-body .booking-qr-info {
+        padding-bottom: 20px;
+    }
+}
+
+@media (max-width: 549px) {
+    .main-booking-info {
+        padding: 0 0 30px;
+    }
+
+    .main-booking-info .booking-info-body {
+        padding: 15px;
+    }
+
+    .main-booking-info .booking-info-header .confirm-text {
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .main-booking-info .booking-info-body .booking-qr-info .booking-code-text {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .main-booking-info .booking-summary-bottom .payment-summary {
+        margin-bottom: 10px;
+        padding-bottom: 15px;
+    }
+
+    .main-booking-info .booking-info-body .booking-detail-box {
+        margin: 20px 0 15px;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .main-booking-info .booking-info-body .booking-qr-info {
+        padding-bottom: 15px;
+    }
+    .main-booking-info .booking-info-body .booking-qr-info img {
+        width: 100px;
+        height: 100px;
+    }
+}

@@ -1,0 +1,129 @@
+@media (max-width: 1920px){
+    .hero-slider-img img{
+        height: 600px;
+    }
+}
+
+@media (max-width: 1749px) {
+    .hero-slider-img img{
+        height: 500px;
+    }
+}
+
+@media (max-width: 1366px) {
+    .hero-slider-img img{
+        height: 400px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .membership-grid-main .member-right-details {
+        padding: 20px;
+    }
+    .hero-slider-img img{
+        height: 320px;
+    }
+}
+
+@media (max-width: 991px) {
+    .hero-slider-img img{
+        height: 280px;
+    }
+    .membership-video {
+        height: 418px;
+    }
+}
+
+@media (max-width: 767px) {
+    .membership-video {
+        height: 300px;
+        object-fit: contain;
+        display: flex;
+        margin: auto;
+    }
+    .hero-slider-img img{
+        height: 220px;
+    }
+    .member-right-details h4 {
+        font-size: 20px;
+        line-height: 26px;
+        font-weight: 300;
+        margin-bottom: 15px;
+    }
+
+    .member-right-details p {
+        line-height: 18px;
+    }
+
+    .member-right-details .membership-btns {
+        margin-top: 20px;
+        gap: 10px;
+    }
+
+    .member-right-details .membership-btns.main {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 649px) {
+    .hero-slider-img img{
+        height: 180px;
+    }
+}
+
+@media (max-width: 549px) {
+    .hero-slider-img img{
+        height: 170px;
+    }
+    .member-right-details h4 {
+        font-size: 18px;
+        line-height: 24px;
+        margin-bottom: 10px;
+    }
+
+    .member-right-details p {
+        margin-bottom: 10px;
+    }
+
+    .membership-btns a {
+        font-size: 12px;
+        line-height: 14px;
+        font-weight: 300;
+    }
+
+    .member-right-details .membership-btns img{
+        width: 100px;
+    }
+}
+
+@media (max-width: 449px) {
+    .hero-slider-img img{
+        height: 144px;
+    }
+}
+
+@media (max-width: 400px) {
+    .hero-slider-img img{
+        height: 125px;
+    }
+}
+
+@media (max-width: 374px) {
+    .hero-slider-img img{
+        height: 116px;
+    }
+    .membership-grid-main .member-right-details {
+        padding: 15px;
+    }
+
+    .member-right-details h4 {
+        font-size: 15px;
+        line-height: 21px;
+    }
+}
+
+@media (max-width: 281px) {
+    .hero-slider-img img{
+        height: 89px;
+    }
+}

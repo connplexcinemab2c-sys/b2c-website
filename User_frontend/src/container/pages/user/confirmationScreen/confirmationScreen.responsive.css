@@ -1,0 +1,230 @@
+@media (max-width: 1023px) {
+    .main-confirmation-screen .confirmation-screen-header {
+        padding-bottom: 30px;
+    }
+}
+
+@media (max-width: 767px) {
+    .main-confirmation-screen {
+        padding: 30px 0;
+    }
+
+    .main-confirmation-screen .confirmation-screen-header {
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-header .confirm-text,
+    .main-confirmation-screen .confirmation-screen-header .confirm-text .confirm-text-amount {
+        font-size: 20px;
+        line-height: 26px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-header .confirm-icon {
+        min-width: 40px;
+        min-height: 40px;
+        max-width: 40px;
+        max-height: 40px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-header .confirm-icon svg {
+        font-size: 24px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body {
+        padding: 20px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box:before,
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box:after {
+        width: 30px;
+        height: 30px;
+        top: calc(100% - 15px);
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box {
+        padding-bottom: 20px;
+        margin: 0 20px 20px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-box {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-left {
+        width: 100%;
+        padding-bottom: 15px;
+        border-bottom: 1px dashed #bcbcbc;
+        gap: 15px;
+        position: relative;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-left:before,
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-left:after {
+        content: '';
+        width: 30px;
+        height: 30px;
+        top: calc(100% - 15px);
+        background: #191510;
+        position: absolute;
+        border-radius: 100%;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-left:before {
+        right: calc(100% + 25px);
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-left:after {
+        left: calc(100% + 25px);
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-right {
+        width: 100%;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box .booking-confirm-text {
+        font-size: 18px;
+        line-height: 26px;
+        margin-bottom: 0;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-summary-right {
+        font-size: 12px;
+        line-height: 18px;
+    }
+}
+
+@media (max-width: 549px) {
+    .main-confirmation-screen {
+        padding: 0 0 30px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-header {
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-left {
+        flex-direction: column;
+        align-items: center;
+        padding-bottom: 20px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body {
+        padding: 15px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-box {
+        margin: 0;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box {
+        margin: 0 0 20px;
+        padding-bottom: 15px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box:before {
+        right: calc(100% + 5px);
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box:after {
+        left: calc(100% + 5px);
+    }
+
+    .main-confirmation-screen .confirmation-screen-header .confirm-text,
+    .main-confirmation-screen .confirmation-screen-header .confirm-text .confirm-text-amount {
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box .booking-confirm-text {
+        font-size: 16px;
+        line-height: 22px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-id-box .booking-confirm-id {
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-detail-summary .booking-summary-top {
+        flex-direction: column;
+        gap: 0;
+        padding-bottom: 10px;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-summary-left .booking-detail-content,
+    .main-confirmation-screen .booking-detail-box .booking-summary-left .booking-detail-title {
+        margin-bottom: 5px;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-summary-left {
+        width: 100%;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-summary-right {
+        width: 100%;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        line-height: 14px;
+        padding-top: 5px;
+        color: #d3b15f;
+    }
+
+    .main-confirmation-screen .confirmation-screen-footer {
+        margin-top: 20px;
+    }
+
+    .confirmation-screen-footer .confirmation-screen-footer-btn-flex {
+        justify-content: space-evenly;
+        /* gap: 10px; */
+    }
+
+    .main-confirmation-screen .confirmation-screen-footer .confirmation-screen-footer-text {
+        font-size: 14px;
+        line-height: 20px;
+        margin-bottom: 15px;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionSummary-content .booking-detail-value {
+        color: #d3b15f;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionSummary-expandIconWrapper svg {
+        font-size: 14px;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionSummary-content,
+    .main-confirmation-screen .booking-detail-box .booking-summary-left .booking-detail-title {
+        font-size: 16px;
+        line-height: 20px;
+    }
+
+    .main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionDetails-root {
+        padding-top: 5px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-right .booking-code-text {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-left:before {
+        right: calc(100% + 5px);
+    }
+
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-left:after {
+        left: calc(100% + 5px);
+    }
+}
+
+@media (max-width: 329px) {
+
+    .confirmation-screen-footer .confirmation-screen-footer-btn-flex {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

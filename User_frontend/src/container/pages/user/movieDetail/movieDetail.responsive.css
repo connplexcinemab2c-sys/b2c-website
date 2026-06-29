@@ -1,0 +1,448 @@
+@media (max-width: 1023px) {
+
+    .movie-detail-banner .detail-banner-box {
+        gap: 20px;
+    }
+
+    .movie-detail-banner .detail-banner-box .detail-banner-share button svg {
+        font-size: 20px;
+    }
+
+    .movie-detail-banner .detail-banner-img img {
+        height: unset;
+    }
+
+    .movie-detail-banner .detail-banner-content .detail-banner-title {
+        font-size: 24px;
+        line-height: 30px;
+    }
+
+    .movie-detail-banner .detail-banner-content .detail-banner-like {
+        font-size: 14px;
+        line-height: 20px;
+        margin-bottom: 10px;
+    }
+
+    .movie-detail-banner .detail-banner-content .banner-interest-tags {
+        margin: 15px 0 20px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-filter {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .movie-timing .movie-timing-tooltip {
+        display: none;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-date {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-date .swiper-button-prev,
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-date .swiper-button-next {
+        display: none;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-date .date-item.swiper-slide {
+        width: auto !important;
+    }
+
+    .movie-detail-banner .detail-banner-interest {
+        margin-bottom: 10px;
+        padding: 10px;
+        gap: 15px;
+    }
+
+    .movie-detail-banner .detail-banner-interest .banner-interest-button {
+        padding: 8px 16px;
+    }
+
+    .review-content-main {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .movie-detail-banner .detail-banner-img img {
+        max-height: 250px;
+    }
+
+    .movie-detail-banner .detail-banner-box .detail-banner-share button svg {
+        font-size: 18px;
+    }
+
+    .movie-detail-banner .detail-banner-img .detail-banner-img-tag {
+        font-size: 10px;
+        line-height: 14px;
+        font-weight: 300;
+        padding: 3px;
+    }
+
+    .movie-detail-banner .detail-banner-content .detail-banner-title {
+        font-size: 20px;
+        line-height: 26px;
+        font-weight: 400;
+        margin-bottom: 5px;
+    }
+
+    .movie-detail-banner .detail-banner-content .detail-banner-like {
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    .movie-detail-banner .detail-banner-content .detail-banner-like svg {
+        font-size: 16px;
+    }
+
+    .movie-detail-banner .detail-banner-interest .banner-interest-subtitle {
+        display: none;
+    }
+
+    .movie-detail-banner .detail-banner-interest .banner-interest-title {
+        font-size: 12px;
+        line-height: 16px;
+        margin-bottom: 0;
+    }
+
+    .movie-detail-banner .detail-banner-interest .banner-interest-button {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+
+    .movie-detail-banner .detail-banner-content .banner-interest-hours {
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    .movie-detail-banner .detail-banner-content .banner-interest-tag {
+        font-size: 12px;
+        min-width: 70px;
+        padding: 5px 10px;
+    }
+
+    .movie-detail-tab-wrapper .movie-detail-tab-box div[role="tablist"] {
+        gap: 20px;
+    }
+
+    .movie-detail-tab-wrapper .movie-detail-tab-box .movie-detail-tab {
+        padding: 10px 0;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 300;
+    }
+
+    .movie-detail-tab-wrapper .movie-detail-tab-box .movie-detail-tab.Mui-selected {
+        font-weight: 400;
+    }
+
+    .movie-detail-tab-wrapper .movie-detail-tab-box .MuiTabs-indicator {
+        height: 2px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .detail-tab-body-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .detail-tab-availability span {
+        margin-left: 0;
+        margin-right: 15px;
+        font-size: 10px;
+        line-height: 1;
+        padding-left: 10px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .detail-tab-availability span::before {
+        width: 5px;
+        height: 5px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .theatre-shows-box {
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px 15px 20px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .theatre-shows-box .movie-lang {
+        margin-bottom: 5px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .theatre-shows-left,
+    .movie-detail-tab-wrapper .detail-tab-body .theatre-shows-box .theatre-location,
+    .movie-detail-tab-wrapper .detail-tab-body .detail-tab-search {
+        max-width: 100%;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .theatre-shows-box .movie-timing-box {
+        gap: 10px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .detail-tab-search svg {
+        font-size: 18px;
+        left: 10px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .detail-tab-search input {
+        padding: 10px 10px 10px 32px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-wrapper {
+        gap: 20px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-item img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-item .cast-crew-img::after {
+        width: 78px;
+        height: 78px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-header .tab-header-title,
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-title {
+        font-size: 18px;
+        line-height: 24px;
+        margin-bottom: 10px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-item {
+        max-width: 80px;
+    }
+
+    .review-content-main {
+        grid-template-columns: repeat(1, 1fr);
+        padding-top: 20px;
+    }
+
+    .review-content-inner-main {
+        padding: 15px;
+    }
+
+    .review-user-flex {
+        margin-bottom: 10px;
+    }
+
+    .review-content-main .review-para {
+        margin-bottom: 10px;
+    }
+
+    .review-user-profile-flex .review-user-name,
+    .review-content-main .review-para {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .review-star-flex .review-star-fill {
+        font-size: 16px;
+    }
+
+    .review-star-flex .review-total-text-main {
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+
+    .review-content-inner-main .review-date-text {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 549px) {
+    .movie-detail-banner .detail-banner-box .detail-banner-share {
+        margin-left: unset;
+    }
+
+    .detail-banner-content {
+        width: 100%;
+    }
+
+    .movie-detail-banner .detail-banner-box{
+        justify-content: space-between;
+    }
+
+    button.btn, .btn {
+        font-size: 10px;
+    }
+    
+    .movie-detail-banner .detail-banner-interest .banner-interest-button {
+        font-size: 9px;
+    }
+    
+    .movie-detail-banner .detail-banner-img {
+        display: none;
+    }
+
+    .movie-detail-banner .detail-banner-box {
+        padding: 20px 0;
+        gap: 10px;
+    }
+
+    .movie-detail-banner .detail-banner-interest .banner-interest-title {
+        font-size: 10px;
+        line-height: 14px;
+    }
+
+    .movie-detail-banner .detail-banner-box .detail-banner-share button svg {
+        font-size: 18px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header {
+        padding-bottom: 0;
+        border: 0;
+        gap: 10px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-filter {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .filter-dropdown-main.language-category-dropdown,
+    .filter-dropdown-main.price-range-dropdown,
+    .filter-dropdown-main.show-time-dropdown {
+        max-width: 100%;
+    }
+
+    .filter-drop-btn {
+        border-radius: 0;
+        border: 0;
+        border-bottom: 1px solid #23211e;
+        margin: 0;
+        padding: 8px;
+    }
+
+    .filter-ul {
+        border-radius: 0;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .detail-tab-body-top {
+        padding: 15px 0 10px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .theatre-shows-box {
+        padding: 10px 15px 15px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .theatre-shows-box .theatre-name {
+        font-size: 16px;
+        line-height: 22px;
+        margin-bottom: 5px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-date .date-item.swiper-slide {
+        padding: 5px 13px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-date .day,
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-date .month {
+        font-size: 10px;
+        line-height: 12px;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-header .detail-tab-date .date {
+        font-size: 14px;
+        line-height: 18px;
+    }
+
+    .movie-detail-banner .detail-banner-content .banner-interest-tags {
+        margin: 10px 0 15px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-wrapper {
+        gap: 15px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-item .cast-crew-img {
+        margin-bottom: 5px;
+        padding: 3px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-item img {
+        width: 60px;
+        height: 60px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-item .cast-crew-img::after {
+        width: 64px;
+        height: 64px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-item .real-name {
+        font-size: 12px;
+        line-height: 14px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-item {
+        max-width: 66px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-header .tab-header-title,
+    .movie-detail-tab-wrapper .about-tab-body .cast-crew-title {
+        font-size: 16px;
+        line-height: 22px;
+        margin-bottom: 5px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-header {
+        padding: 20px 0;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .about-tab-cast-crew {
+        margin-bottom: 20px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .about-movie-upcoming .movie-slider-heading h5 {
+        padding-top: 10px;
+    }
+
+    .movie-detail-tab-wrapper .about-tab-body .about-movie-upcoming .movie-slider-inner .swiper {
+        padding: 10px 7px 0;
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .movie-info .movie-info-tooltip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .movie-detail-tab-wrapper .detail-tab-body .movie-info .movie-info-tooltip::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .movie-detail-banner .detail-banner-content .play-trailer-btn {
+        padding: 3px;
+    }
+}
+
+@media (max-width: 314px) {
+    .movie-detail-banner .detail-banner-interest{
+        flex-direction: column;
+        align-items: start;
+        gap: 5px;
+        width: 100%;
+        max-width: unset;
+    }
+}
+
+@media (max-width:281px) {
+    .movie-detail-banner .detail-banner-interest {
+        margin-bottom: 10px;
+        padding: 10px;
+        gap: 5px;
+        flex-direction: column;
+        width: 100%;
+        align-items: start;
+    }
+}

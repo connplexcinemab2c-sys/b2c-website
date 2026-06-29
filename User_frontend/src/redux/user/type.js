@@ -1,0 +1,15 @@
+export default {
+  getUserDetails: "getUserDetails",
+  getUserToken: "getUserToken",
+  userLogOut: "userLogOut",
+  changeRegion: "changeRegion",
+  upcomingMoviesList: "upcomingMoviesList",
+  hideLoader: "hideLoader",
+  showLoader: "showLoader",
+  getOtpTimer: "getOtpTimer",
+  getCinemaData: "getCinemaData",
+  openLocation: "openLocation",
+  closeLocation: "closeLocation",
+  movieFilter:"movieFilter",
+  membershipPlan: "membershipPlan",
+};

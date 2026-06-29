@@ -1,0 +1,2772 @@
+/* ============================================
+   OVERVIEW DASHBOARD - DARK CINEMA THEME
+   Matching Admin Dashboard Theme
+   ============================================ */
+
+/* CSS Variables - Dark Cinema Theme */
+:root {
+  --cinema-bg-dark: #0f0f13;
+  --cinema-bg-darker: #0b0604;
+  --cinema-bg-card: #1d1d24;
+  --cinema-bg-surface: #202020;
+  --cinema-bg-elevated: #353535;
+  --cinema-gold: #d3b15f;
+  --cinema-gold-dark: #caa748;
+  --cinema-gold-light: #c09a42;
+  --cinema-gold-gradient: linear-gradient(166.55deg, #d7b551 -12.45%, #666666 72.12%);
+  --cinema-border: #616161c7;
+  --cinema-border-dark: #37322f;
+  --cinema-border-subtle: #1d1d24;
+  --cinema-white: #ffffff;
+  --cinema-text-primary: #ffffff;
+  --cinema-text-secondary: #757575;
+  --cinema-text-muted: #696969;
+  --cinema-success: #72cb72;
+  --cinema-success-alt: #73cb50;
+  --cinema-error: #c56767;
+  --cinema-error-alt: #ff736a;
+  --cinema-purple: #8569f6;
+  --cinema-overlay: #00000087;
+}
+
+/* Base Container */
+.dashboard-container {
+  padding: 20px;
+  background: var(--cinema-bg-darker);
+  min-height: calc(100vh - 64px);
+}
+
+/* ==================== SYNC STATUS BAR (TOP) ==================== */
+.sync-status-bar-top {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 20px;
+  background: var(--cinema-bg-dark);
+  border-radius: 10px;
+  border: 0.5px solid var(--cinema-border);
+  margin-bottom: 15px;
+}
+
+.sync-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sync-pulse {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(211, 177, 95, 0.15);
+  position: relative;
+}
+
+.sync-pulse svg {
+  font-size: 20px;
+  color: var(--cinema-gold);
+}
+
+.sync-pulse.running {
+  background: rgba(114, 203, 114, 0.15);
+}
+
+.sync-pulse.running svg {
+  color: var(--cinema-success);
+  animation: spin 2s linear infinite;
+}
+
+.sync-pulse.running::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(114, 203, 114, 0.3);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.sync-status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-status-label {
+  font-size: 10px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sync-status-value {
+  font-size: 14px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold);
+}
+
+.sync-status-value.running {
+  color: var(--cinema-success);
+}
+
+.sync-progress-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 0 20px;
+  border-left: 1px solid var(--cinema-border-subtle);
+}
+
+.sync-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--cinema-bg-card);
+  border-radius: 6px;
+}
+
+.sync-progress-item svg {
+  font-size: 16px;
+  color: var(--cinema-success);
+}
+
+.sync-progress-item span {
+  font-size: 13px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+}
+
+.sync-progress-item .progress-label {
+  font-size: 10px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.sync-time-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: auto;
+}
+
+.sync-time-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sync-time-item svg {
+  font-size: 18px;
+  color: var(--cinema-gold);
+}
+
+.sync-time-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-time-label {
+  font-size: 10px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.sync-time-value {
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+}
+
+.sync-refresh {
+  padding: 10px;
+  min-width: auto;
+}
+
+.sync-refresh span {
+  display: none;
+}
+
+/* ==================== HEADER ==================== */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding: 22px;
+  background: linear-gradient(to right, rgba(19, 19, 19, 0.8), rgba(19, 19, 19, 0)), url("../../../../assests/images/Jpg/dashboard-bg.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 20px;
+  min-height: 120px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dashboard-title {
+  font-size: 26px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  letter-spacing: -0.5px;
+  line-height: 34px;
+}
+
+.dashboard-subtitle {
+  font-size: 14px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-white);
+  opacity: 0.8;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.last-updated {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--cinema-overlay);
+  border-radius: 10px;
+  border: 1px solid var(--cinema-border-dark);
+  font-size: 12px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-white);
+  backdrop-filter: blur(10px);
+}
+
+.last-updated svg {
+  font-size: 18px;
+  color: var(--cinema-gold);
+}
+
+/* ==================== STATS SECTION ==================== */
+.stats-section {
+  margin-bottom: 20px;
+  margin-top: -60px;
+  padding: 0 20px;
+}
+
+.stats-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px;
+  background: var(--cinema-bg-dark);
+  border-radius: 10px;
+  border: 0.5px solid var(--cinema-border);
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
+}
+
+.stat-card {
+  background-color: var(--cinema-overlay);
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  backdrop-filter: blur(57px);
+  transition: all 0.3s ease;
+  border: 0.5px solid transparent;
+  cursor: default;
+  position: relative;
+}
+
+.stat-card::before {
+  background: var(--cinema-gold-gradient);
+  border-radius: 10px;
+  content: "";
+  inset: 0;
+  -webkit-mask: linear-gradient(166.55deg, #d7b551 -12.45%, #666666 72.12%) content-box,
+    linear-gradient(166.55deg, #d7b551 -12.45%, #666666 72.12%);
+  mask: linear-gradient(166.55deg, #d7b551 -12.45%, #666666 72.12%) content-box,
+    linear-gradient(166.55deg, #d7b551 -12.45%, #666666 72.12%);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 1px;
+  position: absolute;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(211, 177, 95, 0.15);
+}
+
+.stat-icon-wrapper {
+  width: 35px;
+  height: 35px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.stat-icon-wrapper svg {
+  font-size: 20px;
+  color: var(--cinema-gold);
+}
+
+/* Color variants */
+.stat-card.purple .stat-icon-wrapper,
+.stat-card.teal .stat-icon-wrapper,
+.stat-card.pink .stat-icon-wrapper,
+.stat-card.blue .stat-icon-wrapper,
+.stat-card.orange .stat-icon-wrapper {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 1;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold-dark);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==================== CONTENT SECTIONS ==================== */
+.content-section {
+  margin-bottom: 15px;
+}
+
+.section-card {
+  background: var(--cinema-bg-dark);
+  border-radius: 10px;
+  box-shadow: 0px 3px 16px 0px rgba(185, 185, 185, 0.05);
+  overflow: hidden;
+  border: 0.5px solid var(--cinema-border);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 10px;
+  background: var(--cinema-bg-dark);
+  border-bottom: 1px solid var(--cinema-border-subtle);
+}
+
+.section-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.section-icon svg {
+  font-size: 18px;
+  color: var(--cinema-gold);
+}
+
+.section-icon.purple,
+.section-icon.teal,
+.section-icon.green,
+.section-icon.amber {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.section-title {
+  font-size: 16px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  letter-spacing: -0.3px;
+}
+
+.section-badge {
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  background: var(--cinema-bg-card);
+  color: var(--cinema-gold-dark);
+}
+
+.section-badge.green {
+  background: rgba(114, 203, 114, 0.15);
+  color: var(--cinema-success);
+}
+
+.section-badge.teal {
+  background: rgba(211, 177, 95, 0.15);
+  color: var(--cinema-gold);
+}
+
+.section-badge.amber {
+  background: rgba(211, 177, 95, 0.15);
+  color: var(--cinema-gold);
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tab-group {
+  display: flex;
+  background: var(--cinema-bg-darker);
+  border-radius: 7px;
+  padding: 3px;
+  border: 1px solid var(--cinema-border-dark);
+}
+
+.tab-button {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  color: var(--cinema-white);
+}
+
+.tab-button.active {
+  background: var(--cinema-bg-card);
+  color: var(--cinema-gold);
+}
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--cinema-bg-darker);
+  border: 1px solid var(--cinema-border-dark);
+  border-radius: 7px;
+  font-size: 12px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refresh-button:hover {
+  background: var(--cinema-gold-light);
+  color: var(--cinema-bg-darker);
+  border-color: var(--cinema-gold);
+}
+
+.refresh-button svg {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.refresh-button:hover svg {
+  transform: rotate(180deg);
+}
+
+.section-body {
+  padding: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: var(--cinema-bg-dark);
+}
+
+.section-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.section-body::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.section-body::-webkit-scrollbar-thumb {
+  background: var(--cinema-gold);
+  border-radius: 10px;
+}
+
+.section-body::-webkit-scrollbar-thumb:hover {
+  background: var(--cinema-gold-dark);
+}
+
+.section-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px;
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.section-loading .MuiCircularProgress-root {
+  color: var(--cinema-gold) !important;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--cinema-text-secondary);
+}
+
+.empty-state svg {
+  font-size: 48px;
+  opacity: 0.4;
+  color: var(--cinema-gold);
+}
+
+.empty-state span {
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+}
+
+/* ==================== REGIONS GRID ==================== */
+.regions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.region-card {
+  background: var(--cinema-bg-card);
+  border-radius: 10px;
+  padding: 15px;
+  border: 0.5px solid var(--cinema-border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.region-card:hover {
+  border-color: var(--cinema-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(211, 177, 95, 0.1);
+}
+
+.region-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--cinema-border-subtle);
+}
+
+.region-image {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--cinema-bg-elevated);
+  flex-shrink: 0;
+}
+
+.region-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.region-name {
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: "poppins-medium", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background: rgba(114, 203, 114, 0.15);
+  color: var(--cinema-success);
+}
+
+.status-badge.inactive {
+  background: rgba(197, 103, 103, 0.15);
+  color: var(--cinema-error);
+}
+
+.region-stats {
+  display: flex;
+  gap: 8px;
+}
+
+.region-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: var(--cinema-bg-surface);
+  border-radius: 5px;
+}
+
+.region-stat svg {
+  font-size: 16px;
+  color: var(--cinema-gold);
+}
+
+.region-stat .stat-number {
+  font-size: 14px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold-dark);
+}
+
+.region-stat .stat-text {
+  font-size: 10px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+/* ==================== MOVIES GRID ==================== */
+.movies-body {
+  max-height: 540px;
+}
+
+.movies-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 15px;
+}
+
+.movie-card {
+  background: var(--cinema-bg-card);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 0.5px solid var(--cinema-border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.movie-card:hover {
+  border-color: var(--cinema-gold);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(211, 177, 95, 0.15);
+}
+
+.movie-poster-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.movie-poster {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: var(--cinema-bg-surface);
+  transition: transform 0.4s ease;
+}
+
+.movie-card:hover .movie-poster {
+  transform: scale(1.05);
+}
+
+.show-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--cinema-gold-gradient);
+  border-radius: 5px;
+  color: var(--cinema-bg-darker);
+  font-size: 11px;
+  font-family: "poppins-semibold", sans-serif;
+  box-shadow: 0 4px 12px rgba(211, 177, 95, 0.35);
+}
+
+.show-badge svg {
+  font-size: 14px;
+}
+
+.movie-info {
+  padding: 12px;
+}
+
+.movie-name {
+  font-size: 13px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.movie-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.meta-tag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: "poppins-regular", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: var(--cinema-bg-surface);
+  color: var(--cinema-text-secondary);
+}
+
+.meta-tag.rating {
+  background: rgba(211, 177, 95, 0.2);
+  color: var(--cinema-gold);
+}
+
+.meta-tag.duration {
+  background: var(--cinema-bg-surface);
+  color: var(--cinema-text-secondary);
+}
+
+.meta-tag.language {
+  background: var(--cinema-bg-surface);
+  color: var(--cinema-text-secondary);
+}
+
+.meta-tag.type {
+  background: rgba(133, 105, 246, 0.15);
+  color: var(--cinema-purple);
+}
+
+/* ==================== CINEMAS GRID ==================== */
+.cinemas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.cinema-card {
+  background: var(--cinema-bg-card);
+  border-radius: 10px;
+  padding: 15px;
+  border: 0.5px solid var(--cinema-border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cinema-card:hover {
+  border-color: var(--cinema-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(211, 177, 95, 0.1);
+}
+
+.cinema-header {
+  margin-bottom: 14px;
+}
+
+.cinema-name {
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cinema-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.cinema-location svg {
+  font-size: 14px;
+  color: var(--cinema-gold);
+}
+
+.cinema-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cinema-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--cinema-bg-surface);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold-dark);
+}
+
+.cinema-stat svg {
+  font-size: 14px;
+  color: var(--cinema-gold);
+}
+
+.sync-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--cinema-border-subtle);
+  font-size: 11px;
+  font-family: "poppins-regular", sans-serif;
+}
+
+.sync-info svg {
+  font-size: 14px;
+}
+
+.sync-info.success {
+  color: var(--cinema-success);
+}
+
+.sync-info.error {
+  color: var(--cinema-error);
+}
+
+.filter-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 6px 14px;
+  background: rgba(211, 177, 95, 0.15);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold);
+}
+
+.filter-chip .MuiIconButton-root {
+  padding: 2px;
+  color: var(--cinema-gold);
+}
+
+.filter-chip svg {
+  font-size: 16px;
+}
+
+/* ==================== UPCOMING SECTION ==================== */
+.upcoming-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upcoming-month {
+  background: var(--cinema-bg-card);
+  border-radius: 10px;
+  padding: 15px;
+  border: 0.5px solid var(--cinema-border);
+}
+
+.month-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--cinema-border-subtle);
+}
+
+.month-header svg {
+  font-size: 20px;
+  color: var(--cinema-gold);
+}
+
+.month-title {
+  font-size: 16px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  flex: 1;
+}
+
+.month-count {
+  padding: 5px 12px;
+  background: var(--cinema-bg-surface);
+  border-radius: 5px;
+  font-size: 11px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold-dark);
+}
+
+.upcoming-movies-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
+}
+
+.upcoming-movie-card {
+  background: var(--cinema-bg-surface);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 0.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upcoming-movie-card:hover {
+  border-color: var(--cinema-gold);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(211, 177, 95, 0.15);
+}
+
+.upcoming-poster {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: var(--cinema-bg-elevated);
+  transition: transform 0.4s ease;
+}
+
+.upcoming-movie-card:hover .upcoming-poster {
+  transform: scale(1.05);
+}
+
+.upcoming-info {
+  padding: 12px;
+}
+
+.upcoming-name {
+  font-size: 13px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.upcoming-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.upcoming-meta .meta-tag {
+  font-size: 9px;
+  padding: 3px 8px;
+  background: rgba(211, 177, 95, 0.12);
+  color: var(--cinema-gold);
+}
+
+.release-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(114, 203, 114, 0.12);
+  border-radius: 5px;
+  font-size: 11px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-success);
+}
+
+.release-date svg {
+  font-size: 14px;
+}
+
+/* ==================== DRAWER STYLES ==================== */
+.drawer-paper {
+  width: 720px;
+  max-width: 90vw;
+}
+
+/* Half Screen Drawer */
+.drawer-paper-half {
+  width: 50vw;
+  min-width: 700px;
+  max-width: 95vw;
+}
+
+.drawer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--cinema-bg-darker);
+}
+
+.drawer-header {
+  padding: 24px;
+  position: relative;
+  color: var(--cinema-white);
+}
+
+.cinema-drawer-header {
+  background: linear-gradient(to right, rgba(19, 19, 19, 0.95), rgba(29, 29, 36, 0.9)), url("../../../../assests/images/Jpg/dashboard-bg.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
+.movie-drawer-header {
+  background: linear-gradient(to right, rgba(19, 19, 19, 0.95), rgba(29, 29, 36, 0.9)), url("../../../../assests/images/Jpg/dashboard-bg.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
+.drawer-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 60%;
+  height: 200%;
+  background: rgba(211, 177, 95, 0.03);
+  border-radius: 50%;
+}
+
+.drawer-header-content {
+  position: relative;
+  z-index: 1;
+  padding-right: 40px;
+}
+
+.drawer-title {
+  font-size: 22px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.drawer-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.drawer-subtitle svg {
+  font-size: 16px;
+  color: var(--cinema-gold);
+}
+
+.drawer-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.drawer-meta-tag {
+  padding: 6px 14px;
+  background: rgba(211, 177, 95, 0.15);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold);
+  backdrop-filter: blur(4px);
+}
+
+.drawer-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--cinema-white);
+  padding: 8px;
+  border-radius: 5px;
+  z-index: 2;
+  transition: background 0.2s ease;
+}
+
+.drawer-close:hover {
+  background: var(--cinema-gold);
+  color: var(--cinema-bg-darker);
+}
+
+.drawer-stats {
+  display: flex;
+  gap: 15px;
+  padding: 15px 20px;
+  background: var(--cinema-bg-dark);
+  border-bottom: 1px solid var(--cinema-border-subtle);
+}
+
+.drawer-stat-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--cinema-bg-card);
+  border-radius: 8px;
+  border: 0.5px solid var(--cinema-border);
+}
+
+.drawer-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.drawer-stat-icon svg {
+  font-size: 20px;
+  color: var(--cinema-gold);
+}
+
+.drawer-stat-icon.pink,
+.drawer-stat-icon.blue,
+.drawer-stat-icon.teal {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.drawer-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawer-stat-value {
+  font-size: 20px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold-dark);
+  line-height: 1;
+}
+
+.drawer-stat-label {
+  font-size: 11px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.drawer-body {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background: var(--cinema-bg-darker);
+}
+
+.drawer-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.drawer-body::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.drawer-body::-webkit-scrollbar-thumb {
+  background: var(--cinema-gold);
+  border-radius: 10px;
+}
+
+.drawer-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 64px;
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.drawer-loading .MuiCircularProgress-root {
+  color: var(--cinema-gold) !important;
+}
+
+.drawer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px;
+  color: var(--cinema-text-secondary);
+}
+
+.drawer-empty svg {
+  font-size: 48px;
+  opacity: 0.4;
+  color: var(--cinema-gold);
+}
+
+.drawer-empty span {
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+}
+
+/* Movie Accordion */
+.drawer-movies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.movie-accordion {
+  background: var(--cinema-bg-dark) !important;
+  border-radius: 10px !important;
+  border: 0.5px solid var(--cinema-border) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.movie-accordion:before {
+  display: none;
+}
+
+.movie-accordion.Mui-expanded {
+  margin: 0 !important;
+  border-color: var(--cinema-gold) !important;
+}
+
+.movie-accordion-header {
+  padding: 12px !important;
+}
+
+.movie-accordion-header .MuiAccordionSummary-expandIconWrapper {
+  color: var(--cinema-gold);
+}
+
+.accordion-movie-content {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.accordion-movie-poster {
+  width: 70px;
+  height: 100px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--cinema-bg-surface);
+  flex-shrink: 0;
+}
+
+.accordion-movie-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.accordion-movie-name {
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.accordion-movie-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.accordion-movie-meta .meta-tag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: "poppins-regular", sans-serif;
+  background: var(--cinema-bg-surface);
+  color: var(--cinema-text-secondary);
+}
+
+.accordion-show-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold);
+}
+
+.accordion-show-count svg {
+  font-size: 16px;
+}
+
+.movie-accordion-body {
+  padding: 15px !important;
+  background: var(--cinema-bg-card);
+  border-top: 1px solid var(--cinema-border-subtle);
+}
+
+.shows-by-date {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.date-title {
+  font-size: 13px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--cinema-border-subtle);
+}
+
+.shows-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.show-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--cinema-bg-surface);
+  border: 0.5px solid var(--cinema-border);
+  border-radius: 6px;
+  min-width: 85px;
+  transition: all 0.2s ease;
+}
+
+.show-chip:hover {
+  border-color: var(--cinema-gold);
+  box-shadow: 0 4px 12px rgba(211, 177, 95, 0.1);
+}
+
+.show-time {
+  font-size: 13px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold);
+}
+
+.show-screen {
+  font-size: 10px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.show-seats {
+  font-size: 10px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-success);
+  background: rgba(114, 203, 114, 0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.show-chip.more {
+  background: rgba(211, 177, 95, 0.12);
+  border-color: rgba(211, 177, 95, 0.3);
+  color: var(--cinema-gold);
+  font-size: 11px;
+  font-family: "poppins-medium", sans-serif;
+  justify-content: center;
+}
+
+.no-shows {
+  padding: 20px;
+  text-align: center;
+  font-size: 13px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+/* ==================== DATE-WISE ACCORDION ==================== */
+.date-accordion-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.date-accordion {
+  background: var(--cinema-bg-dark) !important;
+  border-radius: 8px !important;
+  border: 0.5px solid var(--cinema-border) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.date-accordion:before {
+  display: none;
+}
+
+.date-accordion.Mui-expanded {
+  margin: 0 !important;
+  border-color: var(--cinema-gold) !important;
+}
+
+.date-accordion-header {
+  padding: 10px 14px !important;
+  min-height: auto !important;
+  background: var(--cinema-bg-card);
+}
+
+.date-accordion-header .MuiAccordionSummary-content {
+  margin: 0 !important;
+}
+
+.date-accordion-header .MuiAccordionSummary-expandIconWrapper {
+  color: var(--cinema-gold);
+}
+
+.date-accordion-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.date-accordion-content svg {
+  font-size: 18px;
+  color: var(--cinema-gold);
+}
+
+.date-accordion-title {
+  font-size: 13px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  flex: 1;
+}
+
+.date-accordion-count {
+  padding: 4px 10px;
+  background: var(--cinema-bg-surface);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold-dark);
+}
+
+.date-accordion-body {
+  padding: 14px !important;
+  background: var(--cinema-bg-dark);
+}
+
+.date-show-count {
+  margin-left: auto;
+  padding: 4px 10px;
+  background: var(--cinema-bg-surface);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold-dark);
+}
+
+/* Cinema Cards in Movie Drawer */
+.drawer-cinemas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drawer-cinema-card {
+  background: var(--cinema-bg-dark);
+  border-radius: 10px;
+  padding: 15px;
+  border: 0.5px solid var(--cinema-border);
+  transition: all 0.2s ease;
+}
+
+.drawer-cinema-card:hover {
+  border-color: var(--cinema-gold);
+  box-shadow: 0 4px 16px rgba(211, 177, 95, 0.08);
+}
+
+.drawer-cinema-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.drawer-cinema-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer-cinema-name {
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 6px;
+}
+
+.drawer-cinema-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.drawer-cinema-location svg {
+  font-size: 14px;
+  color: var(--cinema-gold);
+}
+
+.drawer-show-count {
+  padding: 6px 12px;
+  background: var(--cinema-bg-surface);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold-dark);
+}
+
+/* Shows Grid for Cinema Shows */
+.cinema-shows-by-date {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.cinema-date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cinema-date-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--cinema-bg-surface);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+}
+
+.cinema-date-header svg {
+  font-size: 16px;
+  color: var(--cinema-gold);
+}
+
+.cinema-shows-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.cinema-show-chip {
+  background: var(--cinema-bg-card);
+  border-radius: 8px;
+  padding: 12px;
+  border: 0.5px solid var(--cinema-border);
+  transition: all 0.2s ease;
+}
+
+.cinema-show-chip:hover {
+  border-color: var(--cinema-gold);
+  box-shadow: 0 4px 12px rgba(211, 177, 95, 0.08);
+}
+
+.show-chip-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.show-chip-time svg {
+  font-size: 16px;
+  color: var(--cinema-gold);
+}
+
+.show-chip-time span {
+  font-size: 15px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold);
+}
+
+.show-chip-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.show-chip-screen {
+  font-size: 11px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+  padding: 4px 8px;
+  background: var(--cinema-bg-surface);
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.show-chip-seats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-success);
+}
+
+.show-chip-seats svg {
+  font-size: 14px;
+}
+
+.no-shows-message {
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+  background: var(--cinema-bg-card);
+  border-radius: 8px;
+}
+
+/* ============================================
+   MOVIE DRAWER - ENHANCED DESIGN
+   ============================================ */
+
+.movie-drawer-paper {
+  width: 50vw;
+  min-width: 700px;
+  max-width: 95vw;
+}
+
+.movie-drawer-container {
+  background: var(--cinema-bg-darker);
+}
+
+/* Movie Drawer Hero Section */
+.movie-drawer-hero {
+  display: flex;
+  gap: 24px;
+  padding: 28px;
+  background: linear-gradient(to right, rgba(19, 19, 19, 0.95), rgba(29, 29, 36, 0.9)), url("../../../../assests/images/Jpg/dashboard-bg.jpg");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+}
+
+.movie-drawer-hero::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(180deg, rgba(211, 177, 95, 0.05) 0%, transparent 100%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.movie-drawer-poster-section {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.movie-drawer-poster {
+  width: 130px;
+  height: 190px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(211, 177, 95, 0.3);
+}
+
+.movie-drawer-info {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding-right: 40px;
+}
+
+.movie-drawer-title {
+  font-size: 22px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.movie-drawer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+}
+
+.meta-badge.rating {
+  background: rgba(211, 177, 95, 0.2);
+  color: var(--cinema-gold);
+}
+
+.meta-badge.duration {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--cinema-white);
+}
+
+.meta-badge.duration svg {
+  font-size: 14px;
+}
+
+.meta-badge.language {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--cinema-white);
+}
+
+.meta-badge.type {
+  background: rgba(133, 105, 246, 0.15);
+  color: var(--cinema-purple);
+}
+
+.movie-drawer-hero-stats {
+  display: flex;
+  gap: 15px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.hero-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  border: 0.5px solid rgba(211, 177, 95, 0.2);
+}
+
+.hero-stat svg {
+  font-size: 20px;
+  color: var(--cinema-gold);
+}
+
+.hero-stat-value {
+  font-size: 20px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold-dark);
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-size: 11px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+  margin-left: -6px;
+}
+
+.movie-drawer-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--cinema-white);
+  padding: 10px;
+  border-radius: 8px;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.movie-drawer-close:hover {
+  background: var(--cinema-gold);
+  color: var(--cinema-bg-darker);
+}
+
+/* Movie Drawer Body */
+.movie-drawer-body {
+  padding: 15px;
+  flex: 1;
+  overflow-y: auto;
+  background: var(--cinema-bg-darker);
+}
+
+.movie-drawer-section-header {
+  margin-bottom: 15px;
+}
+
+.section-label {
+  font-size: 15px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-label::before {
+  content: "";
+  width: 3px;
+  height: 18px;
+  background: var(--cinema-gold);
+  border-radius: 2px;
+}
+
+/* Cinema Accordion */
+.movie-cinema-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cinema-accordion {
+  background: var(--cinema-bg-dark) !important;
+  border-radius: 10px !important;
+  border: 0.5px solid var(--cinema-border) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+  transition: all 0.2s ease !important;
+}
+
+.cinema-accordion:before {
+  display: none;
+}
+
+.cinema-accordion:hover {
+  border-color: var(--cinema-gold) !important;
+}
+
+.cinema-accordion.Mui-expanded {
+  margin: 0 !important;
+  border-color: var(--cinema-gold) !important;
+}
+
+.cinema-accordion-header {
+  padding: 12px 16px !important;
+  min-height: auto !important;
+}
+
+.cinema-accordion-header .MuiAccordionSummary-content {
+  margin: 0 !important;
+}
+
+.cinema-accordion-header .MuiAccordionSummary-expandIconWrapper {
+  color: var(--cinema-gold);
+}
+
+.cinema-accordion-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.cinema-accordion-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cinema-accordion-icon svg {
+  font-size: 20px;
+  color: var(--cinema-gold);
+}
+
+.cinema-accordion-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cinema-accordion-name {
+  font-size: 14px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.cinema-accordion-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+  flex-wrap: wrap;
+}
+
+.cinema-accordion-meta svg {
+  font-size: 14px;
+  color: var(--cinema-gold);
+}
+
+.meta-divider {
+  color: var(--cinema-border);
+  margin: 0 4px;
+}
+
+.cinema-address {
+  color: var(--cinema-text-secondary);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cinema-accordion-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--cinema-bg-surface);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-gold-dark);
+  flex-shrink: 0;
+}
+
+.cinema-accordion-badge svg {
+  font-size: 14px;
+}
+
+.cinema-accordion-body {
+  padding: 0 16px 16px !important;
+  background: var(--cinema-bg-card);
+}
+
+/* Movie Drawer Empty State */
+.movie-drawer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  text-align: center;
+}
+
+.empty-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--cinema-bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.empty-icon-wrapper svg {
+  font-size: 36px;
+  color: var(--cinema-gold);
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  margin-bottom: 8px;
+}
+
+.empty-subtitle {
+  font-size: 13px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+  max-width: 300px;
+}
+
+/* Large Shows Grid for Half Screen */
+.shows-grid-large {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.show-card {
+  background: var(--cinema-bg-card);
+  border-radius: 8px;
+  padding: 12px;
+  border: 0.5px solid var(--cinema-border);
+  transition: all 0.2s ease;
+}
+
+.show-card:hover {
+  border-color: var(--cinema-gold);
+  box-shadow: 0 4px 12px rgba(211, 177, 95, 0.08);
+}
+
+.show-card-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cinema-border-subtle);
+}
+
+.show-card-time svg {
+  font-size: 18px;
+  color: var(--cinema-gold);
+}
+
+.show-card-time span {
+  font-size: 16px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold);
+}
+
+.show-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.show-card-screen {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.show-card-screen svg {
+  font-size: 14px;
+  color: var(--cinema-gold);
+}
+
+.show-card-seats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-success);
+  padding: 4px 8px;
+  background: rgba(114, 203, 114, 0.1);
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.show-card-seats svg {
+  font-size: 14px;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1600px) {
+  .movies-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .upcoming-movies-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1400px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .regions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .movies-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .cinemas-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1200px) {
+  .movies-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cinemas-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .upcoming-movies-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+
+  .stats-section {
+    padding: 0 15px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .regions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .movies-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .upcoming-movies-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .drawer-paper {
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  .drawer-paper-half {
+    width: 70vw;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 14px;
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .dashboard-title {
+    font-size: 22px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .regions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .movies-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .cinemas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upcoming-movies-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .drawer-stats {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .drawer-paper-half {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .shows-grid-large {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .show-card-time span {
+    font-size: 14px;
+  }
+
+  .movie-drawer-hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 20px;
+  }
+
+  .movie-drawer-info {
+    padding-right: 0;
+    align-items: center;
+  }
+
+  .movie-drawer-meta {
+    justify-content: center;
+  }
+
+  .movie-drawer-hero-stats {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .hero-stat {
+    padding: 10px 14px;
+  }
+
+  .movie-drawer-title {
+    font-size: 18px;
+  }
+
+  .cinema-accordion-content {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .cinema-accordion-badge {
+    margin-left: auto;
+  }
+
+  .cinema-shows-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==================== SYNC ACTIVITY LOGS ==================== */
+.sync-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  padding: 15px 20px;
+  background: var(--cinema-bg-dark);
+  border-bottom: 1px solid var(--cinema-border-subtle);
+}
+
+.sync-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--cinema-bg-card);
+  border-radius: 8px;
+  border: 0.5px solid var(--cinema-border);
+}
+
+.sync-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sync-stat-icon svg {
+  font-size: 20px;
+  color: var(--cinema-gold);
+}
+
+.sync-stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-stat-value {
+  font-size: 18px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold-dark);
+  line-height: 1;
+}
+
+.sync-stat-label {
+  font-size: 11px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.sync-logs-body {
+  max-height: 450px;
+}
+
+.sync-logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sync-log-item {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  background: var(--cinema-bg-card);
+  border-radius: 10px;
+  border: 0.5px solid var(--cinema-border);
+  transition: all 0.2s ease;
+}
+
+.sync-log-item:hover {
+  border-color: var(--cinema-gold);
+  box-shadow: 0 4px 12px rgba(211, 177, 95, 0.08);
+}
+
+/* Status-based styling */
+.sync-log-item.completed {
+  border-left: 3px solid var(--cinema-success);
+}
+
+.sync-log-item.running {
+  border-left: 3px solid var(--cinema-gold);
+  background: linear-gradient(90deg, rgba(211, 177, 95, 0.05) 0%, var(--cinema-bg-card) 100%);
+}
+
+.sync-log-item.failed {
+  border-left: 3px solid var(--cinema-error);
+}
+
+.sync-log-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(211, 177, 95, 0.12);
+  flex-shrink: 0;
+}
+
+.sync-log-icon svg {
+  font-size: 22px;
+  color: var(--cinema-gold);
+}
+
+.sync-log-icon.completed {
+  background: rgba(114, 203, 114, 0.15);
+}
+
+.sync-log-icon.completed svg {
+  color: var(--cinema-success);
+}
+
+.sync-log-icon.running {
+  background: rgba(211, 177, 95, 0.15);
+}
+
+.sync-log-icon.running .MuiCircularProgress-root {
+  color: var(--cinema-gold) !important;
+}
+
+.sync-log-icon.failed {
+  background: rgba(197, 103, 103, 0.15);
+}
+
+.sync-log-icon.failed svg {
+  color: var(--cinema-error);
+}
+
+.sync-log-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.sync-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sync-log-title {
+  font-size: 15px;
+  font-family: "poppins-medium", sans-serif;
+  color: var(--cinema-white);
+  line-height: 1.3;
+}
+
+.sync-log-status {
+  font-size: 11px;
+  font-family: "poppins-medium", sans-serif;
+  padding: 5px 12px;
+  border-radius: 5px;
+  text-transform: capitalize;
+}
+
+.sync-log-status.completed {
+  background: rgba(114, 203, 114, 0.15);
+  color: var(--cinema-success);
+}
+
+.sync-log-status.running {
+  background: rgba(211, 177, 95, 0.15);
+  color: var(--cinema-gold);
+}
+
+.sync-log-status.failed {
+  background: rgba(197, 103, 103, 0.15);
+  color: var(--cinema-error);
+}
+
+/* Sync Log Stats */
+.sync-log-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sync-log-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--cinema-bg-surface);
+  border-radius: 6px;
+}
+
+.sync-log-stat svg {
+  font-size: 16px;
+  color: var(--cinema-gold);
+}
+
+.sync-log-stat span {
+  font-size: 13px;
+  font-family: "poppins-semibold", sans-serif;
+  color: var(--cinema-gold-dark);
+}
+
+.sync-log-stat .stat-label {
+  font-size: 10px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.sync-log-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sync-log-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--cinema-bg-surface);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-text-secondary);
+}
+
+.sync-log-tag svg {
+  font-size: 14px;
+  color: var(--cinema-gold);
+}
+
+.sync-log-tag.success {
+  background: rgba(114, 203, 114, 0.1);
+  color: var(--cinema-success);
+}
+
+.sync-log-tag.error {
+  background: rgba(197, 103, 103, 0.1);
+  color: var(--cinema-error);
+}
+
+.sync-log-tag.time {
+  background: var(--cinema-bg-surface);
+  color: var(--cinema-text-secondary);
+}
+
+.sync-log-tag.duration {
+  background: rgba(211, 177, 95, 0.12);
+  color: var(--cinema-gold);
+}
+
+/* Sync Log Error */
+.sync-log-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(197, 103, 103, 0.1);
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.sync-log-error svg {
+  font-size: 16px;
+  color: var(--cinema-error);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sync-log-error span {
+  font-size: 12px;
+  font-family: "poppins-regular", sans-serif;
+  color: var(--cinema-error);
+  line-height: 1.4;
+}
+
+/* Sync Logs Responsive */
+@media (max-width: 1200px) {
+  .sync-stats-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sync-status-bar-top {
+    flex-wrap: wrap;
+  }
+
+  .sync-time-info {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--cinema-border-subtle);
+  }
+
+  .sync-log-stats {
+    gap: 8px;
+  }
+
+  .sync-log-stat {
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sync-stats-bar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .sync-status-bar-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+  }
+
+  .sync-progress-info {
+    padding: 0;
+    border-left: none;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .sync-time-info {
+    flex-wrap: wrap;
+    gap: 12px;
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .sync-refresh {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+
+  .sync-log-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .sync-log-stats {
+    gap: 6px;
+  }
+
+  .sync-log-stat {
+    padding: 6px 8px;
+  }
+
+  .sync-log-stat span {
+    font-size: 12px;
+  }
+
+  .sync-log-stat .stat-label {
+    font-size: 9px;
+  }
+
+  .sync-log-meta {
+    gap: 6px;
+  }
+
+  .sync-log-tag {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sync-status-bar-top {
+    padding: 12px;
+  }
+
+  .sync-status-indicator {
+    gap: 10px;
+  }
+
+  .sync-pulse {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sync-progress-item {
+    padding: 5px 10px;
+  }
+
+  .movies-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upcoming-movies-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .movie-poster {
+    height: 180px;
+  }
+
+  .upcoming-poster {
+    height: 180px;
+  }
+
+  .shows-grid-large {
+    grid-template-columns: 1fr;
+  }
+
+  .date-accordion-content {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .date-accordion-count {
+    margin-left: auto;
+  }
+
+  .movie-drawer-poster {
+    width: 100px;
+    height: 150px;
+  }
+
+  .hero-stat {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cinema-shows-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cinema-accordion-icon {
+    display: none;
+  }
+
+  .sync-log-item {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sync-log-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sync-log-icon svg {
+    font-size: 16px;
+  }
+}

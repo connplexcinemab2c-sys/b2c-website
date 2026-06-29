@@ -1,0 +1,178 @@
+@media (max-width: 1023px) {
+
+    .seat-management-body .seat-box-wrapper .seat-box-inner-wrapper {
+        min-width: 250px;
+    }
+
+    .main-seat-management .seat-management-body {
+        gap: 20px;
+    }
+
+    .seat-management-body .seat-box-wrapper table tr td svg {
+        width: 25px;
+    }
+
+    .seat-management-body .seat-box-wrapper table tr td svg[data-name="Group Group seat"]:hover {
+        transform: unset;
+    }
+
+    .seat-management-body .seat-box-wrapper table tr td svg[data-name="Group Group seat"]:hover :is(rect, path) {
+        fill: #fff;
+    }
+    /* .seat-management-body .seat-box-wrapper .seat-box-inner {
+        overflow: auto;
+    } */
+
+     .seat-management-body .seat-box-wrapper .table-scroll-content {
+        overflow: auto;
+    }
+}
+
+@media (max-width: 767px) {
+    .main-seat-management .seat-management-header {
+        padding: 20px 0 15px;
+    }
+
+    .main-seat-management .seat-management-header .header-timing-box {
+        padding-bottom: 8px;
+    }
+
+    .main-seat-management .seat-management-header .header-timing-box-inner {
+        gap: 10px;
+    }
+
+    .main-seat-management .seat-management-header .header-title {
+        font-size: 20px;
+        line-height: 26px;
+        margin-bottom: 0;
+    }
+
+    .main-seat-management .seat-management-header .header-content {
+        font-size: 14px;
+        line-height: 20px;
+        margin-bottom: 15px;
+    }
+
+    .main-seat-management .seat-management-body {
+        flex-direction: column;
+    }
+
+    .seat-management-body .seat-box-wrapper {
+        width: 100%;
+    }
+
+    .seat-management-body .summary-box-wrapper {
+        position: unset;
+        width: 100%;
+    }
+
+    .seat-management-body .summary-box-wrapper .summary-box-inner {
+        overflow-y: unset;
+        overflow-x: unset;
+        max-height: unset;
+    }
+
+    .seat-management-body .seat-box-wrapper table th,
+    .seat-management-body .seat-box-wrapper table td {
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    .seat-management-body .seat-box-wrapper table th {
+        padding: 7px 0;
+    }
+
+    .seat-management-body .seat-box-wrapper table tr td {
+        padding: 3px;
+    }
+
+    .seat-management-body .seat-box-wrapper table tr td svg {
+        width: 25px;
+    }
+
+    .seat-management-body .seat-box-wrapper .seat-box-inner-wrapper {
+        min-width: 550px;
+    }
+
+    .terms-modal .terms-modal-inner .modal-inner .terms-modal-content {
+        word-break: break-all;
+    }
+
+    .terms-modal .terms-modal-inner .terms-modal-title {
+        margin-bottom: 5px;
+    }
+}
+
+@media (max-width:549px) {
+    .main-seat-management .seat-management-body {
+        padding: 15px 0 30px;
+    }
+
+    .seat-management-body .seat-box-wrapper .seat-suggestion-box {
+        padding: 15px;
+    }
+
+    .seat-management-body .summary-box-wrapper {
+        padding: 15px;
+    }
+
+    .seat-management-body .summary-box-wrapper .summary-main-title {
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+
+    .seat-management-body .summary-box-wrapper .summary-box-row {
+        font-size: 14px;
+        line-height: 18px;
+    }
+
+    .seat-management-body .summary-box-wrapper .summary-box-row:not(:last-child),
+    .seat-management-body .summary-box-wrapper .payment-summary-row:not(:last-child) {
+        margin-bottom: 10px;
+    }
+
+    .seat-management-body .summary-box-wrapper .booking-summary,
+    .seat-management-body .summary-box-wrapper .payment-summary {
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+
+    .seat-management-body .summary-box-wrapper .total-payment-row {
+        margin-bottom: 15px;
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .seat-management-body .seat-box-wrapper .screen-box img {
+        margin-bottom: 0;
+    }
+
+    .seat-management-body .seat-box-wrapper table tr td svg {
+        width: 20px;
+    }
+
+    .seat-management-body .seat-box-wrapper .seat-box-inner-wrapper {
+        min-width: 350px;
+    }
+}
+
+@media (max-width:320px) {
+    .seat-management-body .seat-box-wrapper .seat-suggestion-box {
+        gap: 10px;
+        margin-top: 10px;
+        font-size: 11px;
+    }
+
+    .seat-management-body .seat-box-wrapper .seat-suggestion-color {
+        width: 13px;
+        height: 13px;
+    }
+
+    .seat-management-body .seat-box-wrapper .seat-box-inner-wrapper {
+        min-width: 250px;
+    }
+    .seat-management-body .seat-box-wrapper .screen-box-text {
+        font-size: 10px;
+    
+    }
+}

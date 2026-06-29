@@ -1,0 +1,42 @@
+.main-transaction-failed .main-content {
+    min-height: 100vh;
+    padding: 50px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-transaction-failed .transaction-failed-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    color: #fff;
+}
+
+.main-transaction-failed .transaction-failed-wrapper .transaction-failed-img {
+    max-width: 250px;
+    max-height: 250px;
+    margin: 0 auto;
+}
+
+.main-transaction-failed .transaction-failed-wrapper .transaction-failed-title {
+    font-size: 24px;
+    line-height: 30px;
+    margin: 20px 0 10px;
+    font-weight: 400;
+}
+
+.main-transaction-failed .transaction-failed-wrapper .transaction-failed-subtitle {
+    font-weight: 300;
+    font-size: 14px;
+    color: #c1c1c1;
+}
+
+.main-transaction-failed .transaction-failed-wrapper .transaction-failed-btn-box {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 15px;
+}

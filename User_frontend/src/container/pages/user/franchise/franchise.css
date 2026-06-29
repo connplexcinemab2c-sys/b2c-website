@@ -1,0 +1,106 @@
+.main-franchise .franchise-qa:not(:last-child) {
+  margin-bottom: 30px;
+}
+
+.main-franchise .franchise-qa .franchise-question {
+  color: #d3b15f;
+  font-size: 18px;
+  line-height: 24px;
+  margin-bottom: 7px;
+}
+
+.main-franchise .franchise-qa .franchise-answer {
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 20px;
+  color: #fff;
+}
+
+.main-franchise .franchise-qa ul {
+  padding-left: 15px;
+}
+
+.main-franchise .franchise-qa ul li {
+  list-style: disc;
+}
+
+.main-franchise .main-franchise-wrapper {
+  padding: 60px 0;
+}
+
+.main-franchise .franchise-form {
+  padding: 20px 30px 30px;
+  background-color: #23211e;
+  border-radius: 12px;
+  position: relative;
+}
+
+.main-franchise .franchise-form .franchise-form-title {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 500;
+  margin-bottom: 15px;
+  color: #d3b15f;
+}
+
+.main-franchise .franchise-form input {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  line-height: 1;
+  color: #fff;
+  font-weight: 300;
+}
+
+.main-franchise .franchise-form .form-label {
+  color: #fff;
+  font-weight: 300;
+  margin: 0 0 5px;
+}
+
+.main-franchise .franchise-form .form-control fieldset {
+  border-color: #bcbcbc;
+  border-width: 1px;
+  border-radius: 100rem;
+}
+
+.main-franchise .franchise-form .form-control .Mui-focused fieldset {
+  border: 1px solid #d3b15f;
+}
+
+.main-franchise .franchise-form .agree-terms-box .MuiFormControlLabel-root {
+  align-items: flex-start;
+}
+
+.main-franchise .franchise-form .MuiCheckbox-root {
+  color: #fff;
+  margin-top: -6px;
+}
+
+.main-franchise .franchise-form .MuiCheckbox-root svg {
+  font-size: 16px;
+}
+
+.main-franchise .franchise-form .MuiCheckbox-root.Mui-checked {
+  color: #d3b15f;
+}
+
+.main-franchise .franchise-form .agree-terms-box .agree-terms-link {
+  font-size: 13px;
+  line-height: 17px;
+  color: #d3b15f;
+  font-weight: 300;
+}
+
+.franchise-modal .modal-inner .agree-terms-box p.Mui-error {
+  margin-top: 0px;
+}
+
+.main-franchise .franchise-form .form-action {
+  text-align: right;
+}
+
+.main-franchise .franchise-form .form-action button {
+  width: 100%;
+  max-width: 150px;
+}

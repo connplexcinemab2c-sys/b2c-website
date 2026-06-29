@@ -1,0 +1,112 @@
+.main-card.coupon-card-cont .card-content {
+  background-color: #23211e;
+  height: 100%;
+  box-shadow: rgb(0 0 0) 3px 3px 6px 0px inset,
+    rgb(0 0 0 / 50%) -3px -3px 6px 1px inset;
+  border-radius: 14px;
+  padding: 0;
+}
+
+.coupon-detail-list {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center !important;
+  padding: 0px !important;
+  margin-bottom: 12px;
+}
+
+.coupon-title {
+  font-size: 16px;
+  line-height: 20px;
+  color: #d3b15f;
+}
+
+.coupon-subtitle {
+  font-size: 14px;
+  line-height: 18px;
+  color: #fff;
+}
+
+.coupon-price-box {
+  font-size: 56px;
+  font-weight: 700;
+  height: 100px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+      ellipse farthest-corner at right bottom,
+      #fedb37 0%,
+      #fdb931 8%,
+      #9f7928 30%,
+      #8a6e2f 40%,
+      transparent 80%
+    ),
+    radial-gradient(
+      ellipse farthest-corner at left top,
+      #fff 0%,
+      #fdb931 8%,
+      #9f7928 25%,
+      #8a6e2f 62.5%,
+      #5d4a1f 100%
+    );
+  color: #fff;
+  border-radius: 14px 14px 0 0px;
+}
+
+.coupon-list {
+  /* border: 2px solid rgba(164, 172, 179, 0.4); */
+  height: 100%;
+  padding: 0px 16px 0px 16px !important;
+}
+
+.main-card.coupon-card-cont .card-content-btn {
+  padding: 16px;
+}
+
+.main-card.coupon-card-cont:hover {
+  transform: scale(1.05);
+  -moz-transform: scale(1.05);
+  -webkit-transform: scale(1.05);
+  transition: 0.4s all ease-in-out;
+  -moz-transition: 0.4s all ease-in-out;
+  -webkit-transition: 0.4s all ease-in-out;
+}
+
+.coupon-heading {
+  font-size: 24px;
+  line-height: 32px;
+  padding: 16px;
+  text-transform: capitalize;
+  text-align: center;
+  color: #d3b15f;
+  -webkit-transition: all 0.4s ease 0s;
+  -o-transition: all 0.4s ease 0s;
+  transition: all 0.4s ease 0s;
+  position: relative;
+  margin: 0;
+}
+
+.coupon-heading:before {
+  width: 28px;
+  height: 5px;
+  display: block;
+  content: "";
+  position: absolute;
+  bottom: 18%;
+  left: 50%;
+  margin-left: -14px;
+  background-color: #d3b15f;
+}
+.coupon-heading:after {
+  width: 100px;
+  height: 1px;
+  display: block;
+  content: "";
+  position: relative;
+  margin-top: 12px;
+  left: 50%;
+  margin-left: -50px;
+  background-color: #d3b15f;
+}

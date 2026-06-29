@@ -1,0 +1,33 @@
+.modal .modal-inner-main.unique-movie-modal {
+  max-width: 750px;
+}
+
+.max-width-movie-details {
+  max-width: 200px;
+  width: 100%;
+}
+
+.max-width-movie-details .w-100-res-drop {
+  width: 100%;
+}
+
+#menu-category .MuiMenu-list {
+  max-height: 300px;
+}
+
+.menu-movie-max {
+  max-width: 340px !important;
+  display: block !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-table-main .table-container .unique-table{
+  min-width: 400px;
+  width: 100%;
+}
+
+.page-table-main .table-container .unique-table .Mui-disabled {
+  opacity: 0.7;
+}

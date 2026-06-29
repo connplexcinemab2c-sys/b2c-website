@@ -1,0 +1,272 @@
+.vista-dashboard {
+  padding: 0;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.last-updated {
+  display: block;
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Stat Cards */
+.stat-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.stat-icon svg {
+  font-size: 28px;
+  color: #fff;
+}
+
+.stat-card-primary .stat-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card-success .stat-icon {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.stat-card-warning .stat-icon {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card-info .stat-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: #888;
+  margin-top: 6px;
+}
+
+.stat-sub .online,
+.stat-sub .open,
+.stat-sub .now-showing {
+  color: #2e7d32;
+}
+
+.stat-sub .offline,
+.stat-sub .closed {
+  color: #c62828;
+}
+
+.stat-sub .upcoming {
+  color: #ef6c00;
+}
+
+/* Tabs */
+.vista-tabs {
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 0;
+}
+
+.vista-tabs .MuiTab-root {
+  text-transform: none;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.tab-content {
+  padding: 16px 0;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.status-online {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-offline {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-now-showing {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-upcoming {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-default {
+  background-color: #f5f5f5;
+  color: #616161;
+}
+
+/* Seats styling */
+.seats-zero {
+  color: #c62828;
+  font-weight: 600;
+}
+
+.seats-available {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.sub-info {
+  font-size: 11px;
+  color: #888;
+  margin-left: 4px;
+}
+
+/* Occupancy Bar */
+.occupancy-bar-container {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.occupancy-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.occupancy-bar.low {
+  background: linear-gradient(90deg, #81c784, #66bb6a);
+}
+
+.occupancy-bar.medium {
+  background: linear-gradient(90deg, #ffb74d, #ffa726);
+}
+
+.occupancy-bar.high {
+  background: linear-gradient(90deg, #e57373, #ef5350);
+}
+
+.occupancy-text {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  z-index: 1;
+}
+
+/* Insight Cards */
+.insight-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  border-radius: 12px;
+  padding: 20px;
+  height: 100%;
+}
+
+.insight-title {
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.insight-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.insight-sub {
+  font-size: 13px;
+  color: #888;
+}
+
+/* Table Enhancements */
+.page-table-main .MuiTableCell-head {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.page-table-main .MuiTableRow-root:hover {
+  background-color: #f5f5f5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .insight-card {
+    margin-bottom: 16px;
+  }
+}

@@ -1,0 +1,49 @@
+@media (max-width: 1023px) {
+
+    .main-membership .membership-body .membership-item-box {
+        gap: 15px;
+    }
+
+    .main-membership .membership-body .membership-item {
+        padding: 15px 15px 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .main-membership .membership-body {
+        padding: 40px 0;
+    }
+
+    .main-membership .membership-header {
+        padding: 20px 0;
+    }
+
+    .main-membership .membership-header .membership-header-title {
+        font-size: 24px;
+        line-height: 30px;
+    }
+
+    .main-membership .membership-body .membership-item-box {
+        grid-template-columns: 1fr;
+    }
+
+    .main-membership .membership-body .membership-item.gold-membership {
+        margin: 0;
+    }
+
+    .main-membership .membership-body .membership-item .membership-title {
+        margin-bottom: 10px;
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .main-membership .membership-body .membership-item .membership-price-inner {
+        padding: 8px 16px;
+    }
+}
+
+@media (max-width: 549px) {
+    .main-membership .membership-body {
+        padding: 30px 0;
+    }
+}

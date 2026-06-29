@@ -1,0 +1,101 @@
+@media (max-width:1023px) {
+
+    .main-gallery .gallery-wrapper,
+    .main-gallery-inner .gallery-wrapper {
+        padding: 40px 0;
+    }
+
+    .main-gallery .gallery-item-box .title {
+        font-size: 18px;
+        line-height: 24px;
+        padding-bottom: 0;
+    }
+
+    .main-gallery-inner .gallery-wrapper .MuiImageList-root {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .main-gallery .gallery-wrapper .gallery-wrapper-grid-item:not(:first-child) .gallery-item-box {
+        margin-top: 20px;
+    }
+
+    .main-gallery .gallery-item-box .gallery-item-bottom {
+        padding: 10px 15px 15px;
+    }
+
+    .main-gallery .gallery-item-box img {
+        height: auto;
+    }
+
+    .main-gallery-inner .gallery-wrapper .MuiImageList-root {
+        grid-template-columns: repeat(1, 1fr) !important;
+    }
+
+    .main-gallery-inner .gallery-wrapper .MuiImageList-root .MuiImageListItem-root {
+        grid-row-end: span 1 !important;
+        grid-column-end: span 1 !important;
+    }
+
+    .main-gallery-inner .gallery-wrapper ._3AWTh button svg {
+        scale: 0.8;
+    }
+
+    .main-gallery-inner .gallery-wrapper ._3AWTh>div:nth-child(2) {
+        margin: 0 10px;
+    }
+
+    .main-gallery-inner .gallery-wrapper ._3AWTh div:nth-child(2) img {
+        max-width: 100% !important;
+    }
+
+    .main-gallery-inner .gallery-wrapper ._3AWTh ._3ZUEV {
+        right: 15px;
+        top: 15px;
+    }
+
+    .main-gallery-inner .gallery-wrapper ._3AWTh ._2pWTS {
+        left: 1rem;
+    }
+
+    .main-gallery-inner .gallery-wrapper ._3AWTh ._18xMp {
+        right: 1rem;
+    }
+}
+
+@media (max-width: 549px) {
+
+    .main-gallery .gallery-wrapper,
+    .main-gallery-inner .gallery-wrapper {
+        padding: 20px 0 40px;
+    }
+
+    .main-gallery .gallery-item-box .gallery-item-bottom {
+        margin: 0;
+        border-radius: 0;
+        padding: 5px 10px 10px;
+    }
+
+    .main-gallery .gallery-item-box .title {
+        font-size: 14px;
+        line-height: 16px;
+    }
+
+    .main-gallery-inner .gallery-wrapper ._3AWTh :is(._18xMp, ._2pWTS) button,
+    .main-gallery-inner .gallery-wrapper ._3AWTh ._3bkri {
+        width: 1.4rem;
+        height: 1.4rem;
+    }
+
+    .main-gallery-inner .gallery-wrapper ._3AWTh button svg {
+        scale: 0.6;
+    }
+}
+
+@media (max-width: 374px) {
+    .main-gallery .gallery-item-box .title {
+        font-size: 12px;
+        line-height: 14px;
+    }
+}

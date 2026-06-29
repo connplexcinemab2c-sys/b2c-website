@@ -1,0 +1,17 @@
+@media (max-width: 767px) {
+  .main-legal-notice .legal-notice-header {
+      padding: 20px 0;
+  }
+
+  .main-legal-notice .legal-notice-body{
+      padding: 20px 0 30px;
+  }
+
+  .main-legal-notice .legal-notice-header .legal-notice-header-title {
+      font-size: 24px;
+      line-height: 30px;
+  }
+  .main-legal-notice .legal-notice-body h4 {
+      font-weight: 500;
+  }
+}

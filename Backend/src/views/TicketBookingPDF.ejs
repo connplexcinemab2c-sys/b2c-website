@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Ticket PDF</title>
+  <style>
+    * {
+      padding: 0px;
+      margin: 0px;
+      box-sizing: border-box;
+    }
+
+    body {
+      padding: 50px 0px;
+      margin: auto
+    }
+
+    .center-table {
+      display: table;
+      margin: 0 auto;
+      height: 100vh;
+    }
+
+    .center-table-cell {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: center;
+    }
+  </style>
+
+
+</head>
+
+<body>
+  <center>
+    <div class="center-table">
+      <div class="center-table-cell">
+        <table style="
+          width: 100%;
+          max-width: 550px;
+          padding: 0 30px;
+          overflow: hidden;
+          color: #bcbcbc;
+          background-color: #191510;
+          font-family: 'Work Sans', sans-serif;
+        " cellspacing="0" cellpadding="0" border="0" align="center">
+          <tr>
+            <td style="text-align: center; padding: 30px 0" colspan="2">
+              <img src="<%= connplexLogo %>"
+                alt="company logo" width="150" height="35" />
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: center" colspan="2">
+              <table style="
+                width: 100%;
+                max-width: 550px;
+                padding: 30px 30px;
+                overflow: hidden;
+                background-color: #fff;
+                border-radius: 30px;
+                font-family: 'Work Sans', sans-serif;
+              " cellspacing="0" cellpadding="0" border="0" align="center">
+                <tr>
+                  <td style="padding: 0px 0px 20px 0px" colspan="2">
+                    <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 16px;
+                      line-height: 20px;
+                      text-transform: uppercase;
+                    ">
+                      HI
+                      <span className="welcome-name" style="color: #ffb400">
+                        <%= data?.userId?.firstName %>
+                          <%= data?.userId?.lastName %>
+                      </span>
+                      <p style="padding-top: 10px">
+                        WELCOME TO CONNPLEX SMART THEATRES!
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 0px 0px 10px 0px" colspan="2">
+                    <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 14px;
+                      line-height: 20px;
+                      text-transform: uppercase;
+                      border-bottom: 4px dotted #000;
+                      padding-bottom: 10px;
+                    ">
+                      SCAN THE QR CODE AT<br />
+                      THE ENTRANCE OF THE
+                      <%= data?.cinemaId?.cinemaName %>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0px 10px 0px;border-right: 1px solid #c5c5c5;">
+                    <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 16px;
+                      line-height: 24px;
+                      text-transform: uppercase;
+                      border-right: 1px solid rgb(0 0 0 / 20%);
+                      padding-right: 10px;
+                    ">
+                      <div style="width: 136px;
+                  height: 136px;
+                  padding: 13px;
+                  border-radius: 20px;
+                  margin: auto;
+                  border: 1px solid #000;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;">
+                        <img src=" <%= QRCodeTicket %>" height="105" width="105" />
+                      </div>
+                      <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      line-height: 24px;
+                      text-transform: uppercase;
+                      margin: 16px 0 0;
+    text-align: start;
+    font-size: 13px;
+                    ">
+                        BOOKING ID :
+                        <span>
+                          <%= data?.addSeatData?.strBookId %>
+                        </span> <br />
+                        INVOICE NO. : <span>
+                          <%= data?.initTransId %>
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td style="padding: 10px 0px 10px 10px;">
+                    <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 16px;
+                      line-height: 24px;
+                      text-transform: uppercase;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: self-start;
+                      margin-bottom: 10px;
+                    ">
+                      <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 16px;
+                      line-height: 24px;
+                      text-transform: uppercase;
+                      text-align: start;
+                    ">
+                        <span style="font-weight: 600; display: flex;
+                    align-items: center;">
+                         <svg id="Solid" height="25" viewBox="0 0 64 64"  xmlns="http://www.w3.org/2000/svg"><path d="m42 27h-32a7.0078 7.0078 0 0 0 -7 7v16a7.0078 7.0078 0 0 0 7 7h32a7.0078 7.0078 0 0 0 7-7v-16a7.0078 7.0078 0 0 0 -7-7zm-26 4h-6a3.0033 3.0033 0 0 0 -3 3v6a1 1 0 0 1 -2 0v-6a5.0059 5.0059 0 0 1 5-5h6a1 1 0 0 1 0 2zm4 0a1 1 0 1 1 1-1 1 1 0 0 1 -1 1zm22 4h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2z"/><path d="m16 11a7 7 0 1 0 7 7 7 7 0 0 0 -7-7zm-.7495 4.0947a3.0033 3.0033 0 0 0 -2.1558 2.1558 1 1 0 0 1 -.9677.75 1.0171 1.0171 0 0 1 -.251-.0317 1 1 0 0 1 -.7178-1.2188 5.0046 5.0046 0 0 1 3.5918-3.5918 1 1 0 1 1 .501 1.9365z"/><path d="m36 7a9 9 0 1 0 9 9 9.01 9.01 0 0 0 -9-9zm-3.7236 5.6675a4.9844 4.9844 0 0 0 -1.2764 3.3325 1 1 0 0 1 -2 0 6.9829 6.9829 0 0 1 1.7871-4.6675 1 1 0 0 1 1.4893 1.335zm2.7236-1.6675a1 1 0 1 1 1-1 1 1 0 0 1 -1 1z"/><path d="m61 32v19.9934a1 1 0 0 1 -1.4465.8948l-8.5535-4.2682v-13.23l8.55-4.28a.9953.9953 0 0 1 1.45.89z"/></svg>
+                          <span style="
+                          font-size: 14px;
+                          font-weight: 600;
+                          margin: 0 0 0px 5px;
+                          text-transform: uppercase;
+                        ">MOVIE</span>
+                        </span>
+                      </div>
+                      <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 14px;
+                      line-height: 20px;
+                      margin: 10px 0 5px 0px;
+                      text-align: start;
+                    ">
+                        <span style="font-weight: 600; ">
+                          <%= data?.movieId?.name %> -
+                            <span>
+                              <%= data?.movieId?.censorRating ? (data?.movieId?.censorRating) : "" %>
+                            </span>
+                        </span>
+                      </div>
+                      <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 14px;
+                      line-height: 20px;
+                      /* margin: 10px 0 0px 0px; */
+                      text-align: start;
+                    ">
+                        <span style="">
+                          <span>
+                            <%= movieDate %>
+                          </span> |
+                          <span>
+                            <%= movieTime %>
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 14px;
+                      line-height: 20px;
+                      text-transform: uppercase;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: self-start;
+                      margin-bottom: 10px;
+                      text-align: start;
+                    ">
+                      <span style="font-weight: 600">
+                        <!-- <img
+                          src="https://ticketing.theconnplex.com/static/media/theatre.5f32b6b366defeb3d95f35c508f15d36.svg"
+                          style="height: 25px; padding-top: 5px" /> -->
+                          <svg enable-background="new 0 0 512 512" height="25" viewBox="0 0 512 512"  xmlns="http://www.w3.org/2000/svg"><g id="_x31_4_Theater"><g><g><g><path d="m377.027 335.507v12.91h-17.479c-18.861 0-34.214 15.354-34.214 34.214v12.911h-4.623v-12.911c0-18.86-15.354-34.214-34.214-34.214h-17.533v-12.91c0-13.017 10.573-23.589 23.589-23.589h60.939c12.962-.001 23.535 10.572 23.535 23.589z"/><path d="m243.089 335.507v12.91h-17.532c-18.861 0-34.215 15.354-34.215 34.214v12.911h-4.622v-12.911c0-18.86-15.354-34.214-34.214-34.214h-17.533v-12.91c0-13.017 10.573-23.589 23.589-23.589h60.938c13.017-.001 23.589 10.572 23.589 23.589z"/></g></g><g><g><path d="m176.094 382.631v12.911h-17.533c-18.86 0-34.214 15.301-34.214 34.162v34.214h-4.622v-34.214c0-18.861-15.354-34.162-34.215-34.162h-17.532v-12.911c0-13.016 10.573-23.589 23.589-23.589h60.938c13.017 0 23.589 10.573 23.589 23.589z"/><path d="m444.021 382.631v12.911h-17.479c-18.86 0-34.215 15.301-34.215 34.162v34.214h-4.675v-34.214c0-18.861-15.302-34.162-34.162-34.162h-17.532v-12.911c0-13.016 10.573-23.589 23.589-23.589h60.938c12.964 0 23.536 10.573 23.536 23.589z"/><path d="m310.084 382.631v12.911h-17.533c-18.86 0-34.214 15.301-34.214 34.162v34.214h-4.675v-34.214c0-18.861-15.302-34.162-34.163-34.162h-17.532v-12.911c0-13.016 10.573-23.589 23.589-23.589h60.938c12.965 0 23.59 10.573 23.59 23.589z"/></g></g><g><g><path d="m109.1 429.703v75.974c0 2.975-2.391 5.313-5.313 5.313h-97.491c-2.922 0-5.313-2.338-5.313-5.313v-75.974c0-12.963 10.573-23.536 23.589-23.536h60.938c13.017 0 23.59 10.573 23.59 23.536z"/><path d="m511.017 429.703v75.974c0 2.975-2.337 5.313-5.313 5.313h-97.438c-2.922 0-5.313-2.338-5.313-5.313v-75.974c0-12.963 10.573-23.536 23.589-23.536h60.938c12.964 0 23.537 10.573 23.537 23.536z"/><path d="m243.037 429.703v75.974c0 2.975-2.338 5.313-5.313 5.313h-97.438c-2.922 0-5.313-2.338-5.313-5.313v-75.974c0-12.963 10.573-23.536 23.589-23.536h60.938c12.964 0 23.537 10.573 23.537 23.536z"/><path d="m377.027 429.703v75.974c0 2.975-2.338 5.313-5.313 5.313h-97.438c-2.922 0-5.313-2.338-5.313-5.313v-75.974c0-12.963 10.573-23.536 23.589-23.536h60.939c12.963 0 23.536 10.573 23.536 23.536z"/></g></g><path d="m450.981 1.01h-389.962c-14.61 0-26.564 11.901-26.564 26.564v222.927c0 14.664 11.954 26.564 26.564 26.564h389.963c14.664 0 26.564-11.901 26.564-26.564v-222.927c0-14.664-11.901-26.564-26.565-26.564zm-194.981 208.688c-38.944 0-70.661-31.718-70.661-70.661 0-38.997 31.718-70.714 70.661-70.714 38.996 0 70.714 31.718 70.714 70.714 0 38.943-31.718 70.661-70.714 70.661z"/><path d="m288.727 130.643-39.581-26.937c-3.134-2.071-7.119-2.284-10.413-.531-3.347 1.753-5.419 5.153-5.419 8.925v53.872c0 3.719 2.072 7.172 5.419 8.926 1.488.796 3.081 1.169 4.728 1.169 1.966 0 3.985-.585 5.685-1.754l39.581-26.936c2.763-1.859 4.41-4.994 4.41-8.341 0-3.346-1.647-6.481-4.41-8.393z"/></g></g></svg>
+                        <span style="font-weight: 600">
+                          <span style="
+                            font-size: 14px;
+                            font-weight: 600;
+                            margin: 0 0 0px 5px;
+                            text-transform: uppercase;
+                          ">
+                            <%= data?.showId?.screenName %>
+                          </span>
+                          <!-- <span
+                        style="
+                          font-size: 17px;
+                          font-weight: 600;
+                          margin: 0 0 0px 5px;
+                          text-transform: uppercase;
+                        "
+                        >Screen</span
+                      >
+                    </span> -->
+                    </div>
+                    <div>
+                      <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 16px;
+                      line-height: 24px;
+                      text-transform: uppercase;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: self-start;
+                      text-align: start;
+                    ">
+                        <span style="font-weight: 600;display: flex;
+                    align-items: center;">
+                          <!-- <img
+                            src="https://ticketing.theconnplex.com/static/media/theatre.5f32b6b366defeb3d95f35c508f15d36.svg"
+                            style="height: 25px; padding-top: 5px" /> -->
+
+                            <?xml version="1.0" encoding="iso-8859-1"?>
+<!-- Generator: Adobe Illustrator 19.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" width="25" height=""25 id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+<g>
+	<g>
+		<path d="M443.733,204.8h-57.353l-7.518-135.236C376.704,30.558,344.397,0,305.331,0h-98.662
+			c-39.066,0-71.373,30.558-73.532,69.564L125.619,204.8H68.267c-9.412,0-17.067,7.654-17.067,17.067v17.067
+			c0,9.412,7.654,17.067,17.067,17.067v93.867c0,14.114,11.486,25.6,25.6,25.6h8.533V384c0,4.71,3.814,8.533,8.533,8.533h25.6V486.4
+			c0,14.114,11.486,25.6,25.6,25.6s25.6-11.486,25.6-25.6v-93.867h136.533V486.4c0,14.114,11.486,25.6,25.6,25.6
+			c14.114,0,25.6-11.486,25.6-25.6v-93.867h25.6c4.719,0,8.533-3.823,8.533-8.533v-8.533h8.533c14.114,0,25.6-11.486,25.6-25.6V256
+			c9.412,0,17.067-7.654,17.067-17.067v-17.067C460.8,212.454,453.146,204.8,443.733,204.8z M167.219,71.467
+			c1.152-20.941,18.483-37.333,39.45-37.333h98.662c20.966,0,38.298,16.393,39.45,37.333c0.273,4.702-3.336,8.721-8.038,8.986
+			c-0.171,0.009-0.324,0.017-0.486,0.017c-4.497,0-8.26-3.516-8.508-8.064C327.091,60.51,317.244,51.2,305.331,51.2h-98.662
+			c-11.913,0-21.76,9.31-22.417,21.205c-0.256,4.702-4.224,8.243-8.994,8.047C170.556,80.188,166.946,76.169,167.219,71.467z
+			 M68.267,238.933v-17.067h56.397l-0.947,17.067H76.8H68.267z M116.267,301.525c-0.947,0.879-1.843,1.801-2.714,2.765
+			c-0.811,0.887-1.553,1.818-2.278,2.765c-0.905,1.178-1.749,2.372-2.517,3.644c-0.828,1.34-1.579,2.714-2.253,4.13
+			c-0.358,0.768-0.725,1.528-1.041,2.321c-0.828,2.065-1.485,4.198-1.98,6.383c-0.128,0.563-0.213,1.135-0.316,1.707
+			c-0.461,2.475-0.768,4.992-0.768,7.561v25.6h-8.533c-4.71,0-8.533-3.831-8.533-8.533V256h37.444l-2.338,42.086
+			c-0.947,0.674-1.792,1.459-2.679,2.21C117.265,300.706,116.745,301.09,116.267,301.525z M392.533,366.933v8.533h-25.6H332.8H179.2
+			h-34.133h-25.6v-8.533V332.8c0-2.133,0.333-4.224,0.862-6.238c0.102-0.418,0.247-0.811,0.375-1.22
+			c0.563-1.792,1.28-3.541,2.227-5.163c0.077-0.137,0.145-0.282,0.23-0.418c2.304-3.797,5.598-7.031,9.66-9.267
+			c1.929-1.058,3.891-1.843,5.871-2.398c0.094-0.017,0.188-0.06,0.282-0.085c2.005-0.529,4.045-0.811,6.093-0.811h221.867
+			c2.048,0,4.087,0.282,6.093,0.811c0.094,0.026,0.188,0.068,0.273,0.085c1.988,0.555,3.951,1.34,5.879,2.398
+			c4.07,2.236,7.356,5.47,9.66,9.267c0.085,0.136,0.154,0.282,0.23,0.418c0.947,1.621,1.664,3.371,2.227,5.163
+			c0.128,0.41,0.273,0.802,0.375,1.212c0.529,2.022,0.862,4.113,0.862,6.246V366.933z M426.667,349.867
+			c0,4.702-3.823,8.533-8.533,8.533H409.6v-25.6c0-2.568-0.307-5.086-0.768-7.561c-0.102-0.572-0.188-1.143-0.316-1.707
+			c-0.495-2.185-1.152-4.318-1.98-6.383c-0.316-0.794-0.683-1.553-1.041-2.321c-0.674-1.417-1.425-2.79-2.253-4.13
+			c-0.768-1.271-1.613-2.466-2.517-3.644c-0.725-0.947-1.468-1.877-2.278-2.765c-0.87-0.964-1.766-1.886-2.714-2.765
+			c-0.478-0.435-0.998-0.819-1.493-1.229c-0.887-0.751-1.732-1.536-2.679-2.21L389.222,256h37.444V349.867z M443.733,238.933H435.2
+			h-46.916l-0.947-17.067h56.397V238.933z"/>
+	</g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+</svg>
+
+                          <span style="
+                          font-size: 14px;
+                          font-weight: 600;
+                          margin: 0 0 0px 5px;
+                          text-transform: uppercase;
+                        ">Seat</span>
+                        </span>
+                      </div>
+                      <div component="p" variant="p" className="welcome-title" style="
+                      color: #000;
+                      font-size: 16px;
+                      line-height: 24px;
+                      text-transform: uppercase;
+                      padding-top: 10px;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: self-start;
+                      text-align: start;
+                    ">
+                        <span style="font-weight: 600">
+                          <span style="
+                          font-size: 14px;
+                          font-weight: 600;
+                          margin: 0 0 0px 5px;
+                          text-transform: uppercase;
+                        ">
+                            <%= data?.setSeatData?.strSeatInfo %>
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+
+                  </td>
+                </tr>
+
+                <tr>
+                  <td colspan="2" style="padding-top: 10px;">
+                    <table width="100%" style="padding-top: 10px;border-top: 4px dotted #000;">
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            NO. OF TICKETS:
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+                            <%= noOfTicket %>
+                          </div>
+                        </td>
+                      </tr>
+
+
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            Ticket Price :
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+
+                            ₹<%=data?.finalBookingCalculation?.ticketCart?.ticketTotal?.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% if (data?.finalBookingCalculation?.foodCart?.total > 0) { %>
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            Food And Beverages Price :
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                          color: #000;
+                          font-size: 12px;
+                          line-height: 24px;
+                          text-transform: uppercase;
+                          text-align: end;
+                          /* font-weight: 800; */
+                        ">
+
+                            
+                            ₹<%=data?.finalBookingCalculation?.foodCart?.total?.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+                      <% if (data?.finalBookingCalculation?.ticketCart?.membershipDiscount) { %>
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            MEMBERSHIP DISCOUNT :
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+
+                            
+                            - ₹<%= data?.finalBookingCalculation?.ticketCart?.membershipDiscount?.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+<% if (data?.finalBookingCalculation?.rewardCoinsRedeemed) { %>
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            Reward Points Applied (<%= data?.finalBookingCalculation?.rewardCoinsRedeemed %> pts) :
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+                            - ₹<%= data?.finalBookingCalculation?.rewardDiscountApplied?.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+
+
+                      <!-- <% if (data?.finalBookingCalculation?.ticketCart?.discountAmount) { %>
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            TICKET DISCOUNT :
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+
+                            <span>₹</span>
+                            <%= data?.finalBookingCalculation?.ticketCart?.discountAmount?.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      <% if (data?.finalBookingCalculation?.ticketCart?.totalAfterDiscount) { %>
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            TOTAL AFTER DISCOUNT :
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+
+                            <span>₹</span>
+                            <%= data?.finalBookingCalculation?.ticketCart?.totalAfterDiscount?.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% } %>
+
+                      
+
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            CGST CHARGE (  <%= data?.finalBookingCalculation?.ticketCart?.totalAfterDiscount < 115 ? "6%" : "9%" %>) :
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+                            <span>₹</span>
+                            <%= data.finalBookingCalculation?.ticketCart.cgst.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            SGST CHARGE (<%= data?.finalBookingCalculation?.ticketCart?.totalAfterDiscount < 115 ? "6%" : "9%" %>) :
+                          </div>
+                        </td>
+
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+                         
+                            <span>₹</span>
+                            <%= data?.finalBookingCalculation?.ticketCart?.sgst?.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr> 
+                      <tr>
+                        <td style="padding: 0px; border-bottom: 2px solid #c5c5c5">
+
+                        </td>
+                        <td style="padding: 0px; border-bottom: 2px solid #c5c5c5">
+
+                        </td>
+
+                      </tr> -->
+
+                      <!-- <tr>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+                            SUB TOTAL :
+                          </div>
+                        </td>
+                        <td style="padding: 0px">
+                          <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+
+                            <span>₹</span>
+                            <%= data?.finalBookingCalculation?.ticketCart?.total?.toFixed(2) %>
+                          </div>
+                        </td>
+                      </tr> -->
+
+                      <% if (fAndBDetails?.length> 0) { %>
+                        <tr>
+                          <td colspan="2">
+                            <div 
+                        
+                        >
+                              <!-- <p style="font-size: 12px; margin: 0 0 5px 0;""
+                            >
+                              Food & Beverages:
+        
+                        </p> -->
+                            <div>
+                              <table
+                               style=" width: 100%;">
+                                <% fAndBDetails?.forEach(item=> { %>
+                        <tr>
+
+
+                          <td style="padding: 0px; display:flex; align-items: center; justify-content: space-between;">
+                            <div component="p" variant="p" className="welcome-title" style="
+                           color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          
+                          ">
+                              <%= item?.name %> (x<%= item?.quantity %>)
+                            </div>
+                          </td>
+
+                          <td style="padding: 0px">
+                            <div component="p" variant="p" className="welcome-title" style="
+                                    
+                                    color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+                              ₹<%= (item?.price?.toFixed(2) ) %>
+                            </div>
+                          </td>
+
+
+                       
+
+                        </tr>
+                        <% }); %>
+                    </table>
+      </div>
+      </td>
+      </tr>
+      <% } %>
+
+
+        <!-- <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            /* font-weight: 800; */
+            text-align: start;
+          ">
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            text-align: end;
+            /* font-weight: 800; */
+          "></div>
+          </td>
+        </tr>
+        <% if (fAndBDetails?.length> 0) { %>
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            /* font-weight: 800; */
+            text-align: start;
+          ">
+              F&B PRICE :
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            text-align: end;
+            /* font-weight: 800; */
+          ">
+
+              <span>₹</span>
+              <%= data?.finalBookingCalculation?.foodCart?.basePrice?.toFixed(2) %>
+            </div>
+          </td>
+        </tr>
+        <% if (data?.finalBookingCalculation?.foodCart?.membershipDiscount > 0) { %>
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            /* font-weight: 800; */
+            text-align: start;
+          ">
+              MEMBERSHIP DISCOUNT :
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            text-align: end;
+            /* font-weight: 800; */
+          ">
+
+              <span>₹</span>
+              <%= data?.finalBookingCalculation?.foodCart?.membershipDiscount.toFixed(2) %>
+            </div>
+          </td>
+        </tr>
+        <% }; %>
+
+        <% if (data?.finalBookingCalculation?.foodCart?.discountAmount > 0) { %>
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            /* font-weight: 800; */
+            text-align: start;
+          ">
+              FNB DISCOUNT :
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            text-align: end;
+            /* font-weight: 800; */
+          ">
+
+              <span>₹</span>
+              <%= data?.finalBookingCalculation?.foodCart?.discountAmount?.toFixed(2) %>
+            </div>
+          </td>
+        </tr>
+        <% }; %>
+
+        <% if (data?.finalBookingCalculation?.foodCart?.totalAfterDiscount > 0) { %>
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            /* font-weight: 800; */
+            text-align: start;
+          ">
+              TOTAL AFTER DISCOUNT :
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            text-align: end;
+            /* font-weight: 800; */
+          ">
+
+              <span>₹</span>
+              <%= data?.finalBookingCalculation?.foodCart?.totalAfterDiscount?.toFixed(2) %>
+            </div>
+          </td>
+        </tr>
+        <% }; %>
+
+
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            /* font-weight: 800; */
+            text-align: start;
+          ">
+              CGST CHARGE (2.5%) :
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            text-align: end;
+            /* font-weight: 800; */
+          ">
+           
+              <span>₹</span>
+              <%= data?.finalBookingCalculation?.foodCart?.cgst.toFixed(2) %>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            /* font-weight: 800; */
+            text-align: start;
+          ">
+              SGST CHARGE (2.5%) :
+            </div>
+          </td>
+
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            text-align: end;
+            /* font-weight: 800; */
+          ">
+             
+            <%= data?.addSeatData?.curTicketsTax2 %> 
+              <span>₹</span>
+              <%= data?.finalBookingCalculation?.foodCart?.sgst?.toFixed(2) %>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 0px; border-bottom: 2px solid #c5c5c5">
+          </td>
+          <td style="padding: 0px; border-bottom: 2px solid #c5c5c5">
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            /* font-weight: 800; */
+            text-align: start;
+          ">
+              SUB TOTAL :
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+            color: #000;
+            font-size: 12px;
+            line-height: 24px;
+            text-transform: uppercase;
+            text-align: end;
+            /* font-weight: 800; */
+          ">
+
+              <span>₹</span>
+              <%= data?.finalBookingCalculation?.foodCart?.total?.toFixed(2) %>
+            </div>
+          </td>
+        </tr>
+        <% }; %> -->
+
+        <!-- Service charge -->
+        <!-- <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+              SERVICE CHARGE :
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+              <span>₹ 0.00</span>
+             
+            </div>
+          </td>
+        </tr> -->
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+              CONVENIENCE FEE (Including GST) :
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+              ₹<%= convenienceFees%>
+             
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 0px; border-bottom: 2px solid #000">
+
+          </td>
+          <td style="padding: 0px; border-bottom: 2px solid #000">
+
+          </td>
+
+        </tr>
+        <tr>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            /* font-weight: 800; */
+                            text-align: start;
+                          ">
+              TOTAL AMOUNT PAID:
+            </div>
+          </td>
+          <td style="padding: 0px">
+            <div component="p" variant="p" className="welcome-title" style="
+                            color: #000;
+                            font-size: 12px;
+                            line-height: 24px;
+                            text-transform: uppercase;
+                            text-align: end;
+                            /* font-weight: 800; */
+                          ">
+
+                      ₹<%= Number(data?.paymentResponse?.amount).toFixed(2) %>
+            </div>
+          </td>
+        </tr>
+        </table>
+        </td>
+        </tr>
+        </table>
+        </td>
+        </tr>
+        <tr>
+          <td style="text-align: center; padding: 20px 0px 30px 0px">
+            <div style="color: #fff; font-size: 12px">
+              GSTIN: <%= gstIn %>
+            </div>
+          </td>
+        </tr>
+        </table>
+    </div>
+    </div>
+  </center>
+</body>
+
+</html>

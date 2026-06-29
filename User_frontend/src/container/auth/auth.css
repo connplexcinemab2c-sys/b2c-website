@@ -1,0 +1,253 @@
+.signin-modal {
+  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signin-modal .signin-modal-inner {
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 15px;
+  border: 1px solid #d3b15f;
+  display: flex;
+}
+
+.signin-modal .signin-modal-inner .modal-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 16px;
+  overflow: auto;
+}
+
+.signin-modal .signin-modal-inner .signin-modal-left {
+  position: relative;
+}
+
+.signin-modal .signin-modal-inner .signin-modal-left .sign-in-bg {
+  position: absolute;
+  left: 0;
+  top: -20px;
+}
+
+.signin-modal .signin-modal-inner .signin-modal-left .sign-in-logo {
+  height: 350px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.signin-modal .signin-modal-inner:is(:focus, :focus-visible) {
+  outline: none;
+}
+
+.signin-modal .signin-modal-inner :is(.signin-modal-right, .otp-modal-right) {
+  padding: 15px;
+  max-height: 75vh;
+  overflow: auto;
+}
+
+.signin-modal .signin-modal-inner .signin-title {
+  font-size: 20px;
+  line-height: 26px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.signin-modal .signin-modal-inner .signin-content {
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 300;
+}
+
+.signin-modal .signin-modal-inner .signin-form .form-control {
+  margin-bottom: 20px;
+}
+
+.signin-modal .signin-modal-inner .signin-form input {
+  padding: 10px 20px;
+  font-size: 13px;
+  line-height: 19px;
+  font-weight: 300;
+  color: #fff;
+}
+
+.signin-modal .signin-modal-inner .signin-form fieldset {
+  border-radius: 100rem;
+  border-width: 1px;
+  border-color: #fff;
+}
+
+.signin-modal .signin-modal-inner .signin-form .Mui-focused fieldset {
+  border-color: #d3b15f;
+}
+
+.signin-modal .signin-modal-inner .signin-form .signin-btn {
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.signin-modal .signin-modal-inner .signup-option .signup-title-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.signin-modal .signin-modal-inner .signup-title-line {
+  height: 1px;
+  width: 100%;
+  background-color: #a4a4a4;
+  flex: 1;
+}
+
+.signin-modal .signin-modal-inner .signup-title-box .signup-title {
+  text-align: center;
+  font-size: 12px;
+  line-height: 18px;
+  color: #a4a4a4;
+  position: relative;
+  padding: 0 15px;
+}
+
+.signin-modal .signup-option-box {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 20px;
+}
+
+.signin-modal .signup-option-box .signup-option-item {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e3e3e3;
+  transition: all 0.3s ease-in-out;
+  height: 36px;
+  width: 36px;
+  cursor: pointer;
+}
+
+.signin-modal .signup-option-box .signup-option-item img {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+}
+
+.signin-modal .signin-modal-inner .otp-title {
+  font-size: 20px;
+  line-height: 26px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.signin-modal .signin-modal-inner .otp-content {
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 300;
+}
+
+.signin-modal .signin-modal-inner .otp-form {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.signin-modal .signin-modal-inner .otp-form-inner-wrapper {
+  margin-bottom: 15px;
+}
+
+.signin-modal .signin-modal-inner .otp-form-inner-wrapper .resend-otp-box {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.signin-modal .signin-modal-inner .otp-form-inner-wrapper .resend-otp-box .not-received-otp-span {
+  margin-left: 3rem !important;
+}
+
+
+.signin-modal .signin-modal-inner .otp-form-inner-wrapper span {
+  letter-spacing: 0.5px;
+}
+
+.signin-modal .signin-modal-inner .resend-otp-box .resend-otp-btn {
+  cursor: pointer;
+  /* text-decoration: underline; */
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #fecf73;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: 0.5px;
+}
+
+.signin-modal .signin-modal-inner .otp-form input:focus-visible {
+  outline: none;
+  border-color: #d3b15f;
+}
+
+.signin-modal .signin-modal-inner .otp-form input {
+  width: 40px !important;
+  padding: 10px;
+  font-size: 13px;
+  line-height: 19px;
+  font-weight: 300;
+  color: #fff;
+  text-align: center;
+  height: 40px;
+  background: transparent;
+  border-radius: 12px;
+  border-width: 1px;
+  border-color: #fff;
+}
+
+.signin-modal .signin-modal-inner .otp-form-wrapper .otp-btn {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.signin-modal .signin-modal-inner .otp-form-wrapper .back-btn-box {
+  text-align: center;
+}
+
+.signin-modal .signin-modal-inner .otp-form-wrapper .back-btn-box .back-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: #e3e3e3;
+  transition: 0.2s all linear;
+  position: relative;
+}
+
+.signin-modal .signin-modal-inner .otp-form-wrapper .back-btn-box .back-btn svg {
+  rotate: 180deg;
+  font-size: 18px;
+  transition: 0.15s all linear;
+  opacity: 0;
+  position: absolute;
+  left: 0;
+}
+
+.signin-modal .signin-modal-inner .otp-form-wrapper .back-btn-box .back-btn:hover {
+  padding-left: 20px;
+}
+
+.signin-modal .signin-modal-inner .otp-form-wrapper .back-btn-box .back-btn:hover svg {
+  opacity: 1;
+}

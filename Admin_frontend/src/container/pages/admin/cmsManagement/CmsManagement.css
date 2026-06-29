@@ -1,0 +1,18 @@
+.cms-box .res-title-header-flex {
+  flex: 1;
+  width: 100%;
+}
+.cms-box .res-title-header-flex .title-main {
+  display: block;
+  margin-bottom: 15px;
+}
+.cms-box .cms-save-btn {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 20px;
+}
+.ck-editor__editable ul,
+.ck-editor__editable ol {
+  padding-left: 18px;
+}

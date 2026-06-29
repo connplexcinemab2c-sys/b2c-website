@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Payment Confirmation</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f6f6f6;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 30px auto;
+        background: #000000;
+        padding: 25px;
+        border-radius: 6px;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .header h2 {
+        color: #222;
+      }
+
+      .content {
+        color: #444;
+        line-height: 1.6;
+        font-size: 15px;
+        background-color: white;
+        padding: 1px 15px;
+        border-radius: 6px;
+      }
+
+      .details {
+        padding: 10px 0;
+      }
+
+      .details ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .details li {
+        margin: 4px 0;
+      }
+
+      .footer {
+        font-size: 14px;
+        color: #666;
+        margin-top: 10px;
+      }
+
+      .footer p {
+        line-height: 0.8;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="<%= connplexLogo %>"
+          alt="Connplex Cinemas"
+          style="max-width: 180px"
+        />
+      </div>
+
+      <div class="content">
+        <p><strong> Dear <%= firstName %> <%= lastName %>,</strong></p>
+        <p>
+          We have successfully received your payment. Thank you for completing
+          the transaction.
+        </p>
+
+        <p>Payment Details</p>
+
+        <div class="details">
+          <ul style="margin: 0; padding-left: 20px">
+            <li>Amount Paid: <%= amount %></li>
+            <li>Payment Method: <%= paymentMethod %></li>
+            <li>Transaction ID: <%= transactionId %></li>
+            <li>Payment Date: <%= paymentDate %></li>
+          </ul>
+        </div>
+
+        <p>
+          If you have any questions regarding this payment or require further
+          assistance, please feel free to contact us.
+        </p>
+
+        <p>
+          Thank you for choosing Connplex Cinemas Limited. We truly appreciate
+          your trust in us.
+        </p>
+
+        <div class="footer">
+          <p>Best regards,</p>
+          <p>Connplex Cinemas Limited</p>
+          <p>finance@theconnplex.com</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

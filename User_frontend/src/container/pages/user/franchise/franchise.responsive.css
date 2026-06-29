@@ -1,0 +1,36 @@
+@media (max-width: 767px) {
+  .main-franchise .main-franchise-wrapper {
+    padding: 40px 0;
+  }
+}
+
+@media (max-width: 549px) {
+  .main-franchise .main-franchise-wrapper {
+    padding: 30px 0;
+  }
+
+  .main-franchise .franchise-qa .franchise-question {
+    font-size: 16px;
+    line-height: 20px;
+    margin-bottom: 5px;
+  }
+
+  .main-franchise .franchise-qa .franchise-answer {
+    font-size: 13px;
+    line-height: 19px;
+  }
+
+  .main-franchise .franchise-qa:not(:last-child) {
+    margin-bottom: 20px;
+  }
+
+  .main-franchise .franchise-form {
+    padding: 15px 10px 20px;
+  }
+
+  .main-franchise .franchise-form .franchise-form-title {
+    font-size: 18px;
+    line-height: 24px;
+    margin-bottom: 10px;
+}
+}

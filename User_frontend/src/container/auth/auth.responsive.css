@@ -1,0 +1,36 @@
+@media (max-width: 767px) {
+    .signin-modal .signin-modal-inner .modal-inner {
+        display: block;
+    }
+
+    .signin-modal .signin-modal-inner {
+        justify-content: center;
+        max-width: 380px;
+    }
+
+    .signin-modal-left {
+        display: none;
+    }
+
+    .signin-modal .signin-modal-inner .signin-modal-right,
+    .signin-modal .signin-modal-inner .otp-modal-right {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 549px) {
+    .signin-modal .signin-modal-inner .signin-modal-right,
+    .signin-modal .signin-modal-inner .otp-modal-right {
+        padding: 0 7px;
+    }
+    .signin-modal .signin-modal-inner{
+        padding: 15px 7px;
+    }
+    .signin-modal .signin-modal-inner .signin-content,
+    .signin-modal .signin-modal-inner .signin-form .signin-btn{
+        margin-bottom: 20px;
+    }
+    .signin-modal .signin-modal-inner .signup-option .signup-title-box{
+        margin-bottom: 15px;
+    }
+}

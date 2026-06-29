@@ -1,0 +1,47 @@
+.accordion-food {
+    background: transparent;
+    box-shadow: none !important;
+    border-radius: 10px!important;
+    margin-bottom: 10px !important;
+}
+
+.accordion-food .MuiAccordionSummary-content {
+    color: #373737;
+    font-size: 14px;
+    font-family: "Poppins-Regular";
+    font-weight: 600;
+    margin: 15px 0px;
+}
+
+.accordion-food .MuiAccordionSummary-content.Mui-expanded{
+    margin: 15px 0px;
+}
+
+.accordion-food.Mui-expanded{
+    background: #edece9;
+}
+
+.accordion-food .accordion-details-summary {
+    background: #b5b1a9 !important;
+    min-height: unset !important;
+    border-radius: 10px;
+}
+
+
+.accordion-food .search-box{
+    justify-content: flex-end !important;
+}
+
+
+.food-baverage-table thead th,
+.food-baverage-table tbody td{
+width: 12% !important;
+}
+.food-baverage-table thead th:nth-child(1),
+.food-baverage-table tbody td:nth-child(1){
+width: 8% !important;
+}
+/* .food-baverage-table thead th:last-child,
+.food-baverage-table tbody td:last-child{
+width: 7% !important;
+} */

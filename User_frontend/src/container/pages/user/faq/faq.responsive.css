@@ -1,0 +1,25 @@
+@media (max-width: 767px) {
+  .main-faq .faq-header {
+    padding: 20px 0;
+  }
+
+  .main-faq .faq-header .faq-header-title {
+    font-size: 24px;
+    line-height: 30px;
+  }
+}
+
+@media (max-width: 549px) {
+  .main-faq .faq-body .faq-item .MuiAccordionSummary-root {
+    padding: 0 10px;
+  }
+
+  .main-faq .faq-body .faq-item .MuiAccordionSummary-content {
+    margin: 10px 0;
+  }
+
+  .main-faq .faq-body h4 {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}

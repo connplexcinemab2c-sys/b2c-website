@@ -1,0 +1,17 @@
+@media (max-width: 767px) {
+    .main-terms .terms-header {
+        padding: 20px 0;
+    }
+
+    .main-terms .terms-body{
+        padding: 20px 0 30px;
+    }
+
+    .main-terms .terms-header .terms-header-title {
+        font-size: 24px;
+        line-height: 30px;
+    }
+    .main-terms .terms-body h4 {
+        font-weight: 500;
+    }
+}

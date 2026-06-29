@@ -1,0 +1,101 @@
+@media (max-width: 1249px) {
+  
+}
+@media (max-width: 1030px){
+    .history-book-details .booking-detail-right {
+        max-width: 310px !important;
+    }    
+}
+
+@media (max-width: 1023px) {
+    .main-confirmation-screen .confirmation-screen-body .booking-detail-box.history-book-details{
+        flex-direction: column;
+    }
+      .booking-colum-2 {
+            max-width: 100%;
+            flex: 0 0 100%;
+        }
+        .booking-history-row {
+            flex-direction: column;
+        }
+        .booking-colum-1{
+            margin-right: 0px;
+        }
+
+        .history-book-details .booking-detail-left {
+            width: calc(100% - 0px) !important;
+        }
+
+        .history-book-details .booking-detail-right {
+            max-width: 100% !important;
+        }
+
+        .history-book-details .booking-detail-left::after{
+            display: none;
+        }
+}
+
+@media (max-width: 767px) {
+
+    .history-confirm-padding {
+        padding: 40px 15px !important;
+    }
+    
+    
+
+    .history-book-details .booking-detail-left {
+        width: calc(100% - 0px) !important;
+    }
+
+    .booking-history-wrape .history-detail-pad .detail-wrape {
+        padding: 10px 0 0px 0px;
+    }
+   
+    .history-book-info-pad {
+        border-left: 0px;
+        border-top: 1px dashed #ffb40033;
+    }
+        
+      .booking-history-row {
+            display: flex;
+            flex-direction: column;
+        }
+        .booking-history-wrape .history-detail-pad {
+            max-width: 100%;
+            flex: 0 0 100%;
+            flex-direction: column;
+            padding: 10px 0px;
+        }
+        .booking-history-wrape .img-wrape {
+            max-width: 100%;
+            flex: 0 0 100%;
+        }
+        .booking-history-wrape .detail-wrape {
+            padding: 20px 0px;
+            width: 100%;
+        }
+        /* .main-booking-history {
+            padding-top: 0px;
+        } */
+        .booking-colum-2 {
+            max-width: 100%;
+            flex: 0 0 100%;
+        }
+        .booking-colum-1 {
+            margin-right: 0px;
+        }
+        .booking-history-wrape{
+            flex-direction: column;
+        }
+        .history-total-price-detail {
+            margin: 15px 0 10px 0;
+        }
+}
+
+@media (max-width: 549px) {
+  
+}
+
+@media (max-width: 374px) {
+  
+}

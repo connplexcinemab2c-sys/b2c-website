@@ -1,0 +1,79 @@
+.main-advertise .main-advertise-wrapper {
+  padding: 60px 0;
+}
+
+.main-advertise .advertise-img{
+  text-align: center;
+}
+
+.main-advertise .advertise-img img {
+  height: 570px;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.main-advertise .advertise-form {
+  padding: 20px 30px 30px;
+  background-color: #23211e;
+  border-radius: 12px;
+  position: relative;
+}
+
+.main-advertise .advertise-form .advertise-form-title {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 500;
+  margin-bottom: 15px;
+  color: #d3b15f;
+}
+
+.main-advertise .advertise-form input,
+.main-advertise .advertise-form textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  line-height: 1;
+  color: #fff;
+  font-weight: 300;
+}
+
+.main-advertise .advertise-form .form-label {
+  color: #fff;
+  font-weight: 300;
+  margin: 0 0 5px;
+}
+
+.main-advertise .advertise-form .form-control fieldset {
+  border-color: #bcbcbc;
+  border-width: 1px;
+  border-radius: 100rem;
+}
+
+.main-advertise .advertise-form .form-control .Mui-focused fieldset {
+  border: 1px solid #d3b15f;
+}
+
+.main-advertise .advertise-form textarea {
+  border-radius: 12px;
+  border-color: #fff;
+  border-width: 1px;
+  background-color: transparent;
+  resize: vertical;
+  font-family: inherit;
+  font-weight: 400;
+}
+
+.main-advertise .advertise-form textarea:focus {
+  outline: none;
+  border: 1px solid #d3b15f;
+}
+
+.main-advertise .advertise-form .form-action {
+  text-align: right;
+}
+
+.main-advertise .advertise-form .form-action button {
+  width: 100%;
+  max-width: 150px;
+}

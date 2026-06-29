@@ -1,0 +1,20 @@
+.cinema_img {
+  width: 50px;
+  height: 50px;
+}
+.cinema_img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  background-color: #191510;
+}
+
+.table-design-main tr td  .cinema-mb-table {
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.table-design-main tr td .cinema-mb-table:last-child {
+  margin-bottom: 0px;
+}

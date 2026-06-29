@@ -1,0 +1,85 @@
+.status-green {
+  color: #0cd30c;
+  cursor: pointer;
+}
+
+.status-red {
+  color: #ff0000;
+  cursor: pointer;
+}
+
+
+
+.modal-body .log-title {
+  font-size: 16px;
+  font-weight: 600;
+  padding-bottom: 10px;
+}
+
+.modal-body .log-text {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  gap: 5px;
+  word-break: break-word;
+}
+
+.modal-body .log-text:not(:last-child) {
+  padding-bottom: 10px;
+}
+
+.modal-body .log-text-title {
+  color: #737373;
+  font-weight: 400;
+  min-width: 120px;
+  display: inline-block;
+}
+
+
+
+.modal-body .booking-detail-inner .booking-detail-img {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.modal-body .booking-detail-inner .booking-detail-img img {
+  max-width: 130px;
+  aspect-ratio: 3/4.5;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.modal-body .booking-detail-inner .booking-detail-img .booking-detail-id {
+  background-color: #5e544433;
+  border-radius: 8px;
+  padding: 5px 10px;
+  text-align: center;
+}
+
+.modal-body .booking-detail-inner .booking-detail-id .booking-detail-id-value {
+  color: #373737;
+  font-family: "poppins-semibold";
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.modal-body .booking-detail-inner .booking-detail-id .booking-detail-id-label {
+  color: #373737;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+@media (max-width: 767px) {
+  .modal-body .booking-detail-inner .booking-detail-img img {
+    max-width: 80px;
+  }
+
+  .modal-body .booking-detail-inner {
+    flex-direction: column;
+  }
+
+  .modal-body .log-text {
+    flex-direction: column;
+  }
+}

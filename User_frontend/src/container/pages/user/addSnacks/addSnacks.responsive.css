@@ -1,0 +1,166 @@
+@media (max-width: 1199px) {
+    .add-snacks-content-box .snacks-card-wrapper {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+}
+
+@media (max-width: 1023px) {
+
+    .add-snacks-content-box .snacks-card-wrapper {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .add-snacks-body .summary-box-wrapper .selected-snacks img {
+        max-width: 70px;
+    }
+
+    .add-snacks-body .summary-box-wrapper .selected-snacks .snacks-desc {
+        margin-bottom: 2px;
+    }
+
+    .add-snacks-content-box .snacks-bottom-left {
+        width: calc(60% - 8px);
+    }
+
+    .add-snacks-content-box .summary-box-wrapper {
+        width: calc(40% - 8px);
+    }
+}
+
+@media (max-width: 767px) {
+    .main-add-snacks .add-snacks-header {
+        padding: 20px 0;
+    }
+
+    .main-add-snacks .add-snacks-header .header-title {
+        font-size: 20px;
+        line-height: 26px;
+        margin-bottom: 0;
+    }
+
+    .main-add-snacks .add-snacks-header .header-content {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .add-snacks-tab-wrapper .add-snacks-tab-box div[role="tablist"] {
+        gap: 20px;
+    }
+
+    .add-snacks-tab-wrapper .add-snacks-tab-box .add-snacks-tab.Mui-selected {
+        font-weight: 400;
+    }
+
+    .add-snacks-tab-wrapper .add-snacks-tab-box .add-snacks-tab {
+        padding: 10px 0;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 300;
+        min-width: 40px;
+    }
+
+    .add-snacks-tab-wrapper .add-snacks-tab-box .MuiTabs-indicator {
+        height: 2px;
+    }
+
+    .add-snacks-body .add-snacks-content-box .snacks-bottom {
+        flex-direction: column;
+    }
+
+    .add-snacks-content-box .snacks-bottom-left,
+    .add-snacks-content-box .summary-box-wrapper {
+        width: 100%;
+        position: unset;
+    }
+
+    .add-snacks-content-box .summary-box-wrapper .summary-box-inner {
+        overflow-y: unset;
+        overflow-x: unset;
+        max-height: unset;
+    }
+
+    .add-snacks-body .add-snacks-content-box {
+        padding: 20px 0 30px;
+    }
+
+    .add-snacks-body .add-snacks-content-box .snacks-heading-title {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
+    .add-snacks-content-box .snacks-card .snacks-card-content .snacks-card-desc {
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .add-snacks-content-box .snacks-card .snacks-card-content .snacks-card-price {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .add-snacks-content-box .snacks-card-wrapper {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 549px) {
+    .add-snacks-body .summary-box-wrapper {
+        padding: 15px;
+    }
+
+    .add-snacks-body .add-snacks-content-box .snacks-heading-title {
+        font-size: 16px;
+        line-height: 20px;
+        margin-bottom: 10px;
+    }
+
+    .add-snacks-content-box .snacks-card-wrapper {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .add-snacks-content-box .snacks-card img {
+        min-height: unset;
+        max-height: unset;
+    }
+
+    .add-snacks-content-box .snacks-card .snacks-card-content {
+        padding: 7px;
+    }
+
+    .add-snacks-body .summary-box-wrapper .summary-main-title {
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+
+    .add-snacks-body .summary-box-wrapper .summary-box-row {
+        font-size: 14px;
+        line-height: 18px;
+    }
+
+    .add-snacks-body .summary-box-wrapper .summary-box-row:not(:last-child),
+    .add-snacks-body .summary-box-wrapper .payment-summary-row:not(:last-child) {
+        margin-bottom: 10px;
+    }
+
+    .add-snacks-body .summary-box-wrapper .apply-promocode-box input {
+        padding: 8px 80px 9px 12px;
+    }
+
+    .add-snacks-body .summary-box-wrapper .apply-promocode-box button {
+        right: 3px;
+    }
+
+    .add-snacks-body .summary-box-wrapper .booking-summary,
+    .add-snacks-body .summary-box-wrapper .payment-summary {
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+
+    .add-snacks-body .summary-box-wrapper .total-payment-row {
+        margin-bottom: 15px;
+        font-size: 18px;
+        line-height: 24px;
+    }
+}

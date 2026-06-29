@@ -1,0 +1,68 @@
+.main-faq .faq-header {
+  padding: 26px 0;
+  border-bottom: 1px solid #23211e;
+  text-align: center;
+}
+
+.main-faq .faq-header .faq-header-title {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 400;
+  color: #d3b15f;
+}
+
+.main-faq .faq-body {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 0;
+}
+
+.main-faq .faq-body .faq-item {
+  border-radius: 6px;
+  background-color: #23211e;
+}
+
+.main-faq .faq-body .faq-item:not(:first-child) {
+  margin: 15px 0 0;
+}
+
+.main-faq .faq-body .faq-item svg {
+  color: #d3b15f;
+}
+
+.main-faq .faq-body .faq-item .MuiAccordionSummary-root {
+  min-height: unset;
+}
+
+.main-faq .faq-body .faq-item .MuiAccordionSummary-content {
+  margin: 15px 0;
+}
+
+.main-faq .faq-body h4 {
+  color: #d3b15f;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.main-faq .faq-body .MuiAccordionDetails-root {
+  padding-top: 0;
+}
+
+.main-faq .faq-body .faq-content {
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 20px;
+  color: #fff;
+}
+
+.main-faq .faq-body ul {
+  padding-left: 15px;
+}
+
+.main-faq .faq-body ul li {
+  list-style: disc;
+}
+.no-content-box .no-content-text {
+  color: white;
+  text-align: center;
+}

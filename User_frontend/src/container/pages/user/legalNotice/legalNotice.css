@@ -1,0 +1,54 @@
+.app-legal-notice {
+  background-color: #000;
+  color: #fff;
+}
+
+.app-legal-notice .main-legal-notice .legal-notice-header {
+  display: none;
+}
+
+.legal-notice .main-legal-notice {
+  color: #fff;
+}
+
+.main-legal-notice .legal-notice-header {
+  padding: 26px 0;
+  border-bottom: 1px solid #23211e;
+  text-align: center;
+}
+
+.main-legal-notice .legal-notice-header .legal-notice-header-title {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 400;
+  color: #d3b15f;
+}
+
+.main-legal-notice .legal-notice-body {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 0;
+}
+
+.main-legal-notice .legal-notice-body .terms-item:not(:last-child) {
+  margin-bottom: 30px;
+}
+
+.main-legal-notice .legal-notice-body h4 {
+  color: #d3b15f;
+  font-size: 18px;
+  line-height: 24px;
+  margin-bottom: 7px;
+}
+
+.main-legal-notice .legal-notice-body p {
+  font-weight: 300;
+}
+
+.main-legal-notice .legal-notice-body ul {
+  padding-left: 15px;
+}
+
+.main-legal-notice .legal-notice-body ul li {
+  list-style: disc;
+}

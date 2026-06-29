@@ -1,0 +1,338 @@
+.main-confirmation-screen {
+    padding: 40px 0;
+    color: #fff;
+}
+
+.main-confirmation-screen .cus-container {
+    max-width: 1000px;
+}
+
+.main-confirmation-screen .confirmation-screen-header {
+    padding-bottom: 40px;
+    /* margin-bottom: 40px; */
+    text-align: center;
+    /* border-bottom: 1px solid #23211e; */
+}
+
+.main-confirmation-screen .confirmation-screen-header .confirm-icon {
+    min-width: 50px;
+    min-height: 50px;
+    max-width: 50px;
+    max-height: 50px;
+    background: radial-gradient(ellipse farthest-corner at right bottom, #fedb37 0%, #fdb931 8%, #9f7928 30%, #8a6e2f 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #fff 0%, #fdb931 8%, #9f7928 25%, #8a6e2f 62.5%, #5d4a1f 100%);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-confirmation-screen .confirmation-screen-header .confirm-icon svg {
+    font-size: 30px;
+    color: #fff;
+}
+
+.main-confirmation-screen .confirmation-screen-header .confirm-text {
+    font-size: 24px;
+    line-height: 30px;
+    margin-top: 15px;
+    color: #bcbcbc;
+}
+
+.main-confirmation-screen .confirmation-screen-header .confirm-text .confirm-text-amount {
+    color: #d3b15f;
+    font-size: 24px;
+    line-height: 30px;
+}
+
+.main-confirmation-screen .confirmation-screen-body {
+    background: #23211e;
+    border-radius: 12px;
+    padding: 30px;
+    overflow: hidden;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-id-box {
+    text-align: center;
+    padding-bottom: 30px;
+    margin: 0 20px 13px;
+    border-bottom: 1px dashed #bcbcbc;
+    position: relative;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-id-box:before,
+.main-confirmation-screen .confirmation-screen-body .booking-id-box:after {
+    content: '';
+    width: 50px;
+    height: 50px;
+    background: #000;
+    position: absolute;
+    top: calc(100% - 25px);
+    border-radius: 100%;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-id-box:before {
+    right: calc(100% + 25px);
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-id-box:after {
+    left: calc(100% + 25px);
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-id-box .booking-confirm-text {
+    font-size: 24px;
+    line-height: 30px;
+    color: #d3b15f;
+    margin-bottom: 5px;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-id-box .booking-confirm-id {
+    color: #bcbcbc;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-detail-box {
+    margin: 0 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-detail-right {
+    width: 100%;
+    max-width: 180px;
+    text-align: center;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-detail-left {
+    width: calc(100% - 180px);
+    display: flex;
+    gap: 20px;
+}
+
+.main-confirmation-screen .booking-detail-box .movie-img {
+    width: 100%;
+    max-width: 139px;
+    max-height: 190px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-detail-summary {
+    width: 100%;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-detail-summary .booking-summary-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid #525252;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-left {
+    width: calc(50% - 5px);
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-left .booking-detail-title {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #d3b15f;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-left .booking-detail-content {
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 300;
+    margin-bottom: 10px;
+}
+
+.booking-detail-content span {
+    color:#bcbcbc
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-right {
+    text-align: right;
+    width: calc(50% - 5px);
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordion-root {
+    width: 100%;
+    background-color: transparent;
+    box-shadow: none;
+    color: #bcbcbc;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionSummary-root {
+    min-height: unset;
+    padding: 0;
+    flex-direction: row-reverse;
+    gap: 5px;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionSummary-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionSummary-expandIconWrapper {
+    border: 1px solid #bcbcbc;
+    border-radius: 50%;
+    color: #bcbcbc;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionSummary-expandIconWrapper svg {
+    font-size: 16px;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionDetails-root {
+    padding-left: 21px;
+    padding-right: 0;
+    padding-bottom: 0;
+}
+
+.main-confirmation-screen .booking-detail-box .booking-summary-bottom .MuiAccordionDetails-root div {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 19px;
+    font-weight: 300;
+    text-transform: capitalize;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-detail-right img {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    max-width: 200px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.main-confirmation-screen .confirmation-screen-body .booking-detail-right .booking-code-text {
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+.main-confirmation-screen .confirmation-screen-footer {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+    margin-top: 30px;
+}
+
+.confirmation-screen-footer .confirmation-screen-footer-btn-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-confirmation-screen .confirmation-screen-footer .confirmation-screen-footer-text {
+    font-weight: 300;
+    margin-bottom: 20px;
+}
+
+.coupon-flex-screen,
+.coupon-listing-screen,
+.coupon-title-details {
+    width: 100%;
+}
+
+.coupon-listing-screen {
+    flex-direction: column;
+}
+
+/* .coupon-title-details p {
+    color: #d3b144;
+    margin-top: 10px;
+    margin-bottom: -2px;
+} */
+
+.coupon-code-details {
+    flex-direction: column;
+    gap: 3px !important;
+    padding: 0px 0px 10px 0px;
+}
+.coupon-code-details .coupon-details {
+    margin-top: 0px;
+    width: 100%;
+}
+
+.confirm-space-ticket, .ticket-flex-gst {
+    display: block !important;
+    padding: 0px 0px 0px 0px !important;
+    margin: 0px 0px 10px 0px !important;
+}
+
+
+.coupon-food-couple {
+    margin-bottom: 10px;
+}
+
+
+.name-w-100{
+    width: 100%;
+}
+
+.bold-confirmation{
+    color: #fff !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+.food-confrimation-details {
+    flex-direction: column;
+    gap: 0px !important;
+}
+
+.food-confrimation-details .food-list-item.coupon-food-couple {
+    width: 100%;
+    margin-bottom: 0px;
+}
+
+.ticking-show-details .ticket-details-book-confirm .bold-confirm-details {
+    color: #000 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+/* ── Reward earned banner (confirmation screen) ── */
+.reward-earned-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, rgba(211, 177, 95, 0.15), rgba(211, 177, 95, 0.05));
+    border: 1px solid rgba(211, 177, 95, 0.4);
+    border-radius: 8px;
+    justify-content: center;
+}
+
+.reward-earned-icon {
+    font-size: 22px !important;
+    color: #d3b15f !important;
+}
+
+.reward-earned-text {
+    font-size: 15px !important;
+    color: #ccc !important;
+    font-weight: 500 !important;
+}
+
+.reward-earned-pts {
+    color: #d3b15f;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+

@@ -1,0 +1,10 @@
+.res-set-search .transaction-history-flex {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.table-design-main svg.MuiCircularProgress-svg{
+  color: #191510;
+}

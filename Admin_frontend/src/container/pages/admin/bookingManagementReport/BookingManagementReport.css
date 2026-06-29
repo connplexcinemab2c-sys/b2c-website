@@ -1,0 +1,112 @@
+.status-green {
+  color: #0cd30c;
+  cursor: pointer;
+}
+
+.status-red {
+  color: #ff0000;
+  cursor: pointer;
+}
+
+.modal-body .log-title {
+  font-size: 16px;
+  font-weight: 600;
+  padding-bottom: 10px;
+}
+
+.modal-body .log-text {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  gap: 5px;
+  word-break: break-word;
+}
+
+.modal-body .log-text:not(:last-child) {
+  padding-bottom: 10px;
+}
+
+.modal-body .log-text-title {
+  color: #737373;
+  font-weight: 400;
+  min-width: 120px;
+  display: inline-block;
+}
+
+.modal-body .booking-detail-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.modal-body .booking-detail-inner .booking-detail-img {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.modal-body .booking-detail-inner .booking-detail-img img {
+  aspect-ratio: 3 / 3.2;
+  border-radius: 8px;
+  max-width: 130px;
+  object-fit: cover;
+}
+
+.modal-body .booking-detail-inner .booking-detail-img .booking-detail-id {
+  background-color: #5e544433;
+  border-radius: 8px;
+  padding: 5px 10px;
+  text-align: center;
+}
+
+.modal-body .booking-detail-inner .booking-detail-id .booking-detail-id-value {
+  color: #373737;
+  font-family: "poppins-semibold";
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.modal-body .booking-detail-inner .booking-detail-id .booking-detail-id-label {
+  color: #373737;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+@media (max-width: 767px) {
+  .modal-body .booking-detail-inner .booking-detail-img img {
+    max-width: 80px;
+  }
+
+  .modal-body .booking-detail-inner {
+    flex-direction: column;
+  }
+
+  .modal-body .log-text {
+    flex-direction: column;
+  }
+}
+.title-header {
+  align-items: flex-end !important;
+  flex-direction: column;
+}
+.title-header-booking-form form {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  /* align-items: flex-end; */
+  flex-direction: row;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.booking-flex-content{
+  display: flex;
+}
+
+.booking-flex-content .mt-remover-datepicker{
+  margin-top: 0px;
+}
+
+.booking-flex-content form{
+  margin-bottom: 0px;
+}

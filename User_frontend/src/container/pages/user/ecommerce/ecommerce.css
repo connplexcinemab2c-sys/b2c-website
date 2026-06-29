@@ -1,0 +1,206 @@
+.main-ecommerce .ecommerce-header {
+    padding: 26px 0;
+    color: #fff;
+    border-bottom: 1px solid #23211e;
+    text-align: center;
+}
+
+.main-ecommerce .ecommerce-header .ecommerce-header-title {
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 400;
+    margin-bottom: 7px;
+    color: #d3b15f;
+}
+
+.main-ecommerce .ecommerce-header .ecommerce-header-subtitle {
+    font-weight: 300;
+}
+
+.main-ecommerce .ecommerce-sortby {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    padding: 20px 0;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-selected {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-selected .ecommerce-mobile-filter {
+    display: none;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-selected .filter-selected-item {
+    padding: 5px 10px 5px 16px;
+    font-weight: 300;
+    font-size: 12px;
+    line-height: 1;
+    color: #fff;
+    border: 1px solid #fff;
+    border-radius: 100rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-selected .filter-selected-item.clear-all {
+    padding: 5px 15px;
+    cursor: pointer;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-selected .filter-selected-item svg {
+    font-size: 14px;
+    background-color: #fff;
+    color: #191510;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-sortby {
+    width: 100%;
+    max-width: fit-content;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-sortby .MuiSelect-select {
+    padding: 8px 16px;
+    color: #fff;
+    font-weight: 300;
+    padding-right: 40px;
+    font-size: 12px;
+    line-height: 1;
+    min-height: unset;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-sortby fieldset {
+    border-radius: 100rem;
+    border-color: #fff;
+    border-width: 1px;
+}
+
+.main-ecommerce .ecommerce-sortby .ecommerce-filter-sortby svg {
+    color: #fff;
+}
+
+.main-ecommerce .ecommerce-body {
+    padding-bottom: 30px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.main-ecommerce .ecommerce-body .ecommerce-filter {
+    width: calc(20% - 8px);
+    background-color: #23211E;
+    border-radius: 12px;
+    position: sticky;
+    top: 90px;
+    padding: 10px 5px;
+}
+
+.main-ecommerce .ecommerce-filter .ecommerce-filter-item:first-child{
+    border-top: 1px solid #191510;
+}
+
+.main-ecommerce .ecommerce-filter .ecommerce-filter-item {
+    border-bottom: 1px solid #191510;
+}
+
+.main-ecommerce .ecommerce-filter .ecommerce-filter-title {
+    padding: 15px 5px;
+    font-size: 16px;
+    line-height: 22px;
+    color: #d3b15f;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.main-ecommerce .ecommerce-filter .ecommerce-filter-title .ecommerce-clear-all {
+    font-size: 12px;
+    line-height: 14px;
+    text-decoration: underline;
+    color: #bcbcbc;
+}
+
+.main-ecommerce .ecommerce-filter .ecommerce-filter-action {
+    padding: 16px;
+    margin-top: auto;
+    display: none;
+}
+
+.main-ecommerce .ecommerce-filter .ecommerce-filter-item-box {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(100vh - 130px);
+}
+
+.main-ecommerce .ecommerce-filter .ecommerce-filter-action .btn {
+    width: 100%;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordion-root {
+    background-color: transparent;
+    color: #fff;
+    box-shadow: none;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordionSummary-root{
+    padding-right: 0;
+    padding-left: 5px;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordionSummary-root.Mui-expanded {
+    min-height: 48px;
+    padding-right: 0;
+    padding-left: 5px;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordion-root .MuiAccordionSummary-content {
+    font-size: 16px;
+    line-height: 22px;
+    margin: 0;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordion-root .MuiAccordionSummary-root svg {
+    color: #fff;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordion-root .MuiAccordionDetails-root {
+    padding: 0 5px 10px;
+    margin-top: -10px;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordion-root .MuiCheckbox-root {
+    color: #fff;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordion-root .MuiCheckbox-root.Mui-checked {
+    color: #d3b15f;
+}
+
+.main-ecommerce .ecommerce-filter .MuiAccordion-root .MuiFormControlLabel-label {
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.main-ecommerce .ecommerce-main {
+    width: calc(80% - 8px);
+}
+
+.main-ecommerce .ecommerce-main .ecommerce-main-wrapper {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.main-ecommerce .ecommerce-main .ecommerce-load-more {
+    text-align: center;
+    margin-top: 30px;
+}

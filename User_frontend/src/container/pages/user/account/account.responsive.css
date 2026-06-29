@@ -1,0 +1,237 @@
+@media (max-width: 1199px) {
+    .main-account .account-body .your-booking-card {
+        width: 100%;
+    }
+
+    .account-tab-wishlist .wishlist-main-wrapper {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 1023px) {
+    .main-account .account-body .account-tab-box .flex-active-rewards .profile-img-title{
+        display: block;
+    }
+    .main-account .account-header {
+        padding-top: 30px;
+    }
+
+    .main-account .account-body {
+        flex-direction: column;
+    }
+
+    .main-account .account-body .account-tab-box {
+        max-width: 100%;
+        margin: 30px 0 0;
+        padding: 0;
+        background-color: #23211e;
+        border-radius: 12px;
+    }
+
+    .main-account .account-body .account-tab-box .account-tab {
+        max-width: 100%;
+        padding: 15px 20px;
+        border-top: 1px solid #191510;
+    }
+
+    .main-account .account-body .account-tab-box .profile-img-box {
+        position: unset;
+        transform: unset;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .main-account .account-body .account-tab-box .account-tab-box-inner {
+        padding: 0;
+        background-color: transparent;
+        border-radius: 0;
+    }
+
+    .main-account .account-body .account-tab-box .profile-img img {
+        max-width: 60px;
+        max-height: 60px;
+        min-width: 60px;
+        min-height: 60px;
+    }
+
+    .main-account .account-body .account-tab-box .profile-img {
+        display: inline-flex;
+        border: none;
+        background-color: transparent;
+    }
+
+    .main-account .account-body .account-tab-box .profile-img-box .profile-img-title {
+        display: inline-block;
+        margin-bottom: 0;
+        padding: 0;
+        text-align: left;
+    }
+
+    .main-account .account-body .account-tab-box .profile-img-title {
+        display: none;
+    }
+
+
+
+    .active-flex-between .profile-img-title {
+        display: block !important;
+    }
+
+    .main-account .account-body .account-tab-box .MuiTabs-indicator {
+        width: 3px;
+    }
+
+    .main-account .account-body .account-tab-wrapper {
+        margin: 0 0 40px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .flex-card {
+       flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .res-left-amount {
+        margin-left: 0px;
+        width: 100%;
+    }
+
+    .flex-align-member-search {
+        flex-direction: column;
+        align-items: start;
+        gap: 10px;
+    }
+    
+    .membership-search {
+        width: 100%;
+    }
+    .main-account .account-body .account-tab-box .account-tab,
+    .main-account .account-body .account-tab-wrapper,
+    .main-account .account-body .account-tab-box .profile-img-box {
+        padding: 15px;
+    }
+
+    .main-account .account-body .account-tab-wrapper {
+        margin: 0 0 30px;
+    }
+
+    .main-account .account-body {
+        gap: 15px;
+    }
+
+    .main-account .account-body .account-tab-box .profile-img img {
+        max-width: 50px;
+        max-height: 50px;
+        min-width: 50px;
+        min-height: 50px;
+    }
+
+    .main-account .account-tab-main .profile-img-box img {
+        max-width: 60px;
+        max-height: 60px;
+        min-width: 60px;
+        min-height: 60px;
+    }
+
+    .main-account .account-tab-main .profile-img-box .profile-img {
+        border: 1px solid #d3b15f;
+        padding: 2px;
+    }
+
+    .main-account .account-tab-main .profile-img-box svg {
+        font-size: 20px;
+        border: 1px solid #d3b15f;
+        bottom: 2px;
+    }
+
+    .main-account .account-body .account-tab-box {
+        margin: 20px 0 0;
+    }
+
+    .main-account .account-header {
+        padding-top: 20px;
+    }
+
+    .edit-number-modal .edit-number-modal-inner,
+    .edit-number-modal .edit-number-modal-inner .modal-inner {
+        padding: 10px;
+    }
+
+    .main-account .account-tab-heading-box .account-tab-heading {
+        font-size: 20px;
+        line-height: 26px;
+    }
+
+    .main-account .account-tab-heading-box {
+        margin-bottom: 10px;
+    }
+
+    .main-account .your-booking-card .booking-card-title {
+        font-size: 16px;
+        line-height: 22px;
+        font-weight: 400;
+        margin-bottom: 5px;
+    }
+
+    .account-tab-wishlist .wishlist-main-wrapper {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 549px) {
+    .main-account .account-tab-main .form-group .account-tab-title {
+        margin-bottom: -5px;
+    }
+
+    .main-account .account-tab-main .form-group .divider {
+        margin-left: 8px !important;
+    }
+
+    .main-account .account-tab-main .profile-header-box {
+        margin-bottom: 15px;
+    }
+
+    .main-account .account-body .account-tab-box .profile-img-box {
+        gap: 10px;
+    }
+
+    .edit-number-modal .edit-number-modal-inner,
+    .edit-number-modal .edit-number-modal-inner .modal-inner {
+        padding: 7px;
+    }
+
+    .edit-number-modal .edit-number-modal-inner .edit-number-content,
+    .edit-number-modal .edit-number-modal-inner .otp-form-inner-wrapper {
+        margin-bottom: 20px;
+    }
+
+    .main-account .account-body .your-booking-card {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .main-account .your-booking-card img {
+        width: 100%;
+        max-width: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .main-account .your-booking-card .booking-card-title {
+        padding-right: 0;
+        margin-bottom: 3px;
+    }
+
+    .main-account .account-tab-heading-box .account-tab-heading {
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .account-tab-wishlist .wishlist-main-wrapper {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}

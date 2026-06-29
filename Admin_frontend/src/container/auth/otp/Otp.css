@@ -1,0 +1,23 @@
+.otp-flex-main {
+  width: 100%;
+  display: flex;
+  justify-content: space-around !important;
+  /* border: 1px solid gray; */
+}
+.otp-input-box {
+  /* border: 1px solid red; */
+  width: 10%;
+}
+
+.otp-verification-input {
+  margin-right: 20px;
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 5px;
+  border: 1px solid #c6c6c6;
+  font-size: 20px;
+  font-weight: 500;
+}
+.otp-verification-input-wrap {
+  justify-content: center;
+}
