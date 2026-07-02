@@ -9,15 +9,7 @@ const PublicLayout = ({ children }) => {
     (state) => state.admin.AdminSlice.token
   );
 
-  return !isAdminLoggedIn ? (
-    <Outlet />
-  ) : (
-    <PagesIndex.Navigate
-      to="/admin/dashboard"
-      state={{ from: location }}
-      replace={true}
-    />
-  );
+  return <Outlet />;
 };
 
 export default PublicLayout;

@@ -71,72 +71,94 @@ export const bookingSuccess = async (data) => {
 //#endregion
 
 //#region Verification mail
-export const emailVerification = async (data) => {
+export const emailVerification = (data) => {
   let to = [data.email];
   let otpCode = data.otp;
-  ejs.renderFile(
-    path.join(__dirname, "../views/EmailVerification.ejs"),
-    { data, otpCode, ...getLinkAndIcons() },
-    (err, data) => {
-      if (err) {
-        console.log(err);
-      } else {
-        return new Promise(function (resolve, reject) {
+  return new Promise((resolve) => {
+    ejs.renderFile(
+      path.join(__dirname, "../views/EmailVerification.ejs"),
+      { data, otpCode, ...getLinkAndIcons() },
+      (err, renderData) => {
+        if (err) {
+          console.log(err);
+          resolve(false);
+        } else {
+          const apiKey = process.env.MAIL_PASSWORD;
+          if (!apiKey || !apiKey.startsWith("SG.")) {
+            console.log("-----------------------------------------");
+            console.log(`[EMAIL MOCK] Sending verification OTP to: ${to}`);
+            console.log(`OTP Code: ${otpCode}`);
+            console.log("-----------------------------------------");
+            resolve(true);
+            return;
+          }
+
           const mailOptions = {
-            from: process.env.FROM_MAIL,
+            from: process.env.FROM_MAIL || "no-reply@connplex.com",
             to: to,
             subject: `${otpCode} is your ConnPlex OTP`,
-            html: data,
+            html: renderData,
           };
 
           transporter.send(mailOptions, (error, info) => {
             if (error) {
-              reject(error.message);
               console.log(error.message);
+              resolve(false);
             } else {
-              resolve(1);
               console.log("Message %s", info[0].statusCode);
+              resolve(true);
             }
           });
-        });
-      }
-    },
-  );
+        }
+      },
+    );
+  });
 };
 
 //#endregion
 //#region Forgot Password mail
-export const emailForgotPassword = async (data) => {
+export const emailForgotPassword = (data) => {
   let to = [data.email];
   let otpCode = data.otpCode;
   let brandLink = "https://www.theconnplex.com/";
-  ejs.renderFile(
-    path.join(__dirname, "../views/forgotPassword.ejs"),
-    { otpCode, brandLink },
-    (err, data) => {
-      if (err) {
-        console.log(err);
-      } else {
-        return new Promise(function (resolve, reject) {
+  return new Promise((resolve) => {
+    ejs.renderFile(
+      path.join(__dirname, "../views/forgotPassword.ejs"),
+      { otpCode, brandLink },
+      (err, renderData) => {
+        if (err) {
+          console.log(err);
+          resolve(false);
+        } else {
+          const apiKey = process.env.MAIL_PASSWORD;
+          if (!apiKey || !apiKey.startsWith("SG.")) {
+            console.log("-----------------------------------------");
+            console.log(`[EMAIL MOCK] Sending forgot password OTP to: ${to}`);
+            console.log(`OTP Code: ${otpCode}`);
+            console.log("-----------------------------------------");
+            resolve(true);
+            return;
+          }
+
           const mailOptions = {
-            from: process.env.FROM_MAIL,
+            from: process.env.FROM_MAIL || "no-reply@connplex.com",
             to: to,
             subject: `${otpCode} is your ConnPlex OTP`,
-            html: data,
+            html: renderData,
           };
           transporter.send(mailOptions, (error, info) => {
             if (error) {
-              reject(error.message);
               console.log(error.message);
+              resolve(false);
             } else {
-              resolve(1);
               console.log("Message %s", info[0].statusCode);
+              resolve(true);
             }
           });
-        });
-      }
-    },
-  );
+        }
+      },
+    );
+  });
 };
 //#endregion
 

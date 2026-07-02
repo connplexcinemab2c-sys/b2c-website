@@ -191,6 +191,12 @@ const Sidebar = ({ open, setOpen }) => {
       show: hasPermission(adminLoginData, "reward_coin_view"),
     },
     {
+      title: "Rewards",
+      pathName: "/admin/rewards-summary",
+      icon: <Index.SellIcon />,
+      show: hasPermission(adminLoginData, "reward_coin_view"),
+    },
+    {
       title: "Global Notification",
       pathName: "/admin/global-notification",
       icon: <Index.SellIcon />,

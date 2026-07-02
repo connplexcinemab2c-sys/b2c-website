@@ -363,6 +363,7 @@ router.get(
 router.get("/get-details", auth, admin.getUserTransactionDetails);
 
 router.get("/get-all-rewards", RewardsController.getAllReward);
+router.get("/get-rewards-summary", auth, RewardsController.getRewardsSummary);
 router.get("/reward-metrics", auth, RewardsController.getRewardMetrics);
 router.post("/save-reward-config", auth, RewardConfigController.saveRewardConfig);
 router.get("/get-reward-config", auth, RewardConfigController.getRewardConfig);

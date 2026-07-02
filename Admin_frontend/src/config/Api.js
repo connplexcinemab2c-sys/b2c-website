@@ -101,6 +101,7 @@ export const Api = {
   GET_MEMBERSHIP_LIST: "/admin/get-all-subscription-membership",
   GET_COUPONS: "/admin/get-coupon-list",
   GET_REWARDS: "/admin/get-all-rewards",
+  GET_REWARDS_SUMMARY: "/admin/get-rewards-summary",
   REWARD_METRICS: "/admin/reward-metrics",
   ADD_EDIT_COUPON: "/admin/add-update-coupon",
   ADD_USER: "/admin/assign-private-coupon",

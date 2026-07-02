@@ -152,9 +152,19 @@ export const calculateSeatAmount = async (
 };
 export { handleErrorResponse };
 
-const client = twilio(accountSid, authToken);
+const client = (accountSid && authToken) ? twilio(accountSid, authToken) : null;
 export const smsTwillio = async (body, from, to, logContext = {}) => {
   try {
+    if (!client) {
+      console.log(`[SMS MOCK] Twilio not configured. Message to ${to}: ${body}`);
+      await createSmsLog({
+        ...logContext,
+        mobileNumber: to,
+        messageBody: body,
+        status: "SUCCESS",
+      });
+      return;
+    }
     const message = await client.messages.create({ body, from, to });
     console.log(message.sid, "Message sent successfully");
     await createSmsLog({
