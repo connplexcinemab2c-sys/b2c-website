@@ -86,7 +86,11 @@ const RewardsSummary = () => {
             const filtered = data.filter((item) => {
               return (
                 item?.userName?.toLowerCase()?.includes(searchTerm) ||
-                item?.userEmail?.toLowerCase()?.includes(searchTerm)
+                item?.userEmail?.toLowerCase()?.includes(searchTerm) ||
+                item?.userMobile?.toString()?.toLowerCase()?.includes(searchTerm) ||
+                item?.movieName?.toLowerCase()?.includes(searchTerm) ||
+                item?.cinemaName?.toLowerCase()?.includes(searchTerm) ||
+                item?.location?.toLowerCase()?.includes(searchTerm)
               );
             });
             setFilteredData(filtered);
@@ -117,7 +121,11 @@ const RewardsSummary = () => {
     const filtered = rewardsData.filter((data) => {
       return (
         data?.userName?.toLowerCase()?.includes(searchTerm) ||
-        data?.userEmail?.toLowerCase()?.includes(searchTerm)
+        data?.userEmail?.toLowerCase()?.includes(searchTerm) ||
+        data?.userMobile?.toString()?.toLowerCase()?.includes(searchTerm) ||
+        data?.movieName?.toLowerCase()?.includes(searchTerm) ||
+        data?.cinemaName?.toLowerCase()?.includes(searchTerm) ||
+        data?.location?.toLowerCase()?.includes(searchTerm)
       );
     });
 
@@ -151,31 +159,27 @@ const RewardsSummary = () => {
   // Generate Excel File
   const generateExcel = async () => {
     const headers = [
+      "Date",
       "User Name",
       "User Email",
-      "Cinemas & Locations",
-      "Total Earned Points",
-      "Total Redeemed Points",
-      "Total Pending Points",
-      "First Redemption Date",
-      "Last Redemption Date"
+      "User Mobile",
+      "Movie Name",
+      "Cinema Name",
+      "Location",
+      "Redeemed Points",
+      "Remaining Points"
     ];
 
     const rows = filteredData.map((item) => ({
+      "Date": item?.createdAt ? moment(item?.createdAt).format("DD/MM/YYYY") : "-",
       "User Name": item?.userName || "N/A",
       "User Email": item?.userEmail || "N/A",
-      "Cinemas & Locations": (item?.cinemas || [])
-        .map((c) => `${c.cinemaName} (${c.location})`)
-        .join(", ") || "-",
-      "Total Earned Points": item?.totalEarnedPoints ?? 0,
-      "Total Redeemed Points": item?.totalRedeemedPoints ?? 0,
-      "Total Pending Points": item?.totalPendingPoints ?? 0,
-      "First Redemption Date": item?.firstRedemptionDate
-        ? moment(item?.firstRedemptionDate).format("DD/MM/YYYY")
-        : "-",
-      "Last Redemption Date": item?.lastRedemptionDate
-        ? moment(item?.lastRedemptionDate).format("DD/MM/YYYY")
-        : "-"
+      "User Mobile": item?.userMobile || "N/A",
+      "Movie Name": item?.movieName || "N/A",
+      "Cinema Name": item?.cinemaName || "N/A",
+      "Location": item?.location || "N/A",
+      "Redeemed Points": item?.redeemedPoints ?? 0,
+      "Remaining Points": item?.remainingPoints ?? 0
     }));
 
     const workbook = PagesIndex.XLSX.utils.book_new();
@@ -192,12 +196,11 @@ const RewardsSummary = () => {
   };
 
   // Metrics summary
-  const totalEarnedFiltered = filteredData.reduce((acc, curr) => acc + (curr.totalEarnedPoints || 0), 0);
-  const totalRedeemedFiltered = filteredData.reduce((acc, curr) => acc + (curr.totalRedeemedPoints || 0), 0);
-  const totalPendingFiltered = filteredData.reduce((acc, curr) => acc + (curr.totalPendingPoints || 0), 0);
+  const totalRedeemedFiltered = filteredData.reduce((acc, curr) => acc + (curr.redeemedPoints || 0), 0);
+  const totalRedemptionsCount = filteredData.length;
 
   const displayData = filteredData;
-  const colSpan = 8;
+  const colSpan = 9;
 
   return (
     <Index.Box className="rewards-page">
@@ -210,9 +213,8 @@ const RewardsSummary = () => {
       {/* Dashboard Metric Cards */}
       <Index.Grid container spacing={2} sx={{ mb: 2 }}>
         {[
-          { title: "Total Points Earned", val: totalEarnedFiltered },
+          { title: "Total Redemptions", val: totalRedemptionsCount },
           { title: "Total Points Redeemed", val: totalRedeemedFiltered },
-          { title: "Total Points Pending", val: totalPendingFiltered },
         ].map((metric, i) => (
           <Index.Grid item lg={3} md={4} sm={6} xs={12} key={i}>
             <Index.Box className="dash-card-box">
@@ -316,14 +318,15 @@ const RewardsSummary = () => {
             <Index.Table aria-label="simple table" className="table-design-main one-line-table">
               <Index.TableHead>
                 <Index.TableRow>
+                  <Index.TableCell>Date</Index.TableCell>
                   <Index.TableCell>User Name</Index.TableCell>
                   <Index.TableCell>User Email</Index.TableCell>
-                  <Index.TableCell>Cinemas & Locations</Index.TableCell>
-                  <Index.TableCell align="right">Earned Points</Index.TableCell>
+                  <Index.TableCell>User Mobile</Index.TableCell>
+                  <Index.TableCell>Movie Name</Index.TableCell>
+                  <Index.TableCell>Cinema Name</Index.TableCell>
+                  <Index.TableCell>Location</Index.TableCell>
                   <Index.TableCell align="right">Redeemed Points</Index.TableCell>
-                  <Index.TableCell align="right">Pending Points</Index.TableCell>
-                  <Index.TableCell>First Redemption</Index.TableCell>
-                  <Index.TableCell>Last Redemption</Index.TableCell>
+                  <Index.TableCell align="right">Remaining Points</Index.TableCell>
                 </Index.TableRow>
               </Index.TableHead>
 
@@ -342,42 +345,20 @@ const RewardsSummary = () => {
                       .slice(currentPage * rowsPerPage, currentPage * rowsPerPage + rowsPerPage)
                       .map((data, index) => (
                         <Index.TableRow key={index}>
+                          <Index.TableCell>
+                            {data?.createdAt ? moment(data?.createdAt).format("DD/MM/YYYY") : "-"}
+                          </Index.TableCell>
                           <Index.TableCell sx={{ fontWeight: "600" }}>{data?.userName || "N/A"}</Index.TableCell>
                           <Index.TableCell>{data?.userEmail || "N/A"}</Index.TableCell>
-                          <Index.TableCell>
-                            <Index.Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                              {(data?.cinemas || []).map((cinema, idx) => (
-                                <span
-                                  key={idx}
-                                  style={{
-                                    background: "#e3f2fd",
-                                    color: "#0d47a1",
-                                    fontSize: 11,
-                                    fontFamily: "poppins-medium",
-                                    padding: "2px 8px",
-                                    borderRadius: 4,
-                                  }}
-                                >
-                                  {cinema.cinemaName} ({cinema.location})
-                                </span>
-                              ))}
-                              {(!data?.cinemas || data?.cinemas.length === 0) && "-"}
-                            </Index.Box>
+                          <Index.TableCell>{data?.userMobile || "N/A"}</Index.TableCell>
+                          <Index.TableCell>{data?.movieName || "N/A"}</Index.TableCell>
+                          <Index.TableCell>{data?.cinemaName || "N/A"}</Index.TableCell>
+                          <Index.TableCell>{data?.location || "N/A"}</Index.TableCell>
+                          <Index.TableCell align="right" style={{ color: "#b91c1c", fontWeight: "600" }}>
+                            {data?.redeemedPoints ?? 0}
                           </Index.TableCell>
                           <Index.TableCell align="right" style={{ color: "#1a6b2e", fontWeight: "600" }}>
-                            {data?.totalEarnedPoints ?? 0}
-                          </Index.TableCell>
-                          <Index.TableCell align="right" style={{ color: "#b91c1c", fontWeight: "600" }}>
-                            {data?.totalRedeemedPoints ?? 0}
-                          </Index.TableCell>
-                          <Index.TableCell align="right" style={{ color: "#e65100", fontWeight: "600" }}>
-                            {data?.totalPendingPoints ?? 0}
-                          </Index.TableCell>
-                          <Index.TableCell>
-                            {data?.firstRedemptionDate ? moment(data?.firstRedemptionDate).format("DD/MM/YYYY") : "-"}
-                          </Index.TableCell>
-                          <Index.TableCell>
-                            {data?.lastRedemptionDate ? moment(data?.lastRedemptionDate).format("DD/MM/YYYY") : "-"}
+                            {data?.remainingPoints ?? 0}
                           </Index.TableCell>
                         </Index.TableRow>
                       ))

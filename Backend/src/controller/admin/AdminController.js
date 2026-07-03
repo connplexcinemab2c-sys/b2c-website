@@ -3057,25 +3057,21 @@ export const getRewardsSummary = async (req, res) => {
     const { year, month } = req.query;
     let matchStage = {
       deletedStatus: 0,
-      redeemCoins: { $gt: 0 }
+      type: "redeemed"
     };
 
     let startDate, endDate;
-    if (year && month) {
+    if (year && year !== "all" && month && month !== "all") {
       const y = parseInt(year);
       const m = parseInt(month);
       startDate = new Date(Date.UTC(y, m - 1, 1, 0, 0, 0, 0));
       endDate = new Date(Date.UTC(y, m, 1, 0, 0, 0, 0));
       matchStage.createdAt = { $gte: startDate, $lt: endDate };
-    } else if (year) {
+    } else if (year && year !== "all") {
       const y = parseInt(year);
       startDate = new Date(Date.UTC(y, 0, 1, 0, 0, 0, 0));
       endDate = new Date(Date.UTC(y + 1, 0, 1, 0, 0, 0, 0));
       matchStage.createdAt = { $gte: startDate, $lt: endDate };
-    } else {
-      startDate = new Date("2026-04-01T00:00:00.000Z");
-      endDate = new Date();
-      matchStage.createdAt = { $gte: startDate, $lte: endDate };
     }
 
     const report = await Rewards.aggregate([
@@ -3102,6 +3098,15 @@ export const getRewardsSummary = async (req, res) => {
       { $unwind: { path: "$transactionData", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
+          from: "movies",
+          localField: "transactionData.movieId",
+          foreignField: "_id",
+          as: "movieData"
+        }
+      },
+      { $unwind: { path: "$movieData", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
           from: "cinemas",
           localField: "transactionData.cinemaId",
           foreignField: "_id",
@@ -3119,84 +3124,65 @@ export const getRewardsSummary = async (req, res) => {
       },
       { $unwind: { path: "$regionData", preserveNullAndEmptyArrays: true } },
       {
-        $group: {
-          _id: {
-            userEmail: { $ifNull: ["$userData.email", "N/A"] },
-            userName: {
-              $concat: [
-                { $ifNull: ["$userData.firstName", ""] },
-                " ",
-                { $ifNull: ["$userData.lastName", ""] }
-              ]
+        $lookup: {
+          from: "rewards",
+          let: { uId: "$userId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$userId", "$$uId"] },
+                    { $ne: ["$type", "redeemed"] },
+                    { $eq: ["$deletedStatus", 0] },
+                    {
+                      $or: [
+                        { $eq: [{ $ifNull: ["$expiryDate", null] }, null] },
+                        { $gt: ["$expiryDate", new Date()] }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalRemaining: { $sum: "$remainingCoins" }
+              }
             }
-          },
-          cinemas: {
-            $addToSet: {
-              cinemaName: {
-                $ifNull: [
-                  "$cinemaData.cinemaName",
-                  "General/No Cinema"
-                ]
-              },
-              location: {
-                $ifNull: [
-                  "$regionData.region",
-                  "Unknown Location"
+          ],
+          as: "remainingData"
+        }
+      },
+      { $unwind: { path: "$remainingData", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          createdAt: 1,
+          userName: {
+            $trim: {
+              input: {
+                $concat: [
+                  { $ifNull: ["$userData.firstName", ""] },
+                  " ",
+                  { $ifNull: ["$userData.lastName", ""] }
                 ]
               }
             }
           },
-          totalEarnedPoints: {
-            $sum: {
-              $cond: [
-                { $ne: ["$type", "redeemed"] },
-                "$coins",
-                0
-              ]
-            }
-          },
-          totalRedeemedPoints: {
-            $sum: {
-              $cond: [
-                { $ne: ["$type", "redeemed"] },
-                "$redeemCoins",
-                0
-              ]
-            }
-          },
-          totalPendingPoints: {
-            $sum: {
-              $cond: [
-                { $ne: ["$type", "redeemed"] },
-                { $subtract: ["$coins", "$redeemCoins"] },
-                0
-              ]
-            }
-          },
-          firstRedemptionDate: {
-            $min: "$createdAt"
-          },
-          lastRedemptionDate: {
-            $max: "$createdAt"
-          }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          userName: "$_id.userName",
-          userEmail: "$_id.userEmail",
-          cinemas: 1,
-          totalEarnedPoints: 1,
-          totalRedeemedPoints: 1,
-          totalPendingPoints: 1,
-          firstRedemptionDate: 1,
-          lastRedemptionDate: 1
+          userEmail: { $ifNull: ["$userData.email", "N/A"] },
+          userMobile: { $ifNull: ["$userData.mobileNumber", "N/A"] },
+          movieName: { $ifNull: ["$movieData.name", "N/A"] },
+          cinemaName: { $ifNull: ["$cinemaData.cinemaName", "General/No Cinema"] },
+          location: { $ifNull: ["$regionData.region", "Unknown Location"] },
+          redeemedPoints: "$coins",
+          remainingPoints: { $ifNull: ["$remainingData.totalRemaining", 0] }
         }
       },
       {
         $sort: {
-          totalRedeemedPoints: -1
+          createdAt: -1
         }
       }
     ]);

@@ -72,6 +72,7 @@ import AddCareerImage from "../container/pages/admin/careerFormList/AddCareerIma
 import MemberShipPlanList from "../container/pages/admin/membershipPlanList/MemberShipPlanList";
 import ViewMembershipDetails from "../container/pages/admin/membershipPlanList/ViewMembershipDetails";
 import Rewards from "../container/pages/admin/rewards/Rewards";
+import RewardsSummary from "../container/pages/admin/rewards/RewardsSummary";
 import LoginActivityDetails from "../container/pages/admin/subAdminManagement/LoginActivityDetails";
 import Category from "../container/pages/ecommerce/category/Category";
 import Product from "../container/pages/ecommerce/products/Product";
@@ -237,6 +238,7 @@ export default function Routes() {
               element={<MemberShipPlanList />}
             />
             <Route path="rewards" index element={<Rewards />} />
+            <Route path="rewards-summary" index element={<RewardsSummary />} />
             <Route path="global-notification/">
               <Route index element={<GlobalNotification />} />
               <Route path="add" element={<AddNotificaion />} />
