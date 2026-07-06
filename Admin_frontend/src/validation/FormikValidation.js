@@ -970,15 +970,7 @@ export const sliderSchema = Yup.object().shape({
     const MAX_FILE_SIZE = 2097152; // 2MB
 
     const validateImage = (image, width, height, resolve) => {
-      if (image.width === width && image.height === height) {
-        resolve(true);
-      } else {
-        resolve(
-          this.createError({
-            message: `Image must be ${width}x${height} pixels`,
-          })
-        );
-      }
+      resolve(true);
     };
 
     const validateFile = (file, width, height, resolve) => {

@@ -38,11 +38,15 @@ export const addEditMovieSlider = async (req, res) => {
         });
       } else {
         let exist = await MovieSlider.findOne({ _id: id, deletedStatus: 0 });
-        if (req.files.poster) {
+        if (req.files && req.files.poster) {
           // fs.unlink("./public/uploads/" + exist.image, () => {});
-          await deleteS3File(exist.image);
+          try {
+            await deleteS3File(exist.image);
+          } catch (err) {
+            console.error("Failed to delete old S3 file:", err);
+          }
         } else {
-          req.posterUrl = exist.image;
+          req.posterUrl = exist?.image;
         }
         let updateMovieSlider = await MovieSlider.findByIdAndUpdate(
           { _id: id },
