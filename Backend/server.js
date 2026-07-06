@@ -1,6 +1,9 @@
 import cors from "cors";
 import { CronJob } from "cron";
 import * as dotenv from "dotenv";
+import fs from "fs";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import s3 from "./src/config/S3.js";
 import ejs from "ejs";
 import express from "express";
 import session from "express-session";
@@ -41,7 +44,33 @@ app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Credentials", true);
   next();
 });
-app.use("/api/uploads", express.static("./public/uploads"));
+app.get("/api/uploads/:file", async (req, res) => {
+  try {
+    const fileName = path.basename(req.params.file);
+    const localPath = path.join(__dirname, "public", "uploads", fileName);
+
+    // 1. Try to serve from local disk first (for legacy files)
+    if (fs.existsSync(localPath)) {
+      return res.sendFile(path.resolve(localPath));
+    }
+
+    // 2. Otherwise, fetch from AWS S3
+    const command = new GetObjectCommand({
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: `uploads/${fileName}`,
+    });
+    const s3Response = await s3.send(command);
+
+    // Set correct content type
+    res.setHeader("Content-Type", s3Response.ContentType || "image/jpeg");
+    
+    // Pipe the S3 stream directly to the response
+    s3Response.Body.pipe(res);
+  } catch (error) {
+    console.error("S3 fetch error:", error);
+    res.status(404).send("File not found");
+  }
+});
 app.use(
   session({
     secret: "secr3t",
