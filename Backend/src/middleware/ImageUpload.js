@@ -4,23 +4,44 @@ import { StatusCodes } from "http-status-codes";
 import ResponseMessage from "../utils/ResponseMessage.js";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import s3 from "../config/S3.js"; // AWS S3 config
+import fs from "fs";
+import path from "path";
 
-// ✅ SAME filename logic as old disk storage
-const generateFileName = (file) => {
-  const ext = file.originalname.split(".");
-  return `uploads/${Date.now()}.${ext[ext.length - 1]}`;
-};
+const hasValidAWSCredentials = 
+  process.env.AWS_ACCESS_KEY_ID && 
+  process.env.AWS_ACCESS_KEY_ID !== "dummy_access_key" && 
+  process.env.AWS_SECRET_ACCESS_KEY && 
+  process.env.AWS_SECRET_ACCESS_KEY !== "dummy_secret_key" && 
+  process.env.S3_BUCKET_NAME && 
+  process.env.S3_BUCKET_NAME !== "dummy-bucket";
 
-// ✅ S3 storage (WITH uploads folder)
-const storage = multerS3({
-  s3,
-  bucket: process.env.S3_BUCKET_NAME,
-  contentType: multerS3.AUTO_CONTENT_TYPE,
+let storage;
 
-  key: function (req, file, cb) {
-    cb(null, generateFileName(file));
-  },
-});
+if (hasValidAWSCredentials) {
+  storage = multerS3({
+    s3,
+    bucket: process.env.S3_BUCKET_NAME,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: function (req, file, cb) {
+      const ext = file.originalname.split(".").pop();
+      cb(null, `uploads/${Date.now()}.${ext}`);
+    },
+  });
+} else {
+  storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const dir = "./public/uploads";
+      if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+      const ext = file.originalname.split(".").pop();
+      cb(null, `${Date.now()}.${ext}`);
+    },
+  });
+}
 
 const upload = multer({ storage }).fields([
   { name: "profile", maxCount: 1 },
@@ -58,7 +79,7 @@ export default function uploadMiddleware(req, res, next) {
 
     Object.keys(req.files).forEach((field) => {
       req.files[field].forEach((file) => {
-        const fileNameOnly = file.key.split("/").pop();
+        const fileNameOnly = file.key ? file.key.split("/").pop() : file.filename;
         file.key = fileNameOnly;
         file.filename = fileNameOnly;
       });
@@ -111,6 +132,17 @@ export default function uploadMiddleware(req, res, next) {
 
 export const deleteS3File = async (fileKey) => {
   if (!fileKey) return;
+  if (!hasValidAWSCredentials) {
+    try {
+      const localPath = path.join("./public/uploads", fileKey);
+      if (fs.existsSync(localPath)) {
+        fs.unlinkSync(localPath);
+      }
+    } catch (error) {
+      console.error("Local file delete error:", error);
+    }
+    return;
+  }
   try {
     const command = new DeleteObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME,
