@@ -2,7 +2,7 @@ name: connplex-frontend
 
 on:
   push:
-    branches: [development]
+    branches: [main, development]
 
 jobs:
   deploy:

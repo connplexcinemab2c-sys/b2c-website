@@ -2,7 +2,7 @@ name: connplex-backend
 
 on:
   push:
-    branches: [development]
+    branches: [main, development]
 
 jobs:
   deploy:

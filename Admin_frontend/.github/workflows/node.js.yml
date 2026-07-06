@@ -2,7 +2,7 @@ name: connplex-admin
 
 on:
   push:
-    branches: [development]
+    branches: [main, development]
 
 jobs:
   deploy:
