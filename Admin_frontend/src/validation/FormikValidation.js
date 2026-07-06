@@ -1036,7 +1036,7 @@ export const sliderSchema = Yup.object().shape({
       }
 
       if (typeof value === "string") {
-        validateUrl(value, width, height, resolve);
+        resolve(true);
       } else if (value && value.name) {
         validateFile(value, width, height, resolve);
       } else {

@@ -8,6 +8,9 @@ import { deleteS3File } from "../../middleware/ImageUpload.js";
 export const addEditMovieSlider = async (req, res) => {
   try {
     let { id, title, regionId, type, sliderType } = req.body;
+    if (!regionId && req.body["regionId[]"]) {
+      regionId = req.body["regionId[]"];
+    }
     let exist = await MovieSlider.findOne({
       title,
       sliderType,
