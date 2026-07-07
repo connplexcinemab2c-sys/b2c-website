@@ -1,3 +1,4 @@
+import "dotenv/config";
 import cors from "cors";
 import { CronJob } from "cron";
 import * as dotenv from "dotenv";
