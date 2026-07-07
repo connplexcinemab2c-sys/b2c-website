@@ -1,0 +1,17 @@
+name: connplex-admin
+
+on:
+  push:
+    branches: [main, development]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy NodeJS app
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: '194.233.77.156'
+          username: 'root'
+          key: ${{ secrets.SSHKEY }}
+          script: sh /root/connplex_admin.sh
