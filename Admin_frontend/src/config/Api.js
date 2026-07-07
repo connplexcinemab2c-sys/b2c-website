@@ -79,6 +79,7 @@ export const Api = {
   DELETE_PARTNER: "admin/delete-partner",
   GET_CINEMA_LICENSE: "admin/get-cinema-licence",
   UPDATE_CINEMA_LICENSE: "admin/update-cinema-licence",
+  ADD_CINEMA_LICENSE: "admin/add-cinema-licence",
   UPDATE_UNIQUE_MOVIE_CODE: "admin/generate-unique-code",
   INTERESTED_UNINTERESTED_MOVIES_LIST:
     "/admin/interested-uninterested-movies-list",

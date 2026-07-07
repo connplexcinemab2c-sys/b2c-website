@@ -414,23 +414,30 @@ export const getCinemasLicence = async (req, res) => {
           // );
           let list = response.data.data.ItemCinemaDetails || [];
           if (Array.isArray(list)) {
-            // Find Junagadh in local DB to get its current license code
-            const junagadhCinema = await Cinema.findOne({ cinemaId: { $regex: /^CN92$/i } });
-            const licenseNo = junagadhCinema
-              ? (junagadhCinema.cinemaLicenseNumber || String(junagadhCinema.websiteLicenseNumber || "7274"))
-              : "7274";
-
-            const hasJunagadh = list.some(item => item.Cinema_strID && item.Cinema_strID.toUpperCase() === "CN92");
-            if (!hasJunagadh) {
-              list.push({
-                Cinema_strID: "CN92",
-                Cinema_strName: "CONNPLEX CINEMAS (SIGNATURE): JUNAGADH",
-                License_strCode: licenseNo
-              });
-            } else {
-              const index = list.findIndex(item => item.Cinema_strID && item.Cinema_strID.toUpperCase() === "CN92");
-              list[index].License_strCode = licenseNo;
-            }
+            // Find all local cinemas and merge them
+            const dbCinemas = await Cinema.find({ deletedStatus: 0 });
+            dbCinemas.forEach((c) => {
+              if (!c.cinemaId) return;
+              const idx = list.findIndex(
+                (item) =>
+                  item.Cinema_strID &&
+                  item.Cinema_strID.toUpperCase() === c.cinemaId.toUpperCase()
+              );
+              const licenseNo =
+                c.cinemaLicenseNumber ||
+                String(c.websiteLicenseNumber || "");
+              if (idx !== -1) {
+                if (licenseNo) {
+                  list[idx].License_strCode = licenseNo;
+                }
+              } else {
+                list.push({
+                  Cinema_strID: c.cinemaId,
+                  Cinema_strName: c.displayName || c.cinemaName,
+                  License_strCode: licenseNo || "",
+                });
+              }
+            });
           }
           return res.status(200).json({
             status: StatusCodes.OK,
@@ -449,20 +456,15 @@ export const getCinemasLicence = async (req, res) => {
           // );
           try {
             const dbCinemas = await Cinema.find({ deletedStatus: 0 });
-            const list = dbCinemas.map(c => ({
-              Cinema_strID: c.cinemaId,
-              Cinema_strName: c.displayName || c.cinemaName,
-              License_strCode: c.cinemaLicenseNumber || String(c.websiteLicenseNumber || "")
-            })).filter(c => c.Cinema_strID);
-            
-            const hasJunagadh = list.some(item => item.Cinema_strID && item.Cinema_strID.toUpperCase() === "CN92");
-            if (!hasJunagadh) {
-              list.push({
-                Cinema_strID: "CN92",
-                Cinema_strName: "CONNPLEX CINEMAS (SIGNATURE): JUNAGADH",
-                License_strCode: "7274"
-              });
-            }
+            const list = dbCinemas
+              .map((c) => ({
+                Cinema_strID: c.cinemaId,
+                Cinema_strName: c.displayName || c.cinemaName,
+                License_strCode:
+                  c.cinemaLicenseNumber ||
+                  String(c.websiteLicenseNumber || ""),
+              }))
+              .filter((c) => c.Cinema_strID);
 
             return res.status(200).json({
               status: StatusCodes.OK,
@@ -490,20 +492,15 @@ export const getCinemasLicence = async (req, res) => {
         // );
         try {
           const dbCinemas = await Cinema.find({ deletedStatus: 0 });
-          const list = dbCinemas.map(c => ({
-            Cinema_strID: c.cinemaId,
-            Cinema_strName: c.displayName || c.cinemaName,
-            License_strCode: c.cinemaLicenseNumber || String(c.websiteLicenseNumber || "")
-          })).filter(c => c.Cinema_strID);
-          
-          const hasJunagadh = list.some(item => item.Cinema_strID && item.Cinema_strID.toUpperCase() === "CN92");
-          if (!hasJunagadh) {
-            list.push({
-              Cinema_strID: "CN92",
-              Cinema_strName: "CONNPLEX CINEMAS (SIGNATURE): JUNAGADH",
-              License_strCode: "7274"
-            });
-          }
+          const list = dbCinemas
+            .map((c) => ({
+              Cinema_strID: c.cinemaId,
+              Cinema_strName: c.displayName || c.cinemaName,
+              License_strCode:
+                c.cinemaLicenseNumber ||
+                String(c.websiteLicenseNumber || ""),
+            }))
+            .filter((c) => c.Cinema_strID);
 
           return res.status(200).json({
             status: StatusCodes.OK,
@@ -518,6 +515,128 @@ export const getCinemasLicence = async (req, res) => {
           });
         }
       });
+  } catch (error) {
+    return handleErrorResponse(res, error);
+  }
+};
+//#endregion
+
+//#region Add cinema licence
+export const addCinemaLicence = async (req, res) => {
+  try {
+    let parser = new UAParser();
+    let ua = req.headers["user-agent"];
+    let browserName = parser.setUA(ua).getBrowser().name;
+    let IpAddress = req.socket.remoteAddress;
+
+    let { isNewCinema, cinemaId, cinemaName, licenceCode } = req.body;
+
+    if (isNewCinema === "true" || isNewCinema === true) {
+      if (!cinemaName || !licenceCode) {
+        return res.status(400).json({
+          status: StatusCodes.BAD_REQUEST,
+          message: "Cinema name and license code are required",
+        });
+      }
+
+      // Check if cinema already exists
+      const exist = await Cinema.findOne({ cinemaName, deletedStatus: 0 });
+      if (exist) {
+        return res.status(400).json({
+          status: StatusCodes.BAD_REQUEST,
+          message: "Cinema already exists",
+        });
+      }
+
+      // Generate a unique cinemaId, e.g. CN + count
+      const count = await Cinema.countDocuments();
+      const uniqueId = `CN${100 + count}`;
+
+      const newCinema = new Cinema({
+        cinemaId: uniqueId,
+        cinemaName,
+        displayName: cinemaName,
+        cinemaLicenseNumber: licenceCode,
+        websiteLicenseNumber: Number(licenceCode) || undefined,
+        deletedStatus: 0,
+        isActive: true,
+      });
+
+      await newCinema.save();
+
+      await Logs.create({
+        title: `Add Cinema License (New Cinema) By Admin : ${uniqueId}`,
+        lastSync: Date.now(),
+        cinemaId: newCinema._id,
+        ipAddress: IpAddress,
+        webBrowser: browserName,
+      });
+
+      return res.status(201).json({
+        status: StatusCodes.CREATED,
+        message: "Cinema license created successfully",
+        data: newCinema,
+      });
+    } else {
+      if (!cinemaId || !licenceCode) {
+        return res.status(400).json({
+          status: StatusCodes.BAD_REQUEST,
+          message: "Cinema and license code are required",
+        });
+      }
+
+      // Update existing cinema
+      const cinema = await Cinema.findOneAndUpdate(
+        { cinemaId: { $regex: new RegExp(`^${cinemaId}$`, "i") } },
+        {
+          $set: {
+            websiteLicenseNumber: Number(licenceCode) || undefined,
+            cinemaLicenseNumber: licenceCode,
+          },
+        },
+        { new: true }
+      );
+
+      if (!cinema) {
+        return res.status(404).json({
+          status: StatusCodes.NOT_FOUND,
+          message: "Cinema not found",
+        });
+      }
+
+      // Also try to update Vista if not local-only (e.g. not CN92 or custom)
+      if (
+        cinemaId &&
+        cinemaId.toUpperCase() !== "CN92" &&
+        !cinemaId.startsWith("CN1")
+      ) {
+        try {
+          let config = {
+            method: "get",
+            maxBodyLength: Infinity,
+            url: `${process.env.VISTA_URL}/api.asmx/UpdateCinemaLicence?strCinemaId=${cinemaId}&Licencecode=${licenceCode}`,
+            headers: {},
+          };
+          await axios.request(config);
+        } catch (err) {
+          console.error("Vista update failed: ", err.message);
+        }
+      }
+
+      await Logs.create({
+        title: `Add Cinema License (Existing Cinema) By Admin : ${cinemaId}`,
+        lastSync: Date.now(),
+        cinemaId: cinema._id,
+        ipAddress: IpAddress,
+        webBrowser: browserName,
+      });
+
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: "Cinema license added successfully",
+        data: cinema,
+      });
+    }
   } catch (error) {
     return handleErrorResponse(res, error);
   }

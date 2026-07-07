@@ -88,6 +88,7 @@ router.post("/get-cinema-by-region", auth, cinema.getCinemasByRegion);
 router.post("/remove-cinema", auth, cinema.removeCinema);
 router.get("/get-cinema-licence", auth, cinema.getCinemasLicence);
 router.post("/update-cinema-licence", auth, cinema.updateCinemaLicence);
+router.post("/add-cinema-licence", auth, cinema.addCinemaLicence);
 //#endregion
 // global convience fee
 router.get("/get-fee-activity-log", auth, cinema.getFeeActivityLog);

@@ -58,6 +58,12 @@ const CinemaLicenseManagement = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchValue, setSearchValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [addLicenseOpen, setAddLicenseOpen] = useState(false);
+  const [isNewCinema, setIsNewCinema] = useState(false);
+  const [selectedCinemaId, setSelectedCinemaId] = useState("");
+  const [customCinemaName, setCustomCinemaName] = useState("");
+  const [licenseNo, setLicenseNo] = useState("");
+  const [allCinemas, setAllCinemas] = useState([]);
 
   // pagination
   const handleChangePage = (event, newPage) => {
@@ -153,8 +159,74 @@ const CinemaLicenseManagement = () => {
         setIsLoading(false);
       });
   };
+
+  const getAllCinemas = () => {
+    PagesIndex.DataService.get(
+      PagesIndex.Api.GET_CINEMA + "?" + new Date().getTime()
+    )
+      .then((res) => {
+        setAllCinemas(res?.data?.data || []);
+      })
+      .catch((err) => {
+        console.error("Error fetching all cinemas:", err);
+      });
+  };
+
+  const handleAddLicenseOpen = () => {
+    setIsNewCinema(false);
+    setSelectedCinemaId("");
+    setCustomCinemaName("");
+    setLicenseNo("");
+    setAddLicenseOpen(true);
+  };
+
+  const handleAddLicenseClose = () => {
+    setAddLicenseOpen(false);
+  };
+
+  const handleAddLicenseSubmit = () => {
+    if (isNewCinema) {
+      if (!customCinemaName.trim() || !licenseNo.trim()) {
+        PagesIndex.toast.error("Please fill all required fields");
+        return;
+      }
+    } else {
+      if (!selectedCinemaId || !licenseNo.trim()) {
+        PagesIndex.toast.error("Please fill all required fields");
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    const urlEncoded = new URLSearchParams();
+    urlEncoded.append("isNewCinema", isNewCinema);
+    urlEncoded.append("cinemaId", selectedCinemaId);
+    urlEncoded.append("cinemaName", customCinemaName);
+    urlEncoded.append("licenceCode", licenseNo);
+
+    PagesIndex.DataService.post(
+      PagesIndex.Api.ADD_CINEMA_LICENSE,
+      urlEncoded
+    )
+      .then((res) => {
+        PagesIndex.toast.success(
+          res.data.message || "Cinema license added successfully"
+        );
+        handleAddLicenseClose();
+        getCinemaList();
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        PagesIndex.toast.error(
+          err?.response?.data?.message || "Something went wrong"
+        );
+        setIsLoading(false);
+      });
+  };
+
   useEffect(() => {
     getCinemaList();
+    getAllCinemas();
   }, [removeData]);
   if (
     adminLoginData?.type == "Admin" ||
@@ -173,20 +245,19 @@ const CinemaLicenseManagement = () => {
                 >
                   Cinema License
                 </Index.Typography>
-                {/* {adminLoginData?.roleId?.permissions?.includes(
-                  "cinema_add"
-                ) && (
+                {(adminLoginData?.roleId?.permissions?.includes("cinema_add") ||
+                  adminLoginData?.type === "Admin") && (
                   <Index.Box className="common-button blue-button res-blue-button common-mobile-show-export">
                     <Index.Button
                       variant="contained"
                       disableRipple
                       className="no-text-decoration"
-                      onClick={() => {}}
+                      onClick={() => handleAddLicenseOpen()}
                     >
-                      Add Cinema
+                      Add Cinema License
                     </Index.Button>
                   </Index.Box>
-                )} */}
+                )}
               </Index.Box>
               <Index.Box className="d-flex align-items-center res-set-search common-user-listing-search">
                 <Search className="search ">
@@ -404,6 +475,134 @@ const CinemaLicenseManagement = () => {
               >
                 Update
               </Index.Button>
+            </Index.Box>
+          </Index.Box>
+        </Index.Modal>
+        {/* add license model */}
+        <Index.Modal
+          open={addLicenseOpen}
+          onClose={handleAddLicenseClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+          className="modal-delete modal"
+        >
+          <Index.Box sx={{ ...style, width: 450 }} className="delete-modal-inner-main modal-inner">
+            <Index.Box className="modal-header" sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+              <Index.Typography
+                id="modal-modal-title"
+                className="modal-title"
+                variant="h6"
+                component="h2"
+                sx={{ fontWeight: "bold", color: "#191510" }}
+              >
+                Add Cinema License
+              </Index.Typography>
+              <img
+                src={PagesIndex.Svg.cancel}
+                className="modal-close-icon"
+                onClick={handleAddLicenseClose}
+                style={{ cursor: "pointer", width: "20px", height: "20px" }}
+              />
+            </Index.Box>
+            
+            <Index.Box className="modal-body" sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Index.FormControlLabel
+                control={
+                  <Index.Checkbox
+                    checked={isNewCinema}
+                    onChange={(e) => {
+                      setIsNewCinema(e.target.checked);
+                      setSelectedCinemaId("");
+                      setCustomCinemaName("");
+                    }}
+                    color="primary"
+                  />
+                }
+                label="Is this a new / custom cinema?"
+              />
+
+              {!isNewCinema ? (
+                <Index.Box className="input-box modal-input-box">
+                  <Index.FormHelperText className="form-lable">
+                    Select Cinema
+                  </Index.FormHelperText>
+                  <Index.FormControl fullWidth className="form-group">
+                    <Index.Select
+                      value={selectedCinemaId}
+                      onChange={(e) => setSelectedCinemaId(e.target.value)}
+                      displayEmpty
+                      variant="outlined"
+                    >
+                      <Index.MenuItem value="">
+                        <em>Select Cinema</em>
+                      </Index.MenuItem>
+                      {allCinemas.map((cinema) => (
+                        <Index.MenuItem key={cinema.cinemaId || cinema._id} value={cinema.cinemaId || cinema._id}>
+                          {cinema.displayName || cinema.cinemaName}
+                        </Index.MenuItem>
+                      ))}
+                    </Index.Select>
+                  </Index.FormControl>
+                </Index.Box>
+              ) : (
+                <Index.Box className="input-box modal-input-box">
+                  <Index.FormHelperText className="form-lable">
+                    Cinema Name
+                  </Index.FormHelperText>
+                  <Index.Box className="form-group">
+                    <Index.TextField
+                      fullWidth
+                      className="form-control"
+                      placeholder="Enter cinema name"
+                      value={customCinemaName}
+                      onChange={(e) => setCustomCinemaName(e.target.value)}
+                    />
+                  </Index.Box>
+                </Index.Box>
+              )}
+
+              <Index.Box className="input-box modal-input-box">
+                <Index.FormHelperText className="form-lable">
+                  License Number
+                </Index.FormHelperText>
+                <Index.Box className="form-group">
+                  <Index.TextField
+                    fullWidth
+                    className="form-control"
+                    placeholder="Enter license number"
+                    value={licenseNo}
+                    inputProps={{ maxLength: 10 }}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, ""); // only digits
+                      setLicenseNo(value);
+                    }}
+                  />
+                </Index.Box>
+              </Index.Box>
+            </Index.Box>
+
+            <Index.Box className="modal-user-btn-flex" sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
+              <Index.Box className="discard-btn-main btn-main-primary">
+                <Index.Box className="common-button blue-button res-blue-button" sx={{ gap: 2 }}>
+                  <Index.Button
+                    variant="contained"
+                    disableRipple
+                    className="no-text-decoration"
+                    onClick={handleAddLicenseClose}
+                  >
+                    Discard
+                  </Index.Button>
+                  <Index.Button
+                    variant="contained"
+                    disableRipple
+                    className="no-text-decoration"
+                    onClick={handleAddLicenseSubmit}
+                    disabled={isLoading}
+                  >
+                    Add
+                  </Index.Button>
+                </Index.Box>
+              </Index.Box>
             </Index.Box>
           </Index.Box>
         </Index.Modal>
