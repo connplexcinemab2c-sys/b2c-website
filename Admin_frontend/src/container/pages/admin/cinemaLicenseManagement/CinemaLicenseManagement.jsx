@@ -246,6 +246,8 @@ const CinemaLicenseManagement = () => {
                   Cinema License
                 </Index.Typography>
                 {(adminLoginData?.roleId?.permissions?.includes("cinema_add") ||
+                  adminLoginData?.roleId?.permissions?.includes("cinema_edit") ||
+                  adminLoginData?.roleId?.permissions?.includes("cinema_view") ||
                   adminLoginData?.type === "Admin") && (
                   <Index.Box className="common-button blue-button res-blue-button common-mobile-show-export">
                     <Index.Button
