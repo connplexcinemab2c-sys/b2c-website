@@ -412,10 +412,30 @@ export const getCinemasLicence = async (req, res) => {
           //   response.data,
           //   "Success"
           // );
+          let list = response.data.data.ItemCinemaDetails || [];
+          if (Array.isArray(list)) {
+            // Find Junagadh in local DB to get its current license code
+            const junagadhCinema = await Cinema.findOne({ cinemaId: { $regex: /^CN92$/i } });
+            const licenseNo = junagadhCinema
+              ? (junagadhCinema.cinemaLicenseNumber || String(junagadhCinema.websiteLicenseNumber || "7274"))
+              : "7274";
+
+            const hasJunagadh = list.some(item => item.Cinema_strID && item.Cinema_strID.toUpperCase() === "CN92");
+            if (!hasJunagadh) {
+              list.push({
+                Cinema_strID: "CN92",
+                Cinema_strName: "CONNPLEX CINEMAS (SIGNATURE): JUNAGADH",
+                License_strCode: licenseNo
+              });
+            } else {
+              const index = list.findIndex(item => item.Cinema_strID && item.Cinema_strID.toUpperCase() === "CN92");
+              list[index].License_strCode = licenseNo;
+            }
+          }
           return res.status(200).json({
             status: StatusCodes.OK,
             message: ResponseMessage.CINEMA_DETAILS,
-            data: response.data.data.ItemCinemaDetails,
+            data: list,
           });
         } else {
           // createVistaLog(
@@ -427,14 +447,38 @@ export const getCinemasLicence = async (req, res) => {
           //   response.data,
           //   "Failed"
           // );
-          return res.status(400).json({
-            status: StatusCodes.BAD_REQUEST,
-            message: ResponseMessage.BAD_REQUEST,
-            data: response.data,
-          });
+          try {
+            const dbCinemas = await Cinema.find({ deletedStatus: 0 });
+            const list = dbCinemas.map(c => ({
+              Cinema_strID: c.cinemaId,
+              Cinema_strName: c.displayName || c.cinemaName,
+              License_strCode: c.cinemaLicenseNumber || String(c.websiteLicenseNumber || "")
+            })).filter(c => c.Cinema_strID);
+            
+            const hasJunagadh = list.some(item => item.Cinema_strID && item.Cinema_strID.toUpperCase() === "CN92");
+            if (!hasJunagadh) {
+              list.push({
+                Cinema_strID: "CN92",
+                Cinema_strName: "CONNPLEX CINEMAS (SIGNATURE): JUNAGADH",
+                License_strCode: "7274"
+              });
+            }
+
+            return res.status(200).json({
+              status: StatusCodes.OK,
+              message: ResponseMessage.CINEMA_DETAILS,
+              data: list,
+            });
+          } catch (dbErr) {
+            return res.status(400).json({
+              status: StatusCodes.BAD_REQUEST,
+              message: ResponseMessage.BAD_REQUEST,
+              data: response.data,
+            });
+          }
         }
       })
-      .catch((error) => {
+      .catch(async (error) => {
         // createVistaLog(
         //   null,
         //   null,
@@ -444,11 +488,35 @@ export const getCinemasLicence = async (req, res) => {
         //   error.response.data,
         //   "Failed"
         // );
-        return res.status(400).json({
-          status: StatusCodes.BAD_REQUEST,
-          message: ResponseMessage.BAD_REQUEST,
-          data: error.message,
-        });
+        try {
+          const dbCinemas = await Cinema.find({ deletedStatus: 0 });
+          const list = dbCinemas.map(c => ({
+            Cinema_strID: c.cinemaId,
+            Cinema_strName: c.displayName || c.cinemaName,
+            License_strCode: c.cinemaLicenseNumber || String(c.websiteLicenseNumber || "")
+          })).filter(c => c.Cinema_strID);
+          
+          const hasJunagadh = list.some(item => item.Cinema_strID && item.Cinema_strID.toUpperCase() === "CN92");
+          if (!hasJunagadh) {
+            list.push({
+              Cinema_strID: "CN92",
+              Cinema_strName: "CONNPLEX CINEMAS (SIGNATURE): JUNAGADH",
+              License_strCode: "7274"
+            });
+          }
+
+          return res.status(200).json({
+            status: StatusCodes.OK,
+            message: ResponseMessage.CINEMA_DETAILS,
+            data: list,
+          });
+        } catch (dbErr) {
+          return res.status(400).json({
+            status: StatusCodes.BAD_REQUEST,
+            message: ResponseMessage.BAD_REQUEST,
+            data: error.message,
+          });
+        }
       });
   } catch (error) {
     return handleErrorResponse(res, error);
@@ -465,6 +533,33 @@ export const updateCinemaLicence = async (req, res) => {
     let IpAddress = req.socket.remoteAddress;
 
     let { cinemaId, licenceCode } = req.body;
+
+    // Update locally in MongoDB database
+    await Cinema.findOneAndUpdate(
+      { cinemaId: { $regex: new RegExp(`^${cinemaId}$`, 'i') } },
+      { 
+        $set: { 
+          websiteLicenseNumber: Number(licenceCode) || undefined,
+          cinemaLicenseNumber: licenceCode 
+        }
+      }
+    );
+
+    if (cinemaId && cinemaId.toUpperCase() === "CN92") {
+      await Logs.create({
+        title: `Update Cinema Licence By Admin : ${cinemaId} (Local Only)`,
+        lastSync: Date.now(),
+        ipAddress: IpAddress,
+        webBrowser: browserName,
+      });
+
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: ResponseMessage.LICENCE_CODE_UPDATED,
+        data: { Status: 1, message: "Local license updated successfully" },
+      });
+    }
+
     let config = {
       method: "get",
       maxBodyLength: Infinity,
