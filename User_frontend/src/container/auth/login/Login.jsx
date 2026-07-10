@@ -260,7 +260,10 @@ function Login(props) {
                       });
                     }}
                     scope="openid profile email"
-                    onReject={(err) => {}}
+                    onReject={(err) => {
+                      console.error("Google Login Rejected:", err);
+                      PagesIndex.toast.error(err?.message || "Google Sign-In failed.");
+                    }}
                   >
                     <Index.Box
                       className="signup-option-item"
