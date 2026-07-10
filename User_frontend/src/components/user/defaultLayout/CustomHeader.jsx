@@ -13,7 +13,7 @@ function CustomHeader() {
   const dispatch = PagesIndex.useDispatch();
   const navigate = PagesIndex.useNavigate();
   const location = PagesIndex.useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const movieId = searchParams.get("mId");
   const regionId = searchParams.get("rId");
@@ -42,16 +42,20 @@ function CustomHeader() {
   const handleChangedropdown = (data) => {
     dispatch(PagesIndex.changeRegion(data));
 
-    // If we are in movie-details page and user change the city at the time re navigate to movie-details page with the change region id
+    const currentParams = new URLSearchParams(location.search);
+    if (data?._id) {
+      currentParams.set("rId", data._id);
+    } else {
+      currentParams.delete("rId");
+    }
+
+    navigate({
+      pathname: location.pathname,
+      search: currentParams.toString(),
+    }, { replace: true });
+
     if (location?.pathname === "/movie-details") {
       dispatch(PagesIndex.showLoader());
-      navigate({
-        pathname: `/movie-details`,
-        search: PagesIndex?.createSearchParams({
-          mId: movieId,
-          rId: data?._id,
-        }).toString(),
-      });
     }
 
     changeCityClose();
@@ -59,11 +63,26 @@ function CustomHeader() {
 
   // Added to ensure that when region changes on movie-details page, the new region data reflects. On navigating back, previous region data is restored.
   useEffect(() => {
-    if (regionId) {
+    if (regionId && regionList?.length > 0) {
       const findRegion = regionList?.find((item) => item?._id === regionId);
-      dispatch(PagesIndex.changeRegion(findRegion));
+      if (findRegion) {
+        dispatch(PagesIndex.changeRegion(findRegion));
+      }
     }
-  }, [regionId]);
+  }, [regionId, regionList]);
+
+  // Synchronize region?._id from Redux to URL search parameter `rId`
+  useEffect(() => {
+    if (region?._id) {
+      const currentRId = searchParams.get("rId");
+      if (currentRId !== region._id && (!currentRId || regionList?.length > 0)) {
+        setSearchParams((params) => {
+          params.set("rId", region._id);
+          return params;
+        }, { replace: true });
+      }
+    }
+  }, [region?._id, searchParams, setSearchParams, regionList]);
 
   const handleOpen = (id) => {
     setOpen(true);
@@ -109,16 +128,21 @@ function CustomHeader() {
         setRegionList(res?.data);
         setFilteredRegionList(res?.data);
 
-        if (region) {
+        const activeRegionId = regionId || region?._id;
+
+        if (activeRegionId) {
           const regionData = res.data?.find(
-            (data) => data?._id === region?._id
+            (data) => data?._id === activeRegionId
           );
           if (!regionData?.region) {
             getLocation();
             changeCityOpen();
+          } else {
+            dispatch(PagesIndex.changeRegion(regionData));
           }
-
-          dispatch(PagesIndex.changeRegion(regionData));
+        } else {
+          getLocation();
+          changeCityOpen();
         }
       } else if (res?.status === 400) {
         dispatch(PagesIndex.changeRegion([]));
