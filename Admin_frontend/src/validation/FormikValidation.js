@@ -1722,23 +1722,24 @@ export const blogSchema = Yup.object().shape({
     .notRequired()
     .test("imageDimensions", "Image size should be 1100x540", (file) => {
       return new Promise((resolve) => {
-        if (!file || !file.name) {
+        if (!file || !(file instanceof File || file instanceof Blob)) {
           resolve(true);
           return;
         }
 
         const image = new Image();
-        image.src = URL.createObjectURL(file);
         image.onload = () => {
-          if (image.width === 1100 && image.height === 540) {
-            resolve(true);
-          } else {
-            resolve(false);
-          }
+          const isValid = image.width === 1100 && image.height === 540;
+          URL.revokeObjectURL(image.src);
+          resolve(isValid);
         };
         image.onerror = () => {
+          if (image.src) {
+            URL.revokeObjectURL(image.src);
+          }
           resolve(false);
         };
+        image.src = URL.createObjectURL(file);
       });
     })
     .test(
@@ -1771,23 +1772,24 @@ export const blogBackgroundSchema = Yup.object().shape({
     .notRequired()
     .test("imageDimensions", "Image size should be 1100x540", (file) => {
       return new Promise((resolve) => {
-        if (!file || !file.name) {
+        if (!file || !(file instanceof File || file instanceof Blob)) {
           resolve(true);
           return;
         }
 
         const image = new Image();
-        image.src = URL.createObjectURL(file);
         image.onload = () => {
-          if (image.width === 1100 && image.height === 540) {
-            resolve(true);
-          } else {
-            resolve(false);
-          }
+          const isValid = image.width === 1100 && image.height === 540;
+          URL.revokeObjectURL(image.src);
+          resolve(isValid);
         };
         image.onerror = () => {
+          if (image.src) {
+            URL.revokeObjectURL(image.src);
+          }
           resolve(false);
         };
+        image.src = URL.createObjectURL(file);
       });
     })
     .test(
