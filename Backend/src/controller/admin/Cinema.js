@@ -610,10 +610,9 @@ export const addCinemaLicence = async (req, res) => {
         });
       }
 
-      // Also try to update Vista if not local-only (e.g. not CN92 or custom)
+      // Also try to update Vista if not local-only (e.g. not custom)
       if (
         cinemaId &&
-        cinemaId.toUpperCase() !== "CN92" &&
         !cinemaId.startsWith("CN1")
       ) {
         try {
@@ -670,7 +669,7 @@ export const updateCinemaLicence = async (req, res) => {
       }
     );
 
-    if (cinemaId && cinemaId.toUpperCase() === "CN92") {
+    if (cinemaId && cinemaId.toUpperCase().startsWith("CN1")) {
       await Logs.create({
         title: `Update Cinema Licence By Admin : ${cinemaId} (Local Only)`,
         lastSync: Date.now(),
