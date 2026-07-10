@@ -246,18 +246,40 @@ function Login(props) {
                   <LoginSocialGoogle
                     ref={googleRef}
                     client_id="305133771930-3t5h0p786mi93rvmn91id531qj8l7hkb.apps.googleusercontent.com"
+                    isGetOnlyToken={true}
                     onLogoutFailure={onLogoutFailure}
                     onLogoutSuccess={onLogoutSuccess}
-                    onResolve={({ provider, data }) => {
-                      handleSocialLogin({
-                        firstName: data?.given_name,
-                        lastName: data?.family_name,
-                        email: data?.email,
-                        providerId: data?.sub,
-                        accessToken: data?.access_token,
-                        source: "google",
-                        login_type: "Web",
-                      });
+                    onResolve={async ({ provider, data }) => {
+                      try {
+                        const accessToken = data?.access_token;
+                        if (!accessToken) {
+                          PagesIndex.toast.error("Failed to obtain access token from Google.");
+                          return;
+                        }
+
+                        dispatch(PagesIndex.showLoader());
+                        const response = await fetch(
+                          `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
+                        );
+                        if (!response.ok) {
+                          throw new Error("Failed to fetch user info from Google");
+                        }
+                        const googleUser = await response.json();
+
+                        handleSocialLogin({
+                          firstName: googleUser?.given_name,
+                          lastName: googleUser?.family_name,
+                          email: googleUser?.email,
+                          providerId: googleUser?.sub,
+                          accessToken: accessToken,
+                          source: "google",
+                          login_type: "Web",
+                        });
+                      } catch (err) {
+                        console.error("Google userinfo fetch failed:", err);
+                        PagesIndex.toast.error("Failed to retrieve Google profile info.");
+                        dispatch(PagesIndex.hideLoader());
+                      }
                     }}
                     scope="openid profile email"
                     onReject={(err) => {
