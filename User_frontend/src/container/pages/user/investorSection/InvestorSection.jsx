@@ -50,9 +50,10 @@ const PolicySubSections  = [
 
 function InvestorSection() {
     useEffect(() => {
-      window.location.replace("https://theconnplex.com/investors")
+      if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+        window.location.replace("https://theconnplex.com/investors");
+      }
     }, [])
-    return null
   // for page redirect
   const location = PagesIndex.useLocation();
   const downloadFile = () => {

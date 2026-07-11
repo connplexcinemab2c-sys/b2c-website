@@ -25,6 +25,7 @@ import PolicyForDeterminingMaterialSubsidiary from "../assets/pdf/policy-for-det
 import PolicyOfPreservationOfDocuments from "../assets/pdf/policy-of-preservation-of-documents.pdf";
 import TermConditionOfAppointmentOfID from "../assets/pdf/term-condition-of-appointment-of-ID.pdf";
 import WebsiteContentArchivalPolicy from "../assets/pdf/website-content-archival-policy.pdf";
+import IntimationUnderRegulation30_11_07_2026 from "../assets/pdf/Intimation-under-Regulation-30-11-07-2026.pdf";
 
 const Pdf = {
   BoardDiversityPolicy,
@@ -53,6 +54,7 @@ const Pdf = {
   PRMedia,
   PoshPolicy,
   CommitteePoshPolicy,
+  IntimationUnderRegulation30_11_07_2026,
 };
 
 export default Pdf;

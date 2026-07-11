@@ -7,9 +7,10 @@ import Footer from "../../../../components/user/defaultLayout/Footer";
 
 export default function InvestorLayout() {
   useEffect(() => {
-    window.location.replace("https://theconnplex.com/investors")
-  }, [])
-  return null
+    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      window.location.replace("https://theconnplex.com/investors");
+    }
+  }, []);
   const navigate = PagesIndex.useNavigate();
   const [settingsState, setSettingsState] = useState({});
   const [isUnderMaintenance, setIsUnderMaintenance] = useState(false);
