@@ -624,11 +624,10 @@ export const moviesDetailsWithshow = async (req, res) => {
     };
 
     if (moviesDetails.uniqueFilmCode) {
-      const filmCodes = moviesByUniqueCode.map((movieDetails) => {
-        const filmCodeSlice = movieDetails.filmCode;
-        // .slice(4);
-        return new RegExp(filmCodeSlice, "i");
-      });
+      const filmCodes = moviesByUniqueCode
+        .map((movieDetails) => movieDetails.filmCode)
+        .filter(Boolean)
+        .map((filmCodeSlice) => new RegExp(filmCodeSlice, "i"));
       matchstage.filmCode = {
         $in: filmCodes,
       };

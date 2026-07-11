@@ -127,12 +127,26 @@ export const getMoviesById = async (req, res) => {
 
       // Check if shows are available for this movie
       const currentTime = moment().utcOffset("+05:30").toDate();
-      const availableShows = await Show.countDocuments({
-        filmObjectId: movieId,
-        sessionRealShow: { $gte: currentTime },
-        deletedStatus: 0,
-        isActive: true,
-      });
+      let availableShows = 0;
+      if (moviesDetails.uniqueFilmCode) {
+        const movieIdsWithSameCode = await Movie.find({
+          uniqueFilmCode: moviesDetails.uniqueFilmCode,
+          deletedStatus: 0,
+        }).distinct("_id");
+        availableShows = await Show.countDocuments({
+          filmObjectId: { $in: movieIdsWithSameCode },
+          sessionRealShow: { $gte: currentTime },
+          deletedStatus: 0,
+          isActive: true,
+        });
+      } else {
+        availableShows = await Show.countDocuments({
+          filmObjectId: movieId,
+          sessionRealShow: { $gte: currentTime },
+          deletedStatus: 0,
+          isActive: true,
+        });
+      }
       movieObj.isShowavailable = availableShows > 0;
       const sitesetting = await SiteSetting.findOne();
       movieObj.showExtendedDays = sitesetting?.showExtendedDays || 10;
