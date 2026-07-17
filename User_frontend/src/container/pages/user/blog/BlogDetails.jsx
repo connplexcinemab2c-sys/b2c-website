@@ -10,10 +10,44 @@ import SEO from "../../../../components/common/SEO";
 
 const BlogDetails = () => {
   const location = useLocation();
-const navigate=useNavigate()
-  const data = location?.state?.data;
+  const navigate = useNavigate();
+  const dispatch = PagesIndex.useDispatch();
+  const queryParams = new URLSearchParams(location.search);
+  const rId = queryParams.get("rId");
 
-  const sanitizedHtml = DOMPurify.sanitize(data?.description, {
+  const [data, setData] = React.useState(location?.state?.data);
+
+  React.useEffect(() => {
+    if (!data && rId) {
+      dispatch(PagesIndex.showLoader());
+      PagesIndex.apiGetHandler(PagesIndex.Api.GET_BLOG)
+        .then((res) => {
+          if (res?.status === 200) {
+            const blog = res?.data?.bloglist?.find((item) => item._id === rId);
+            if (blog) {
+              setData(blog);
+            }
+          }
+          dispatch(PagesIndex.hideLoader());
+        })
+        .catch((err) => {
+          console.error(err);
+          dispatch(PagesIndex.hideLoader());
+        });
+    }
+  }, [rId, data, dispatch]);
+
+  React.useEffect(() => {
+    if (!rId && !data) {
+      navigate("/blog");
+    }
+  }, [rId, data, navigate]);
+
+  if (rId && !data) {
+    return null;
+  }
+
+  const sanitizedHtml = DOMPurify.sanitize(data?.description || "", {
     ALLOWED_TAGS: [
       "strong",
       "i",

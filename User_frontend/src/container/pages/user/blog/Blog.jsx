@@ -111,7 +111,7 @@ const Blog = () => {
                         <Index.Box
                           className="blog-img-show"
                           onClick={() =>
-                            navigate("/blog-details", {
+                            navigate(`/blog-details?rId=${row?._id}`, {
                               state: { data: row },
                             })
                           }
@@ -133,7 +133,14 @@ const Blog = () => {
                         </Index.Box>
                         <Index.Box className="banner-card-details">
                           <Index.Box className="flex-blog-icon">
-                            <Index.Typography className="title-blog-card">
+                            <Index.Typography
+                              className="title-blog-card"
+                              onClick={() =>
+                                navigate(`/blog-details?rId=${row?._id}`, {
+                                  state: { data: row },
+                                })
+                              }
+                            >
                               {row?.title}
                             </Index.Typography>
 
