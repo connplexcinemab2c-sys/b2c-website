@@ -19,7 +19,7 @@ import { Notification } from "../../models/Notification.js";
 import { User } from "../../models/User.js";
 import GeneralSetting from "../../models/GeneralSetting.js";
 import ResponseMessage from "../../utils/ResponseMessage.js";
-import { sendToWebhookApi, smsSend2Digital } from "../../services/CommanService.js";
+import { sendToWebhookApi, smsSend2Digital, sendPopcornOfferSMSIfEligible } from "../../services/CommanService.js";
 import { BookingFailed, bookingSuccess } from "../../utils/Mailers.js";
 import { userNotification } from "../Notification.js";
 import { createLog } from "../LogsServices.js";
@@ -493,6 +493,12 @@ export const _handleBookingSuccess = async (strTransId, vistaResponse, user) => 
       `+91${user.mobileNumber}`,
       process.env.SEND2DIGITAL_TICKET_BOOKING_CONTENTID
     ).catch(console.error);
+
+    try {
+      await sendPopcornOfferSMSIfEligible(bookingDetails, user);
+    } catch (popcornError) {
+      console.error("Error sending popcorn offer SMS:", popcornError);
+    }
   }
 
   await new CCAvenueSMSMail({

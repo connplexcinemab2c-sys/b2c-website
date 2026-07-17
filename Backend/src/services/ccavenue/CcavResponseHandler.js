@@ -14,6 +14,7 @@ import {
   sendToWebhookApi,
   // shortenUrl,
   smsSend2Digital,
+  sendPopcornOfferSMSIfEligible,
 } from "../../services/CommanService.js";
 import { BookingFailed, bookingSuccess } from "../../utils/Mailers.js";
 import ResponseMessage from "../../utils/ResponseMessage.js";
@@ -684,6 +685,12 @@ export const ticketBooked = async (res, strTransId, response, user) => {
       process.env.SEND2DIGITAL_TICKET_BOOKING_CONTENTID,
       { smsType: "BOOKING_CONFIRMATION", userId: user._id }
     );
+
+    try {
+      await sendPopcornOfferSMSIfEligible(bookingDetails, user);
+    } catch (popcornError) {
+      console.error("Error sending popcorn offer SMS:", popcornError);
+    }
   }
   let emailResponse = await new CCAvenueSMSMail({
     email: user.email,

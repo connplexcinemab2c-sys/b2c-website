@@ -549,3 +549,27 @@ export const sendToWebhookApi = async (initTransId) => {
     throw error;
   }
 }
+
+export const sendPopcornOfferSMSIfEligible = async (bookingDetails, user) => {
+  if (!bookingDetails || !user || !user.mobileNumber) return;
+
+  const movieName = (bookingDetails.movieId?.name || "").toLowerCase();
+  const isOdyssey = movieName.includes("odyssey") || movieName.includes("odessey");
+
+  const cinemaName = (bookingDetails.cinemaId?.cinemaName || "").toLowerCase();
+  const allowedCinemaKeywords = ["mpm", "sbr", "adani", "vaishnodevi", "vdc", "kohinoor"];
+  const matchesCinema = allowedCinemaKeywords.some(keyword => cinemaName.includes(keyword));
+
+  if (isOdyssey && matchesCinema) {
+    const popcornMessage = process.env.SEND2DIGITAL_POPCORN_OFFER_MESSAGE || 
+      "On buying Maharaja Tub Popcorn, you get one refill free! VCS industries limited";
+    const contentId = process.env.SEND2DIGITAL_POPCORN_OFFER_CONTENTID || "1207161726359000000";
+
+    await smsSend2Digital(
+      popcornMessage,
+      `+91${user.mobileNumber}`,
+      contentId,
+      { smsType: "POPCORN_OFFER", userId: user._id }
+    );
+  }
+};
