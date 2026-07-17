@@ -7,6 +7,7 @@ import {
 } from "../../services/CommanService.js";
 import axios from "axios";
 import Item from "../../models/Items.js";
+import Cinema from "../../models/Cinema.js";
 import fs from "fs";
 import ResponseMessage from "../../utils/ResponseMessage.js";
 import { StatusCodes } from "http-status-codes";
@@ -16,6 +17,27 @@ import { UAParser } from "ua-parser-js";
 import Logs from "../../models/Logs.js";
 import { deleteS3File } from "../../middleware/ImageUpload.js";
 dotenv.config();
+
+const isAllowedRefillLocation = (cinemaName, regionName) => {
+  const name = (cinemaName || "").toLowerCase();
+  const region = (regionName || "").toLowerCase();
+  
+  const allowedRegions = ["pune", "vadodara", "bhagalpur", "siwan", "kohinoor", "bilaspur", "korba"];
+  const allowedCinemaKeywords = ["mpm", "sbr", "adani", "vaishnodevi", "vdc", "kohinoor"];
+
+  const matchesRegion = allowedRegions.some(r => region.includes(r));
+  const matchesCinema = allowedCinemaKeywords.some(keyword => name.includes(keyword));
+
+  return matchesRegion || matchesCinema;
+};
+
+const isMaharajaRefillItem = (desc) => {
+  const d = (desc || "").toLowerCase();
+  const isRefill = d.includes("refill") || d.includes("refilling") || /\brb\b/.test(d);
+  const isMaharaja = d.includes("maharaja");
+  return isRefill && isMaharaja;
+};
+
 //#region foodItemByCinemaId
 export const foodItemByCinemaId = async (req, res) => {
   try {
@@ -26,9 +48,29 @@ export const foodItemByCinemaId = async (req, res) => {
       type: { $in: ["Beverage", "Combo", "Popcorn", "Snacks"] },
     }).sort({ itemSequence: 1 });
 
-    console.log(foodItemDetails.length, ":foodItemDetails");
+    const cinema = await Cinema.findById(id).populate("regionId");
+    let regionName = "";
+    let cinemaName = "";
+    if (cinema) {
+      cinemaName = cinema.displayName || cinema.cinemaName || "";
+      if (cinema.regionId) {
+        regionName = cinema.regionId.region || "";
+      }
+    }
 
-    if (!foodItemDetails) {
+    let filteredFoodItemDetails = foodItemDetails;
+    if (cinema) {
+      const isAllowed = isAllowedRefillLocation(cinemaName, regionName);
+      if (!isAllowed) {
+        filteredFoodItemDetails = foodItemDetails.filter(
+          (item) => !isMaharajaRefillItem(item.itemDescription)
+        );
+      }
+    }
+
+    console.log(foodItemDetails.length, ":foodItemDetails", filteredFoodItemDetails.length, ":filteredFoodItemDetails");
+
+    if (!filteredFoodItemDetails) {
       return res.status(400).json({
         status: StatusCodes.BAD_REQUEST,
         message: ResponseMessage.BAD_REQUEST,
@@ -38,7 +80,7 @@ export const foodItemByCinemaId = async (req, res) => {
       return res.status(200).json({
         status: StatusCodes.OK,
         message: ResponseMessage.FOOD_ITEMS_DETAILS,
-        data: foodItemDetails,
+        data: filteredFoodItemDetails,
       });
     }
   } catch (error) {
