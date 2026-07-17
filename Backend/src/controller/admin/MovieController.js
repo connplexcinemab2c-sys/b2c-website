@@ -955,6 +955,17 @@ export const generateUniqueMovie = async (req, res) => {
       };
     }
 
+    if (uniqueFilmCode) {
+      await Movie.updateMany(
+        { uniqueFilmCode: uniqueCode, _id: { $nin: ids } },
+        {
+          $unset: {
+            uniqueFilmCode: "",
+          },
+        }
+      );
+    }
+
     const updateMovie = await Movie.updateMany(
       { _id: { $in: ids } },
       {

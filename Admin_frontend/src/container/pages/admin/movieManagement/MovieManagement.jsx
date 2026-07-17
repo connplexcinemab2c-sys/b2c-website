@@ -1812,7 +1812,7 @@ const GenerateUniqueCodeModal = (props) => {
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const selectableIds = movieList
-        .filter((item) => !item?.uniqueFilmCode)
+        .filter((item) => !item?.uniqueFilmCode || item?.uniqueFilmCode === rowData?.uniqueFilmCode)
         .map((item) => item._id);
 
       setSelectedMovies(selectableIds);
@@ -1869,7 +1869,16 @@ const GenerateUniqueCodeModal = (props) => {
           filmCode ? `&filmCode=${filmCode}` : ""
         }`
       );
-      setMovieList(response?.data?.data ?? []);
+      const fetchedMovies = response?.data?.data ?? [];
+      setMovieList(fetchedMovies);
+      if (rowData?.uniqueFilmCode) {
+        const initialSelected = fetchedMovies
+          .filter((item) => item?.uniqueFilmCode === rowData?.uniqueFilmCode)
+          .map((item) => item._id);
+        setSelectedMovies(initialSelected);
+      } else if (rowData?._id) {
+        setSelectedMovies([rowData._id]);
+      }
     } catch (error) {
       if (error?.response?.data?.message !== "jwt expired") {
         PagesIndex.toast.error(error?.response?.data?.message);
@@ -1881,7 +1890,7 @@ const GenerateUniqueCodeModal = (props) => {
   const debouncedSearch = useCallback(debounce(fetchMovies, 1000), []);
 
   useEffect(() => {
-    if (rowData && rowData?.uniqueFilmCode) {
+    if (rowData) {
       fetchMovies();
     }
   }, []);
@@ -1975,18 +1984,18 @@ const GenerateUniqueCodeModal = (props) => {
                         checked={
                           movieList?.length > 0 &&
                           movieList
-                            .filter((item) => !item?.uniqueFilmCode)
+                            .filter((item) => !item?.uniqueFilmCode || item?.uniqueFilmCode === rowData?.uniqueFilmCode)
                             .every((item) => selectedMovies.includes(item._id))
                         }
                         indeterminate={
                           selectedMovies.length > 0 &&
                           movieList
-                            .filter((item) => !item?.uniqueFilmCode)
+                            .filter((item) => !item?.uniqueFilmCode || item?.uniqueFilmCode === rowData?.uniqueFilmCode)
                             .some((item) =>
                               selectedMovies.includes(item._id)
                             ) &&
                           !movieList
-                            .filter((item) => !item?.uniqueFilmCode)
+                            .filter((item) => !item?.uniqueFilmCode || item?.uniqueFilmCode === rowData?.uniqueFilmCode)
                             .every((item) => selectedMovies.includes(item._id))
                         }
                         onChange={handleSelectAll}
@@ -2038,11 +2047,10 @@ const GenerateUniqueCodeModal = (props) => {
                         <Index.Checkbox
                           className="check-box-input"
                           checked={
-                            selectedMovies?.includes(item?._id) ||
-                            !!item?.uniqueFilmCode
+                            selectedMovies?.includes(item?._id)
                           }
                           onChange={(e) => handleMovieSelection(e, item?._id)}
-                          disabled={!!item?.uniqueFilmCode}
+                          disabled={!!item?.uniqueFilmCode && item?.uniqueFilmCode !== rowData?.uniqueFilmCode}
                         />
                       </Index.TableCell>
                     </Index.TableRow>
