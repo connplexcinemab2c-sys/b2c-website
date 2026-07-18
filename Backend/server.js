@@ -94,23 +94,35 @@ app.get("/api/auth/google/success", isLoggedIn, (req, res) => {
   res.send({ user: req.user });
 });
 app.get("/t/:initTransId", async (req, res) => {
-  if (req.url == "https://cnpx.in/") {
-    res.redirect(
-      "https://ticketing.theconnplex.com/booking-info?transId=" +
-        req.url.replace("/", "")
-    );
-  } else {
-    await downloadBookingTicketAsPDF(req, res);
+  try {
+    const { initTransId } = req.params;
+    let frontendUrl =
+      process.env.FRONTEND_BASE_URL ||
+      process.env.FRONTEND_BASE_URL_PRODUCTION ||
+      "https://ticketing.theconnplex.com";
+    if (frontendUrl.endsWith("/")) {
+      frontendUrl = frontendUrl.slice(0, -1);
+    }
+    res.redirect(`${frontendUrl}/booking-info/${initTransId}`);
+  } catch (error) {
+    console.error("Error in ticket redirect:", error);
+    res.status(500).send("Something went wrong");
   }
 });
 app.get("/:initTransId", async (req, res) => {
-  if (req.url == "https://cnpx.in/") {
-    res.redirect(
-      "https://ticketing.theconnplex.com/booking-info?transId=" +
-        req.url.replace("/", "")
-    );
-  } else {
-    await downloadBookingTicketAsPDF(req, res);
+  try {
+    const { initTransId } = req.params;
+    let frontendUrl =
+      process.env.FRONTEND_BASE_URL ||
+      process.env.FRONTEND_BASE_URL_PRODUCTION ||
+      "https://ticketing.theconnplex.com";
+    if (frontendUrl.endsWith("/")) {
+      frontendUrl = frontendUrl.slice(0, -1);
+    }
+    res.redirect(`${frontendUrl}/booking-info/${initTransId}`);
+  } catch (error) {
+    console.error("Error in ticket redirect:", error);
+    res.status(500).send("Something went wrong");
   }
 });
 
