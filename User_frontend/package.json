@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp public/robots.txt dist/robots.txt",
+    "build": "vite build && node -e \"const fs = require('fs'); fs.copyFileSync('public/robots.txt', 'dist/robots.txt');\"",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

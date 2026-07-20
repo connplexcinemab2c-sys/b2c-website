@@ -149,8 +149,8 @@ function BookingHistory() {
                     ({" "}
                     {
                       bookingDetails?.setSeatData?.strSeatInfo
-                        .split(" - ")[1]
-                        .split(",").length
+                        ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                        : 0
                     }{" "}
                     Tickets)
                   </Index.Typography>

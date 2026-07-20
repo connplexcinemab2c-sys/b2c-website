@@ -344,8 +344,8 @@ export default function DownloadTicket() {
                     >
                       {
                         bookingDetails?.setSeatData?.strSeatInfo
-                          .split(" - ")[1]
-                          .split(",").length
+                          ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                          : 0
                       }
                     </Index.Typography>
                   </Index.Box>

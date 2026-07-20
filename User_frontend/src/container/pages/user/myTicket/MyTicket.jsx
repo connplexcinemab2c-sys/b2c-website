@@ -233,8 +233,8 @@ export default function MyTicket() {
                   >
                     {
                       bookingDetails?.setSeatData?.strSeatInfo
-                        .split(" - ")[1]
-                        .split(",").length
+                        ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                        : 0
                     }
                   </Index.Typography>
                 </Index.Box>
@@ -345,9 +345,9 @@ export default function MyTicket() {
                     ₹
                     {parseFloat(
                       bookingDetails?.cinemaId?.convenienceFees *
-                        bookingDetails?.setSeatData?.strSeatInfo
-                          .split(" - ")[1]
-                          .split(",").length
+                        (bookingDetails?.setSeatData?.strSeatInfo
+                          ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                          : 0)
                     ).toFixed(2)}
                   </Index.Typography>
                 </Index.Box>
@@ -368,9 +368,9 @@ export default function MyTicket() {
                     {parseFloat(
                       bookingDetails?.addSeatData?.curTicketsTotal +
                         bookingDetails?.cinemaId?.convenienceFees *
-                          bookingDetails?.setSeatData?.strSeatInfo
-                            .split(" - ")[1]
-                            .split(",").length
+                          (bookingDetails?.setSeatData?.strSeatInfo
+                            ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                            : 0)
                     ).toFixed(2)}
                   </Index.Typography>
                 </Index.Box>

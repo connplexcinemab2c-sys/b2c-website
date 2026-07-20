@@ -124,8 +124,8 @@ function BookingInfo() {
                     &nbsp;({" "}
                     {
                       bookingDetails?.setSeatData?.strSeatInfo
-                        .split(" - ")[1]
-                        .split(",").length
+                        ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                        : 0
                     }{" "}
                     Tickets )
                   </Index.Typography>
@@ -727,8 +727,8 @@ function BookingInfo() {
                     (
                     {
                       bookingDetails?.setSeatData?.strSeatInfo
-                        .split(" - ")[1]
-                        .split(",").length
+                        ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                        : 0
                     }{" "}
                     x ₹{bookingDetails?.cinemaId?.convenienceFees} - Including
                     GST)
@@ -742,9 +742,9 @@ function BookingInfo() {
                   ₹
                   {parseFloat(
                     bookingDetails?.cinemaId?.convenienceFees *
-                      bookingDetails?.setSeatData?.strSeatInfo
-                        .split(" - ")[1]
-                        .split(",").length
+                      (bookingDetails?.setSeatData?.strSeatInfo
+                        ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                        : 0)
                   ).toFixed(2)}
                 </Index.Typography>
               </Index.Box>
