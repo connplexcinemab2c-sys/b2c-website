@@ -520,11 +520,7 @@ export const getMoviesByRegion = async (req, res) => {
       {
         $match: {
           filmObjectId: { $in: movieIds },
-          // sessionRealShow: { $gte: currentTime },
-          sessionRealShow: {
-            $gte: currentTime,
-            $lt: nextExtendDays
-          },
+          sessionRealShow: { $gte: currentTime },
           deletedStatus: 0,
           isActive: true,
         },
