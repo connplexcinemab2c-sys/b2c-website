@@ -196,10 +196,9 @@ function BookingInfo() {
                           finalBookingCalculation?.ticketCart?.basePrice
                         ).toFixed(2)
                       : parseFloat(
-                          typeof bookingDetails?.paymentResponse?.amount ===
-                            "string"
-                            ? bookingDetails?.paymentResponse?.amount
-                            : bookingDetails?.paymentResponse?.amount / 100 || 0
+                          bookingDetails?.finalBookingCalculation?.finalAmount
+                            ? bookingDetails.finalBookingCalculation.finalAmount
+                            : bookingDetails?.paymentResponse?.amount || 0
                         ).toFixed(2)}
                   </Index.Typography>
                 </Index.Box>
@@ -764,9 +763,9 @@ function BookingInfo() {
               >
                 ₹
                 {parseFloat(
-                  typeof bookingDetails?.paymentResponse?.amount === "string"
-                    ? bookingDetails?.paymentResponse?.amount
-                    : bookingDetails?.paymentResponse?.amount / 100 || 0
+                  bookingDetails?.finalBookingCalculation?.finalAmount
+                    ? bookingDetails.finalBookingCalculation.finalAmount
+                    : bookingDetails?.paymentResponse?.amount || 0
                 ).toFixed(2)}
               </Index.Typography>
             </Index.Box>

@@ -321,7 +321,10 @@ export const downloadBookingTicketAsPDF = async (req, res) => {
     let { initTransId } = req.params;
     const bookingDetails = await Transaction.findOne(
       {
-        initTransId,
+        $or: [
+          { initTransId: initTransId },
+          { "addSeatData.strBookId": initTransId }
+        ]
       },
       {
         "addSeatData.strBookId": true,

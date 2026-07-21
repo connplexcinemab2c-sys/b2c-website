@@ -87,9 +87,7 @@ function ConfirmationScreen() {
                 {parseFloat(
                   bookingDetails?.finalBookingCalculation?.finalAmount
                     ? bookingDetails?.finalBookingCalculation?.finalAmount
-                    : (typeof bookingDetails?.paymentResponse?.amount === "string"
-                        ? bookingDetails?.paymentResponse?.amount
-                        : bookingDetails?.paymentResponse?.amount / 100 || 0)
+                    : bookingDetails?.paymentResponse?.amount || 0
                 ).toFixed(2)}
               </Index.Typography>{" "}
               Successful

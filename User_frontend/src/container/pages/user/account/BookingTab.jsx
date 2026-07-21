@@ -205,9 +205,7 @@ function BookingTab({ bookingList }) {
                         >
                           ₹
                           {parseFloat(
-                            typeof item?.paymentResponse?.amount === "string"
-                              ? item?.paymentResponse?.amount
-                              : item?.paymentResponse?.amount / 100 || 0
+                            item?.paymentResponse?.amount || 0
                           ).toFixed(2)}
                         </Index.Typography>
                       </Index.Box> */}

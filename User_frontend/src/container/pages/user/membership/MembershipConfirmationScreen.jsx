@@ -77,9 +77,7 @@ function MembershipConfirmationScreen() {
                     {parseFloat(
                       membershipItem?.[0]?.subscriptionId?.price
                         ? membershipItem?.[0]?.subscriptionId?.price
-                        : (typeof membershipItem?.[0]?.payments?.[0]?.paymentResponse?.amount === "string"
-                            ? membershipItem?.[0]?.payments?.[0]?.paymentResponse?.amount
-                            : (membershipItem?.[0]?.payments?.[0]?.paymentResponse?.amount / 100 || 0))
+                        : membershipItem?.[0]?.payments?.[0]?.paymentResponse?.amount || 0
                     ).toFixed(2)}
                   </Index.Typography>{" "}
                   Successful

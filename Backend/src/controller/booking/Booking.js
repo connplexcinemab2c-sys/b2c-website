@@ -1874,7 +1874,12 @@ export const getBookingDetailsByTransId = async (initTransId) => {
     };
 
     const bookingDetails = await Transaction.findOne(
-      { initTransId },
+      {
+        $or: [
+          { initTransId: initTransId },
+          { "addSeatData.strBookId": initTransId }
+        ]
+      },
       projection
     )
       .populate({

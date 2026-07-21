@@ -253,10 +253,9 @@ export default function MyTicket() {
                   >
                     ₹
                     {parseFloat(
-                      typeof bookingDetails?.paymentResponse?.amount ===
-                        "string"
-                        ? bookingDetails?.paymentResponse?.amount
-                        : bookingDetails?.paymentResponse?.amount / 100 || 0
+                      bookingDetails?.finalBookingCalculation?.finalAmount
+                        ? bookingDetails.finalBookingCalculation.finalAmount
+                        : bookingDetails?.paymentResponse?.amount || 0
                     ).toFixed(2)}
                   </Index.Typography>
                 </Index.Box>

@@ -265,7 +265,7 @@ export const smsSend2Digital = async (message, to, contentId, logContext = {}) =
   console.log(message, "sms message");
   try {
     const response = await axios.post(
-      `https://gateway.leewaysoftech.com/xml-transconnect-api.php?username=${process.env.SEND2DIGITAL_USERNAME}&password=${process.env.SEND2DIGITAL_PASSWORD}&mobile=${to}&message=${message}&senderid=${process.env.SEND2DIGITAL_SENDERID}&peid=${process.env.SEND2DIGITAL_PEID}&contentid=${contentId}`
+      `https://gateway.leewaysoftech.com/xml-transconnect-api.php?username=${encodeURIComponent(process.env.SEND2DIGITAL_USERNAME || "")}&password=${encodeURIComponent(process.env.SEND2DIGITAL_PASSWORD || "")}&mobile=${encodeURIComponent(to || "")}&message=${encodeURIComponent(message || "")}&senderid=${encodeURIComponent(process.env.SEND2DIGITAL_SENDERID || "")}&peid=${encodeURIComponent(process.env.SEND2DIGITAL_PEID || "")}&contentid=${encodeURIComponent(contentId || "")}`
     );
     console.log(response.data, "SMS response data");
     await createSmsLog({
@@ -497,6 +497,13 @@ export const sendToWebhookApi = async (initTransId) => {
   }
 
   const { finalBookingCalculation, ...filteredData } = bookingDetails;
+
+  // Inject ticket and SMS URLs for WhatsApp API template consumption
+  const smsUrl = `${process.env.M_TICKET_URL}/${initTransId}`;
+  const ticketUrl = `${process.env.FRONTEND_BASE_URL_PRODUCTION || 'https://ticketing.theconnplex.com'}/booking-info/${initTransId}`;
+  filteredData.smsUrl = smsUrl;
+  filteredData.ticketUrl = ticketUrl;
+  filteredData.ticketLink = ticketUrl;
 
   try {
     const URL = process.env.WHATSAPP_WEBHOOK_URL || "https://api.bitamin.com/webhook/theconnplex/019dbfa5-ead7-761d-944d-9260ef66b5aa";
