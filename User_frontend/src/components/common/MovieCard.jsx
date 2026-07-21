@@ -116,18 +116,14 @@ function MovieCard({ title, isNowPlaying, item, setInterested }) {
       <Index.Box
         className="card-img"
         onClick={() => {
-          if (item?.versions && item?.versions?.length > 1) {
-            setShowLanguagesOverlay(true);
-          } else {
-            location?.pathname == "/movie-details" && setInterested(null);
-            navigate({
-              pathname: `/movie-details`,
-              search: PagesIndex?.createSearchParams({
-                mId: item?.linkedNowPlayingMovie ? item?.linkedNowPlayingMovie : item?._id,
-                rId: region?._id ? region?._id : item?.cinemaObjectId?.regionId,
-              }).toString(),
-            });
-          }
+          location?.pathname == "/movie-details" && setInterested(null);
+          navigate({
+            pathname: `/movie-details`,
+            search: PagesIndex?.createSearchParams({
+              mId: item?.linkedNowPlayingMovie ? item?.linkedNowPlayingMovie : item?._id,
+              rId: region?._id ? region?._id : item?.cinemaObjectId?.regionId,
+            }).toString(),
+          });
         }}
       >
         <img
