@@ -246,7 +246,7 @@ function Login(props) {
                   <LoginSocialGoogle
                     ref={googleRef}
                     client_id="305133771930-3t5h0p786mi93rvmn91id531qj8l7hkb.apps.googleusercontent.com"
-                    isGetOnlyToken={true}
+                    isOnlyGetToken={true}
                     onLogoutFailure={onLogoutFailure}
                     onLogoutSuccess={onLogoutSuccess}
                     onResolve={async ({ provider, data }) => {
