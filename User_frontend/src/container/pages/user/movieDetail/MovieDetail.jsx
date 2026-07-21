@@ -73,6 +73,29 @@ function MovieDetail() {
   const [message, setMessage] = useState("Share");
   const [interested, setInterested] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [movieVersions, setMovieVersions] = useState([]);
+
+  useEffect(() => {
+    const activeRegionId = region?._id || regionId;
+    if (!movieDetail?.name || !activeRegionId) return;
+    
+    PagesIndex.apiGetHandler(`${PagesIndex.Api.GET_MOVIES_BY_ID}/${activeRegionId}`)
+      .then((res) => {
+        if (res?.status === 200 && res.data) {
+          const cleanName = (name) => {
+            if (!name) return "";
+            let base = name.replace(/\s*\([^)]*\)/g, "");
+            base = base.replace(/\b(3D|2D)\b/gi, "");
+            return base.replace(/\s+/g, " ").trim().toUpperCase();
+          };
+          
+          const currentBase = cleanName(movieDetail.name);
+          const versions = res.data.filter((m) => cleanName(m.name) === currentBase);
+          setMovieVersions(versions);
+        }
+      })
+      .catch((err) => console.error(err));
+  }, [movieDetail?.name, region?._id, regionId]);
 
   
   useEffect(() => {
@@ -456,24 +479,96 @@ function MovieDetail() {
                   
                 </Index.Box>
                 
-                <Index.Box className="banner-interest-tags">
-                  <Index.Typography
-                    variant="span"
-                    component="span"
-                    className="banner-interest-tag"
-                  >
-                    {movieDetail?.movieType?.includes("3D") ? "3D" : "2D"}
-                  </Index.Typography>
-                  {movieDetail?.languages && (
-                    <Index.Typography
-                      variant="span"
-                      component="span"
-                      className="banner-interest-tag"
-                    >
-                      {movieDetail?.languages}
-                    </Index.Typography>
-                  )}
-                </Index.Box>
+                 <Index.Box className="banner-interest-tags-wrapper" style={{ display: "flex", flexDirection: "column", gap: "12px", margin: "15px 0" }}>
+                   {/* Formats */}
+                   {movieVersions?.length > 1 && [...new Set(movieVersions.map(m => m.movieType).filter(Boolean))].length > 1 && (
+                     <Index.Box style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                       <span style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "14px", minWidth: "80px" }}>Format:</span>
+                       {[...new Set(movieVersions.map(m => m.movieType).filter(Boolean))].map((type) => {
+                         const isActive = type === movieDetail?.movieType;
+                         return (
+                           <button
+                             key={type}
+                             onClick={() => {
+                               if (isActive) return;
+                               const target = movieVersions.find(v => v.movieType === type && v.languages === movieDetail?.languages) || movieVersions.find(v => v.movieType === type);
+                               if (target) {
+                                 navigate({
+                                   pathname: `/movie-details`,
+                                   search: PagesIndex?.createSearchParams({
+                                     mId: target._id,
+                                     rId: regionId || target?.cinemaObjectId?.regionId || region?._id,
+                                   }).toString(),
+                                 });
+                               }
+                             }}
+                             className={`detail-version-pill ${isActive ? "active" : ""}`}
+                           >
+                             {type}
+                           </button>
+                         );
+                       })}
+                     </Index.Box>
+                   )}
+
+                   {/* Languages */}
+                   {movieVersions?.length > 1 && [...new Set(movieVersions.map(m => m.languages).filter(Boolean))].length > 1 && (
+                     <Index.Box style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                       <span style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "14px", minWidth: "80px" }}>Language:</span>
+                       {[...new Set(movieVersions.map(m => m.languages).filter(Boolean))].map((lang) => {
+                         const isActive = lang === movieDetail?.languages;
+                         const formatLanguage = (l) => {
+                           if (!l) return "";
+                           return l.charAt(0).toUpperCase() + l.slice(1).toLowerCase();
+                         };
+                         return (
+                           <button
+                             key={lang}
+                             onClick={() => {
+                               if (isActive) return;
+                               const target = movieVersions.find(v => v.languages === lang && v.movieType === movieDetail?.movieType) || movieVersions.find(v => v.languages === lang);
+                               if (target) {
+                                 navigate({
+                                   pathname: `/movie-details`,
+                                   search: PagesIndex?.createSearchParams({
+                                     mId: target._id,
+                                     rId: regionId || target?.cinemaObjectId?.regionId || region?._id,
+                                   }).toString(),
+                                 });
+                               }
+                             }}
+                             className={`detail-version-pill ${isActive ? "active" : ""}`}
+                           >
+                             {formatLanguage(lang)}
+                           </button>
+                         );
+                       })}
+                     </Index.Box>
+                   )}
+
+                   {/* Fallback to normal display if only 1 version exists */}
+                   {([...new Set(movieVersions.map(m => m.languages).filter(Boolean))].length <= 1 && 
+                     [...new Set(movieVersions.map(m => m.movieType).filter(Boolean))].length <= 1) && (
+                     <Index.Box className="banner-interest-tags">
+                       <Index.Typography
+                         variant="span"
+                         component="span"
+                         className="banner-interest-tag"
+                       >
+                         {movieDetail?.movieType?.includes("3D") ? "3D" : "2D"}
+                       </Index.Typography>
+                       {movieDetail?.languages && (
+                         <Index.Typography
+                           variant="span"
+                           component="span"
+                           className="banner-interest-tag"
+                         >
+                           {movieDetail?.languages}
+                         </Index.Typography>
+                       )}
+                     </Index.Box>
+                   )}
+                 </Index.Box>
 
                 {movieDetail?.isShowavailable &&           <Index.Box className="book-now-box">
                   <PagesIndex.Button

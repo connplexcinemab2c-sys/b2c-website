@@ -2289,3 +2289,29 @@ span.title-movie-threed {
     transform: scale(1);
   }
 }
+
+/* Detail Page Version Selector Pills */
+.detail-version-pill {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "worksans", sans-serif;
+}
+
+.detail-version-pill:hover {
+  border-color: #cda755;
+  color: #fff;
+}
+
+.detail-version-pill.active {
+  background: #cda755;
+  color: #000;
+  border-color: #cda755;
+  font-weight: 600;
+}
