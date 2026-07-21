@@ -25,22 +25,109 @@ function MovieCard({ title, isNowPlaying, item, setInterested }) {
     };
   }, []);
 
+  const [showLanguagesOverlay, setShowLanguagesOverlay] = useState(false);
+
   let movieType = item?.movieType?.includes("3D") ? "3D" : "2D";
   let movieLanguage = item?.languages?.toString()?.charAt(0)?.toUpperCase();
+  if (item?.versions && item?.versions?.length > 1) {
+    const uniqueLangs = [...new Set(item.versions.map(v => v.languages).filter(Boolean))];
+    const uniqueTypes = [...new Set(item.versions.map(v => v.movieType).filter(Boolean))];
+    movieLanguage = uniqueLangs.map(l => l.toString().charAt(0).toUpperCase()).join("/");
+    movieType = uniqueTypes.join("/");
+  }
   let movieGenre = item?.category?.split(",");
   return (
-    <Index.Box className="main-card">
+    <Index.Box className="main-card" style={{ position: "relative" }}>
+      {showLanguagesOverlay && item?.versions && item?.versions?.length > 1 && (
+        <Index.Box 
+          className="card-language-overlay"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Index.Typography 
+            variant="subtitle1" 
+            style={{ 
+              color: "#cda755", 
+              fontWeight: "bold", 
+              marginBottom: "15px", 
+              textAlign: "center",
+              fontSize: "16px",
+              textTransform: "uppercase"
+            }}
+          >
+            Select Version
+          </Index.Typography>
+          <Index.Box 
+            style={{ 
+              display: "flex", 
+              flexDirection: "column", 
+              gap: "8px", 
+              width: "100%", 
+              maxHeight: "220px", 
+              overflowY: "auto"
+            }}
+          >
+            {item.versions.map((v) => {
+              const formatLanguage = (lang) => {
+                if (!lang) return "";
+                return lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
+              };
+              return (
+                <PagesIndex.Button
+                  key={v._id}
+                  primary
+                  onClick={() => {
+                    setShowLanguagesOverlay(false);
+                    navigate({
+                      pathname: `/movie-details`,
+                      search: PagesIndex?.createSearchParams({
+                        mId: v._id,
+                        rId: region?._id ? region?._id : v?.cinemaObjectId?.regionId || item?.cinemaObjectId?.regionId,
+                      }).toString(),
+                    });
+                  }}
+                  style={{ 
+                    width: "100%", 
+                    fontSize: "12px", 
+                    padding: "8px 10px", 
+                    textTransform: "none",
+                    fontWeight: "500" 
+                  }}
+                >
+                  Book in {formatLanguage(v.languages)} ({v.movieType})
+                </PagesIndex.Button>
+              );
+            })}
+            <PagesIndex.Button
+              secondary
+              onClick={() => setShowLanguagesOverlay(false)}
+              style={{ 
+                width: "100%", 
+                marginTop: "5px", 
+                fontSize: "12px", 
+                padding: "8px 10px",
+                textTransform: "none" 
+              }}
+            >
+              Cancel
+            </PagesIndex.Button>
+          </Index.Box>
+        </Index.Box>
+      )}
       <Index.Box
         className="card-img"
         onClick={() => {
-          location?.pathname == "/movie-details" && setInterested(null);
-          navigate({
-            pathname: `/movie-details`,
-            search: PagesIndex?.createSearchParams({
-              mId: item?.linkedNowPlayingMovie  ? item?.linkedNowPlayingMovie : item?._id,
-              rId: region?._id ? region?._id : item?.cinemaObjectId?.regionId,
-            }).toString(),
-          });
+          if (item?.versions && item?.versions?.length > 1) {
+            setShowLanguagesOverlay(true);
+          } else {
+            location?.pathname == "/movie-details" && setInterested(null);
+            navigate({
+              pathname: `/movie-details`,
+              search: PagesIndex?.createSearchParams({
+                mId: item?.linkedNowPlayingMovie ? item?.linkedNowPlayingMovie : item?._id,
+                rId: region?._id ? region?._id : item?.cinemaObjectId?.regionId,
+              }).toString(),
+            });
+          }
         }}
       >
         <img
@@ -146,13 +233,17 @@ function MovieCard({ title, isNowPlaying, item, setInterested }) {
                 <PagesIndex.Button
                   primary
                   onClick={() => {
-                    navigate({
-                      pathname: `/movie-details`,
-                      search: PagesIndex?.createSearchParams({
-                        mId: item?._id,
-                        rId: item?.cinemaObjectId?.regionId,
-                      }).toString(),
-                    });
+                    if (item?.versions && item?.versions?.length > 1) {
+                      setShowLanguagesOverlay(true);
+                    } else {
+                      navigate({
+                        pathname: `/movie-details`,
+                        search: PagesIndex?.createSearchParams({
+                          mId: item?._id,
+                          rId: item?.cinemaObjectId?.regionId,
+                        }).toString(),
+                      });
+                    }
                   }}
                 >
                   Book Ticket
@@ -162,13 +253,17 @@ function MovieCard({ title, isNowPlaying, item, setInterested }) {
                 <PagesIndex.Button
                   primary
                   onClick={() => {
-                    navigate({
-                      pathname: `/movie-details`,
-                      search: PagesIndex?.createSearchParams({
-                        mId: item?._id,
-                        rId: item?.cinemaObjectId?.regionId,
-                      }).toString(),
-                    });
+                    if (item?.versions && item?.versions?.length > 1) {
+                      setShowLanguagesOverlay(true);
+                    } else {
+                      navigate({
+                        pathname: `/movie-details`,
+                        search: PagesIndex?.createSearchParams({
+                          mId: item?._id,
+                          rId: item?.cinemaObjectId?.regionId,
+                        }).toString(),
+                      });
+                    }
                   }}
                 >
                   Book Ticket

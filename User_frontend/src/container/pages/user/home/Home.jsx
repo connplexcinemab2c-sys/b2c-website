@@ -11,6 +11,7 @@ import {
 } from "../../../../config/DataService";
 import { Api } from "../../../../config/Api";
 import SEO from "../../../../components/common/SEO";
+import { groupMoviesByBaseName } from "../../../../utils/movieHelpers";
 
 const HERO_SLIDER_SETTINGS = {
   dots: false,
@@ -41,6 +42,9 @@ const SWIPER_BREAKPOINTS = {
 const MovieSlider = memo(({ title, moviesList, isNowPlaying = false }) => {
   if (!moviesList?.length) return <Index.Box className="not-found"></Index.Box>;
   console.log(title, ":isNowPlaying", isNowPlaying)
+  
+  const groupedMovies = groupMoviesByBaseName(moviesList);
+
   return (
     <Index.Box className="main-showing-part movie-slider">
       <Index.Box className="cus-container">
@@ -56,7 +60,7 @@ const MovieSlider = memo(({ title, moviesList, isNowPlaying = false }) => {
             slidesPerView={2.5}
             breakpoints={SWIPER_BREAKPOINTS}
           >
-            {moviesList?.map((item, key) => (
+            {groupedMovies?.map((item, key) => (
               <PagesIndex.SwiperSlide key={key}>
                 <PagesIndex.MovieCard
                   title={title}

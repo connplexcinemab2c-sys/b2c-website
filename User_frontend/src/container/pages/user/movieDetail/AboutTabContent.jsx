@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Index from "../../../Index";
 import PagesIndex from "../../../PagesIndex";
 import { FreeMode } from "swiper/modules";
+import { groupMoviesByBaseName } from "../../../../utils/movieHelpers";
 
 function AboutTabContent({ details, movieId, setInterested }) {
   // const { upcomingMoviesList } = PagesIndex.useSelector(
@@ -240,8 +241,7 @@ function AboutTabContent({ details, movieId, setInterested }) {
                       },
                     }}
                   >
-                    {upcomingMoviesList
-                      .filter((data) => data._id !== movieId)
+                    {groupMoviesByBaseName(upcomingMoviesList.filter((data) => data._id !== movieId))
                       .map((item, key) => (
                         <PagesIndex.SwiperSlide key={item._id}>
                           <PagesIndex.MovieCard
