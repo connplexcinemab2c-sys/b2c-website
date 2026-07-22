@@ -90,12 +90,19 @@ function MovieDetail() {
           };
           
           const currentBase = cleanName(movieDetail.name);
-          const versions = res.data.filter((m) => cleanName(m.name) === currentBase);
+          const currentDesc = movieDetail.description ? movieDetail.description.trim().toLowerCase() : "";
+
+          const versions = res.data.filter((m) => {
+            if (currentDesc && m.description && m.description.trim().toLowerCase() === currentDesc) {
+              return true;
+            }
+            return cleanName(m.name) === currentBase;
+          });
           setMovieVersions(versions);
         }
       })
       .catch((err) => console.error(err));
-  }, [movieDetail?.name, region?._id, regionId]);
+  }, [movieDetail?.name, movieDetail?.description, region?._id, regionId]);
 
   
   useEffect(() => {

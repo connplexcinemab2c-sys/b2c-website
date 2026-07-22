@@ -502,6 +502,7 @@ export const getMoviesByRegion = async (req, res) => {
           filmOpeningDate: 1,
           uniqueFilmCode: 1,
           movieType: 1,
+          description: 1,
         },
       },
       {
@@ -680,6 +681,7 @@ export const upcomingMovies = async (req, res) => {
         movieCategory: 1,
         movieType: 1,
         linkedNowPlayingMovieCode: 1,
+        description: 1,
       }
     )
       .populate("cinemaObjectId", "regionId")
@@ -1502,6 +1504,7 @@ export const getRecentReleasesMoviesByRegion = async (req, res) => {
           filmOpeningDate: 1,
           uniqueFilmCode: 1,
           movieType: 1,
+          description: 1,
         },
       },
       {

@@ -32,7 +32,7 @@ function MovieCard({ title, isNowPlaying, item, setInterested }) {
   if (item?.versions && item?.versions?.length > 1) {
     const uniqueLangs = [...new Set(item.versions.map(v => v.languages).filter(Boolean))];
     const uniqueTypes = [...new Set(item.versions.map(v => v.movieType).filter(Boolean))];
-    movieLanguage = uniqueLangs.map(l => l.toString().charAt(0).toUpperCase()).join("/");
+    movieLanguage = [...new Set(uniqueLangs.map(l => l.toString().charAt(0).toUpperCase()))].join("/");
     movieType = uniqueTypes.join("/");
   }
   let movieGenre = item?.category?.split(",");
