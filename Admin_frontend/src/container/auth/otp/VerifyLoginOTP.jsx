@@ -109,8 +109,17 @@ const VerifyLoginOTP = () => {
                         component="p"
                         style={{ fontSize: "13px" }}
                       >
-                        Please enter the OTP (one time password) to verify your account. A code has been sent to your mobile number
+                        Please enter the OTP (one time password) to verify your account. A code has been sent to your registered mobile number and email address.
                       </Index.Typography>
+                      {(window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && (
+                        <Index.Typography
+                          variant="body2"
+                          component="p"
+                          style={{ fontSize: "12px", color: "#ffc107", marginTop: "8px" }}
+                        >
+                          Note: For local testing, you can use the static OTP <strong>4444</strong>.
+                        </Index.Typography>
+                      )}
                     </Index.Box>
                     <Index.Box className="input-design-div admin-design-div login-input-design-div">
                       <PagesIndex.Formik

@@ -23,7 +23,7 @@ import Subscriber from "../../models/Subscriber.js";
 import Transaction from "../../models/Transaction.js";
 import TwentyMinFranchiseLead from "../../models/TwentyMinuteFranchiseLead.js";
 import { transporter } from "../../config/Email.config.js";
-import { emailForgotPassword } from "../../utils/Mailers.js";
+import { emailForgotPassword, emailVerification } from "../../utils/Mailers.js";
 import ReportIssue from "../../models/ReportIssue.js";
 import CCAvenueResponse from "../../models/CCAvenueResponse.js";
 import moment from "moment";
@@ -93,6 +93,12 @@ export const loginAdmin = async (req, res) => {
             userAgent: req.headers["user-agent"],
           }
         );
+        if (findAdmin.email) {
+          await emailVerification({
+            email: findAdmin.email,
+            otp: otp,
+          });
+        }
         await Admin.findOneAndUpdate(
           {
             email: email,
@@ -269,7 +275,7 @@ export const resendOtp = async (req, res) => {
       });
     } else {
       let newOtp = generateOtp();
-      admin.otp = 4444;
+      admin.otp = newOtp;
       admin.otpExpiryDate = Date.now();
       let result = await admin.save();
       if (!result) {
@@ -279,16 +285,11 @@ export const resendOtp = async (req, res) => {
           data: [],
         });
       } else {
-        // if (mobileNumber) {
-        //   let message = `The Connplex Smart Theatre Your OTP is : ${newOtp} by VCS Industries. VCS industries limited`;
-        //   // let from = process.env.TWILLIO_FROM_NUMBER;
-        //   // await smsTwillio(message, from, `+91${mobileNumber}`);
-
-        // }
+        let recipientMobile = mobileNumber || admin.mobileNumber;
         let message = `Your OTP is ${newOtp} for Connplex Sign Up/Login. VCS industries limited`;
         await smsSend2Digital(
           message,
-          `+91${mobileNumber}`,
+          `+91${recipientMobile}`,
           process.env.SEND2DIGITAL_UPDATE_EMAIL_MOBILENO_CONTENTID,
           {
             smsType: "OTP_UPDATE_PROFILE",
@@ -297,6 +298,12 @@ export const resendOtp = async (req, res) => {
             userAgent: req.headers["user-agent"],
           }
         );
+        if (admin.email) {
+          await emailVerification({
+            email: admin.email,
+            otp: newOtp,
+          });
+        }
         let responseData = Object.assign({}, result._doc);
         delete responseData.otp;
         return res.status(201).json({
