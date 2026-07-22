@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import Index from "../Index";
 import PagesIndex from "../PagesIndex";
 import { DataService } from "../../config/DataService";
+import { groupMoviesByBaseName } from "../../utils/movieHelpers";
 
 function debounce(func, delay) {
   let timeoutId;
@@ -150,12 +151,16 @@ export default function SearchModal({
               </Index.Typography> */}
                 </Index.Typography>
                 <Index.Box className="search-result-body movie">
-                  {searchedData?.getMovies?.filter(
-                    (item) => item != null && item?.poster
+                  {groupMoviesByBaseName(
+                    searchedData?.getMovies?.filter(
+                      (item) => item != null && item?.poster
+                    )
                   )?.length ? (
-                    searchedData?.getMovies
-                      ?.filter((item) => item != null && item?.poster)
-                      .map((data) => {
+                    groupMoviesByBaseName(
+                      searchedData?.getMovies?.filter(
+                        (item) => item != null && item?.poster
+                      )
+                    ).map((data) => {
                         return (
                           <Index.Box
                             key={data?._id}
