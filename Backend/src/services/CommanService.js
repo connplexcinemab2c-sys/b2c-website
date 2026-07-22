@@ -262,18 +262,39 @@ export const isVoucherValid = (voucher) => {
 
 // date: 27-03-2024
 export const smsSend2Digital = async (message, to, contentId, logContext = {}) => {
-  console.log(message, "sms message");
+  // Strip any leading '+' character to ensure compatibility with Leeway Softech gateway
+  const cleanTo = typeof to === "string" ? to.replace(/^\+/, "") : String(to || "");
+  console.log(message, "sms message for", cleanTo);
   try {
     const response = await axios.post(
-      `https://gateway.leewaysoftech.com/xml-transconnect-api.php?username=${encodeURIComponent(process.env.SEND2DIGITAL_USERNAME || "")}&password=${encodeURIComponent(process.env.SEND2DIGITAL_PASSWORD || "")}&mobile=${encodeURIComponent(to || "")}&message=${encodeURIComponent(message || "")}&senderid=${encodeURIComponent(process.env.SEND2DIGITAL_SENDERID || "")}&peid=${encodeURIComponent(process.env.SEND2DIGITAL_PEID || "")}&contentid=${encodeURIComponent(contentId || "")}`
+      `https://gateway.leewaysoftech.com/xml-transconnect-api.php?username=${encodeURIComponent(process.env.SEND2DIGITAL_USERNAME || "")}&password=${encodeURIComponent(process.env.SEND2DIGITAL_PASSWORD || "")}&mobile=${encodeURIComponent(cleanTo)}&message=${encodeURIComponent(message || "")}&senderid=${encodeURIComponent(process.env.SEND2DIGITAL_SENDERID || "")}&peid=${encodeURIComponent(process.env.SEND2DIGITAL_PEID || "")}&contentid=${encodeURIComponent(contentId || "")}`
     );
     console.log(response.data, "SMS response data");
-    await createSmsLog({
-      ...logContext,
-      mobileNumber: to,
-      messageBody: message,
-      status: "SUCCESS",
-    });
+
+    // Check if the response contains error keywords since the gateway might return HTTP 200 on failure
+    const isError = typeof response.data === "string" && (
+      response.data.toLowerCase().includes("error") ||
+      response.data.toLowerCase().includes("fail") ||
+      response.data.toLowerCase().includes("authenticate") ||
+      response.data.toLowerCase().includes("invalid")
+    );
+
+    if (isError) {
+      await createSmsLog({
+        ...logContext,
+        mobileNumber: to,
+        messageBody: message,
+        status: "FAILED",
+        errorMessage: String(response.data),
+      });
+    } else {
+      await createSmsLog({
+        ...logContext,
+        mobileNumber: to,
+        messageBody: message,
+        status: "SUCCESS",
+      });
+    }
   } catch (error) {
     console.error(
       "Error sending SMS:",
@@ -288,6 +309,7 @@ export const smsSend2Digital = async (message, to, contentId, logContext = {}) =
     });
   }
 };
+
 
 export async function generateCouopnId() {
   let lastNumber = 0;
