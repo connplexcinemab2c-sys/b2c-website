@@ -103,7 +103,7 @@ app.get("/t/:initTransId", async (req, res) => {
     if (frontendUrl.endsWith("/")) {
       frontendUrl = frontendUrl.slice(0, -1);
     }
-    res.redirect(`${frontendUrl}/booking-info/${initTransId}`);
+    res.redirect(`${frontendUrl}/my-ticket?transId=${initTransId}`);
   } catch (error) {
     console.error("Error in ticket redirect:", error);
     res.status(500).send("Something went wrong");
@@ -119,7 +119,7 @@ app.get("/:initTransId", async (req, res) => {
     if (frontendUrl.endsWith("/")) {
       frontendUrl = frontendUrl.slice(0, -1);
     }
-    res.redirect(`${frontendUrl}/booking-info/${initTransId}`);
+    res.redirect(`${frontendUrl}/my-ticket?transId=${initTransId}`);
   } catch (error) {
     console.error("Error in ticket redirect:", error);
     res.status(500).send("Something went wrong");

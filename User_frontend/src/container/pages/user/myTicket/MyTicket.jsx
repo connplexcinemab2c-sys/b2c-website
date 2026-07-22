@@ -99,7 +99,10 @@ export default function MyTicket() {
               className="welcome-title welcome-my"
             >
               SCAN THE QR CODE AT<br></br>
-              THE ENTRANCE OF THE SMART<br></br> THEATRE
+              THE ENTRANCE OF THE{" "}
+              {bookingDetails?.cinemaId?.cinemaName
+                ? bookingDetails?.cinemaId?.cinemaName
+                : "SMART THEATRE"}
             </Index.Typography>
             <Index.Box className="ticket-qr-main cus-center">
               <Index.Box className="ticket-qr-sec">
