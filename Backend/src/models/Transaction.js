@@ -174,6 +174,10 @@ let transaction = new mongoose.Schema(
       enum: ["ios", "android", "web"],
       required: false,
     },
+    city: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true,

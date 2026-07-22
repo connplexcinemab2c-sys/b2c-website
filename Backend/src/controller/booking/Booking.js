@@ -445,6 +445,7 @@ export const setSeats = async (req, res) => {
       cinemaObjId,
       showObjId,
       paymentsBreakup,
+      city,
     } = req.body;
     let config = {
       method: "get",
@@ -483,6 +484,7 @@ export const setSeats = async (req, res) => {
                 movieId: movieObjId,
                 cinemaId: cinemaObjId,
                 showId: showObjId,
+                city: city,
                 // paymentsBreakup: JSON.parse(paymentsBreakup),
               },
             }

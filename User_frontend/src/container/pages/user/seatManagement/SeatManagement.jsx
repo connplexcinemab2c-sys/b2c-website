@@ -615,6 +615,7 @@ function SeatManagement() {
     urlEncoded.append("strTransId", transactionId);
     urlEncoded.append("lngSessionId", selectedSessionId);
     urlEncoded.append("strSelectedSeats", seatString);
+    urlEncoded.append("city", region?.region || regionId || "");
     await PagesIndex.apiPostHandler(PagesIndex.Api.SET_SEATS, urlEncoded)
       .then(async (res) => {
         if (res?.status === 200) handleTermsClose();
