@@ -969,10 +969,10 @@ export const showTimeByCinemaIdAndMovie = async (req, res) => {
       deletedStatus: 0,
     });
 
-    const filmCodes = moviesByUniqueCode.map((movieDetails) => {
-      const filmCodeSlice = movieDetails?.filmCode;
-      return new RegExp(filmCodeSlice, "i");
-    });
+    const filmCodes = moviesByUniqueCode
+      .map((movieDetails) => movieDetails?.filmCode)
+      .filter(Boolean)
+      .map((filmCodeSlice) => new RegExp(filmCodeSlice, "i"));
 
     let showTimings = [];
     if (cinema.displayName && cinema.poster) {
