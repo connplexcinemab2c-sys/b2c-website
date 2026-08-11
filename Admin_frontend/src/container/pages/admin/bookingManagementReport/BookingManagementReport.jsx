@@ -225,7 +225,7 @@ const BookingManagementReport = () => {
     )
       .then((res) => {
         const rows = res?.data?.data?.map((item) => {
-          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || (item?.addSeatData?.curTicketsTax3 > 0);
+          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || (item?.addSeatData?.curTicketsTax3 > 0) || item?.movieId?.movieType?.includes("3D");
           const ticketQty = item?.commitBookingData?.strSeatInfo
             ? item?.commitBookingData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
             : item?.addSeatData?.strSeatInfo
@@ -286,8 +286,8 @@ const BookingManagementReport = () => {
             ItemWise_Amt: "-",
             Inv_Qty: "-",
             Inv_Amt: item?.finalBookingCalculation?.finalAmount || "-",
-            Additional_Desc: threeDCharges > 0 ? "3D Glasses" : "-",
-            Add_strAmt: threeDCharges > 0 ? threeDCharges : "-",
+            Additional_Desc: has3D ? "3D Glasses" : "-",
+            Add_strAmt: has3D ? (threeDCharges > 0 ? threeDCharges : 0) : "-",
             Add_Charges:
               item?.finalBookingCalculation?.convenienceFeesObject?.total || "-",
             Cust_Emailid: item?.userId?.email ? item?.userId?.email : "-",
@@ -568,11 +568,17 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                       <Index.TableCell width="20%">
                         Movie & Show
                       </Index.TableCell>
+                      <Index.TableCell width="10%">
+                        3D Charges
+                      </Index.TableCell>
                       <Index.TableCell width="20%">
                         Foods & Beverages
                       </Index.TableCell>
                       <Index.TableCell width="25%">
                         User Details
+                      </Index.TableCell>
+                      <Index.TableCell width="10%">
+                        Coin Redemption
                       </Index.TableCell>
                       <Index.TableCell width="10%">Date</Index.TableCell>
                       <Index.TableCell width="10%">
@@ -581,9 +587,6 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                       <Index.TableCell width="10%">
                         Booking Status
                       </Index.TableCell>
-                      {/* <Index.TableCell width="10%">
-                        Refund Status
-                      </Index.TableCell> */}
                     </Index.TableRow>
                   </Index.TableHead>
                   {loading ? (
@@ -594,7 +597,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                           variant="td"
                           scope="row"
                           className="no-data-in-list"
-                          colSpan={9}
+                          colSpan={11}
                           align="center"
                         >
                           <Index.CircularProgress size={"20px"} />
@@ -605,7 +608,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                     <Index.TableBody>
                       {filterDataList?.length ? (
                         filterDataList?.map((item, index) => {
-                          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || (item?.addSeatData?.curTicketsTax3 > 0);
+                          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || (item?.addSeatData?.curTicketsTax3 > 0) || item?.movieId?.movieType?.includes("3D");
                           const ticketQty = item?.commitBookingData?.strSeatInfo
                             ? item?.commitBookingData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
                             : item?.addSeatData?.strSeatInfo
@@ -673,18 +676,9 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                                 <br></br>
                                 <b>Earned Reward :</b>{" "}
                                 {item?.rewardData?.coins ? `${item?.rewardData?.coins} pts` :  "-"}
-                                {threeDCharges > 0 && (
-                                  <>
-                                    <br></br>
-                                    <b>3D Charges :</b> ₹{threeDCharges.toFixed(2)}
-                                  </>
-                                )}
-                                {coinRedemption > 0 && (
-                                  <>
-                                    <br></br>
-                                    <b>Coin Redemption :</b> ₹{coinRedemption.toFixed(2)}
-                                  </>
-                                )}
+                              </Index.TableCell>
+                              <Index.TableCell>
+                                {has3D ? `₹${threeDCharges.toFixed(2)}` : "-"}
                               </Index.TableCell>
                               <Index.TableCell
                                 component="td"
@@ -728,6 +722,9 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                               </Index.TableCell>
                               <Index.TableCell>{userDetails}</Index.TableCell>
                               <Index.TableCell>
+                                {coinRedemption > 0 ? `₹${coinRedemption.toFixed(2)}` : "-"}
+                              </Index.TableCell>
+                              <Index.TableCell>
                                 {item?.createdAt
                                   ? PagesIndex.moment(item?.createdAt).format(
                                       "DD/MM/YYYY"
@@ -758,17 +755,6 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                                   </span>
                                 )}
                               </Index.TableCell>
-                              {/* <Index.TableCell align="center">
-                                  {item?.refundStatus ? (
-                                    <span className="status-green">
-                                      Shipped
-                                    </span>
-                                  ) : (
-                                    <span className="status-red">
-                                      Unsuccessfull
-                                    </span>
-                                  )}
-                                </Index.TableCell> */}
                             </Index.TableRow>
                           );
                         })
@@ -779,7 +765,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                             variant="td"
                             scope="row"
                             className="no-data-in-list"
-                            colSpan={15}
+                            colSpan={11}
                             align="center"
                           >
                             No data available
@@ -1378,7 +1364,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                       {data?.bookedFrom || "-"}
                     </Index.Box>
                     {(() => {
-                      const modalHas3D = (data?.commitBookingData?.curTicketsTax3 > 0) || (data?.addSeatData?.curTicketsTax3 > 0);
+                      const modalHas3D = (data?.commitBookingData?.curTicketsTax3 > 0) || (data?.addSeatData?.curTicketsTax3 > 0) || data?.movieId?.movieType?.includes("3D");
                       const modalTicketQty = data?.commitBookingData?.strSeatInfo
                         ? data?.commitBookingData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
                         : data?.addSeatData?.strSeatInfo
@@ -1392,7 +1378,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                             <Index.Box className="log-text-title" component="span">
                               3D Charges :
                             </Index.Box>{" "}
-                            {modalThreeDCharges > 0 ? `₹${modalThreeDCharges.toFixed(2)}` : "-"}
+                            {modalHas3D ? `₹${modalThreeDCharges.toFixed(2)}` : "-"}
                           </Index.Box>
                           <Index.Box className="log-text">
                             <Index.Box className="log-text-title" component="span">
