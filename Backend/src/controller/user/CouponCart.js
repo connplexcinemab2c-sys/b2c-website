@@ -12,7 +12,7 @@ import ApplyCoupon from "../../models/ApplyCoupon.js";
 import AppliedCoupon from "../../models/AppliedCoupon.js";
 // Get Coupons by Location
 import { User } from "../../models/User.js";
-import { getCouponCart } from "../../services/CouponCartService.js";
+import { getCouponCart, recalculateCartPrices } from "../../services/CouponCartService.js";
 import Transaction from "../../models/Transaction.js";
 import {
   applyCoupanService,
@@ -101,7 +101,12 @@ export const couponCart = async (req, res) => {
         coupanResponse = await applyCoupanService(couponDetails, transId);
 
         if (coupanResponse?.blnSuccess.includes("true")) {
-          totalDiscount = coupanResponse?.fltAmount[0];
+          totalDiscount = Number(coupanResponse?.fltAmount[0]) || 0;
+
+          recalculateCartPrices(cart, totalDiscount);
+
+          const ticketDiscount = (ticketTotal - cart.ticketCart.membershipDiscount) - cart.ticketCart.total;
+          const discountOn = ticketDiscount > 0 ? "Ticket" : "F&B";
 
           await Transaction.findOneAndUpdate(
             { initTransId: transId },
@@ -110,23 +115,16 @@ export const couponCart = async (req, res) => {
                 coupan: {
                   coupanCode: coupons[0],
                   lngSessionId: coupanResponse?.lngTrans[0],
-                  discountOn: "F&B",
-                  discountValue: coupanResponse?.fltAmount[0],
+                  discountOn: discountOn,
+                  discountValue: totalDiscount,
                 },
               },
             }
           );
 
-          cart.totalDiscount = totalDiscount;
-          cart.foodCart.discountAmount = totalDiscount / 2;
-          cart.foodCart.basePrice = +-totalDiscount / 2;
-          cart.ticketCart.discountAmount = totalDiscount / 2;
-          cart.ticketCart.basePrice = +-totalDiscount / 2;
-          cart.finalAmount = cart.finalAmount - totalDiscount;
           cart.isCouponUsage = true;
           cart.isOverAllCouponUsage = true;
           cart.ticketCart.coupons = coupons;
-          cart.finalAmount = Math.round(cart.finalAmount * 100) / 100;
         }
       }
     }

@@ -20,6 +20,7 @@ import SeatFilter from "../../models/SessionAreaCount.js";
 import { rollbackCoupanService } from "../../services/vistaServices/promotionCoupan.js";
 import BookingSession from "../../models/BookingSession.js";
 import { createLog } from "../../services/LogsServices.js";
+import { addSeatsExService, updateOrderService, continueTransService } from "../../services/vistaServices/AddSeatsExService.js";
 
 //#region initBooking
 export const initBooking = async (req, res) => {
@@ -300,123 +301,94 @@ export const addSeats = async (req, res) => {
       });
     }
 
-    let config = {
-      method: "get",
-      maxBodyLength: Infinity,
-      url: `${process.env.VISTA_URL}/api.asmx/AddSeats?CinemaId=${cinemaId}&strTransId=${strTransId}&strSessId=${strSessId}&strType=${strType}&intQty=${intQty}`,
-      headers: {},
-    };
+    try {
+      const strOrderXml = `<Order><Tickets><Ticket><TicketTypeCode>${strType}</TicketTypeCode><Quantity>${intQty}</Quantity><Price>-1</Price></Ticket></Tickets></Order>`;
+      
+      const result = await addSeatsExService({
+        cinemaId,
+        strTransId,
+        lngSessionId: strSessId,
+        strOrderXml,
+        blnUserSelectedSeating: false,
+        strAdditionalParameters: "",
+      });
 
-    // const vistaLogRequest = {
-    //   ...config,
-    //   queryParameters: {
-    //     CinemaId: cinemaId,
-    //     strTransId: strTransId,
-    //     strSessId: strSessId,
-    //     strType: strType,
-    //     intQty: intQty,
-    //   },
-    // };
-
-    axios
-      .request(config)
-      .then(async (response) => {
-        if (response.data.Status == 1) {
-          createLog({
-            transaction_id: strTransId,
-            session_id: strSessId,
-            type: "Booking",
-            step: {
-              // logType: "bookingStarted",
-              success: true,
-              message: "Add Seats Successful",
-              timestamp: new Date().toISOString(),
-            },
-          });
-
-          await Transaction.findOneAndUpdate(
-            { initTransId: strTransId },
-            {
-              $set: { addSeatData: response.data.data },
-              $push: {
-                logs: {
-                  addSeat: new Date(),
-                },
-              },
-            }
-          ).sort({ createdAt: -1 });
-          // createVistaLog(
-          //   strTransId,
-          //   null,
-          //   "Ticket",
-          //   "AddSeats",
-          //   vistaLogRequest,
-          //   response.data,
-          //   "Success"
-          // );
-          return res.status(200).json({
-            status: StatusCodes.OK,
-            message: ResponseMessage.ADD_SEAT_SUCCESS,
-            data: response.data,
-          });
-        } else {
-          // createVistaLog(
-          //   strTransId,
-          //   null,
-          //   "Ticket",
-          //   "AddSeats",
-          //   vistaLogRequest,
-          //   response.data,
-          //   "Failed"
-          // );
-
-          createLog({
-            transaction_id: strTransId,
-            session_id: strSessId,
-            type: "Booking",
-            step: {
-              success: false,
-              // logType: "bookingStarted",
-              message: "Add Seats Failed",
-              error: response.data,
-              timestamp: new Date().toISOString(),
-            },
-          });
-          return res.status(400).json({
-            status: StatusCodes.BAD_REQUEST,
-            message: ResponseMessage.BAD_REQUEST,
-            data: response.data,
-          });
-        }
-      })
-      .catch((error) => {
-        // createVistaLog(
-        //   strTransId,
-        //   null,
-        //   "Ticket",
-        //   "AddSeats",
-        //   vistaLogRequest,
-        //   error.response.data,
-        //   "Failed"
-        // );
+      if (result.success) {
         createLog({
           transaction_id: strTransId,
           session_id: strSessId,
           type: "Booking",
           step: {
-            // logType: "bookingStarted",
+            success: true,
+            message: "Add Seats Successful",
+            timestamp: new Date().toISOString(),
+          },
+        });
+
+        const properties = result.properties || {};
+        if (!properties.strTransId) {
+          properties.strTransId = strTransId;
+        }
+        if (!properties.strBookId && properties.intBookId) {
+          properties.strBookId = String(properties.intBookId);
+        }
+
+        await Transaction.findOneAndUpdate(
+          { initTransId: strTransId },
+          {
+            $set: { addSeatData: properties },
+            $push: {
+              logs: {
+                addSeat: new Date(),
+              },
+            },
+          }
+        ).sort({ createdAt: -1 });
+
+        return res.status(200).json({
+          status: StatusCodes.OK,
+          message: ResponseMessage.ADD_SEAT_SUCCESS,
+          data: {
+            Status: 1,
+            data: properties,
+          },
+        });
+      } else {
+        createLog({
+          transaction_id: strTransId,
+          session_id: strSessId,
+          type: "Booking",
+          step: {
             success: false,
             message: "Add Seats Failed",
-            error: error.message,
+            error: result.strException,
             timestamp: new Date().toISOString(),
           },
         });
         return res.status(400).json({
           status: StatusCodes.BAD_REQUEST,
           message: ResponseMessage.BAD_REQUEST,
-          data: error.message,
+          data: result.strException || "Vista seat blocking failed",
         });
+      }
+    } catch (error) {
+      createLog({
+        transaction_id: strTransId,
+        session_id: strSessId,
+        type: "Booking",
+        step: {
+          success: false,
+          message: "Add Seats Failed",
+          error: error.message,
+          timestamp: new Date().toISOString(),
+        },
       });
+      return res.status(400).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: ResponseMessage.BAD_REQUEST,
+        data: error.message,
+      });
+    }
   } catch (error) {
     createLog({
       transaction_id: strTransId,
@@ -429,6 +401,71 @@ export const addSeats = async (req, res) => {
       },
     });
     return handleErrorResponse(res, error);
+  }
+};
+//#endregion
+
+//#region updateOrder
+export const updateOrder = async (req, res) => {
+  const { cinemaId, strTransId, strOrderXml } = req.body;
+  try {
+    const result = await updateOrderService({
+      cinemaId,
+      strTransId,
+      strOrderXml,
+    });
+
+    if (result.success) {
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: "Order updated successfully",
+        data: result,
+      });
+    } else {
+      return res.status(400).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: result.strException || "Failed to update order",
+        data: result,
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      status: StatusCodes.BAD_REQUEST,
+      message: error.message,
+      data: null,
+    });
+  }
+};
+//#endregion
+
+//#region continueTrans
+export const continueTrans = async (req, res) => {
+  const { cinemaId, strTransId } = req.body;
+  try {
+    const result = await continueTransService({
+      cinemaId,
+      strTransId,
+    });
+
+    if (result.success) {
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: "Transaction extended successfully",
+        data: result,
+      });
+    } else {
+      return res.status(400).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: result.strException || "Failed to extend transaction",
+        data: result,
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      status: StatusCodes.BAD_REQUEST,
+      message: error.message,
+      data: null,
+    });
   }
 };
 //#endregion

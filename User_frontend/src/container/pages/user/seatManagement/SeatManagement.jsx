@@ -316,6 +316,63 @@ function SeatManagement() {
     setIsLoading(false);
     return actualData;
   };
+  const parseCoord = (coordStr, area) => {
+    const [rIdStr, sNumStr] = coordStr.split(",");
+    const rId = parseInt(rIdStr, 10);
+    const sNum = parseInt(sNumStr, 10);
+
+    const rowIdx = area.rowData.findIndex((r) => r.intGridRowID === rId);
+    if (rowIdx === -1) return null;
+
+    const seatIdx = area.rowData[rowIdx].seatData.findIndex((s) => s.intGridSeatNum === sNum);
+    if (seatIdx === -1) return null;
+
+    return { rowIdx, seatIdx };
+  };
+
+  const getSeatsToSelect = (index1, index2, index3) => {
+    const area = seatLayout[index1];
+    const seats = [];
+
+    if (area.strGroupSeatsData) {
+      const rowId = area.rowData[index2]?.intGridRowID;
+      const seatNum = area.rowData[index2]?.seatData[index3]?.intGridSeatNum;
+      if (rowId !== undefined && seatNum !== undefined) {
+        const coord = `${rowId},${seatNum}`;
+        const pairs = area.strGroupSeatsData.split(":");
+        let pairedSeat = null;
+        for (const pair of pairs) {
+          const coords = pair.split("-");
+          if (coords.length === 2) {
+            if (coords[0] === coord) {
+              pairedSeat = parseCoord(coords[1], area);
+              break;
+            } else if (coords[1] === coord) {
+              pairedSeat = parseCoord(coords[0], area);
+              break;
+            }
+          }
+        }
+        if (pairedSeat) {
+          seats.push({ index2, index3 });
+          seats.push({ index2: pairedSeat.rowIdx, index3: pairedSeat.seatIdx });
+          return seats;
+        }
+      }
+    }
+
+    area.rowData[index2].seatData.forEach((data, idx) => {
+      if (
+        area.rowData[index2].seatData[index3]?.strSeatNumber ===
+        area.rowData[index2].seatData[idx]?.strSeatNumber
+      ) {
+        seats.push({ index2, index3: idx });
+      }
+    });
+
+    return seats;
+  };
+
   const handleSeatSelection = async (index1, index2, index3) => {
     const selectedArea = areaPriceDetailsList?.find(
       (item) => item?.areaCatCode === seatLayout[index1].strAreaCode
@@ -340,15 +397,19 @@ function SeatManagement() {
             seatLayout[index1].priceTax1 -
             seatLayout[index1].priceTax2
         );
+
       }
       handleChangeArea(index1, index2, index3);
-      if (selectedSeats.length < 10) {
+      
+      const seatsToSelect = getSeatsToSelect(index1, index2, index3);
+      const availableSeats = seatsToSelect.filter(
+        (s) => seatLayout[index1].rowData[s.index2].seatData[s.index3].strSeatStatus === "0"
+      );
+
+      if (selectedSeats.length + availableSeats.length <= 10) {
         handleSeatSelect(index1, index2, index3);
         setSelectedSeatArea(seatLayout[index1].strAreaDesc);
-      } else if (
-        selectedSeats.length === 10 &&
-        selectedSeatArea === seatLayout[index1].strAreaDesc
-      ) {
+      } else {
         setOpenWarning(true);
       }
     } else if (
@@ -363,71 +424,66 @@ function SeatManagement() {
     if (
       seatLayout[index1].rowData[index2].seatData[index3].strSeatStatus === "0"
     ) {
-      seatLayout[index1].rowData[index2].seatData.map((data, index) => {
-        if (
-          seatLayout[index1].rowData[index2].seatData[index3]?.strSeatNumber ===
-          seatLayout[index1].rowData[index2].seatData[index]?.strSeatNumber
-        ) {
-          setConvenienceFees((prev) => prev + cinemaData?.convenienceFees);
-          setSeatLayout((e) => {
-            let arr = [...e];
-            arr[index1].rowData[index2].seatData[index].strSeatStatus = "-1";
-            return arr;
-          });
-          setSelectedSeats((prev) => [
-            ...prev,
-            `${seatLayout[index1].rowData[index2].strRowPhyID}${seatLayout[index1].rowData[index2].seatData[index].strSeatNumber}`,
-          ]);
-          setSeatDetails((prev) => [
-            ...prev,
-            {
-              areaCode: seatLayout[index1].strAreaCode,
-              areaNumber: seatLayout[index1].strAreaNum,
-              SeatRowId: seatLayout[index1].rowData[index2].intGridRowID,
-              seatNumber:
-                seatLayout[index1].rowData[index2].seatData[index]
-                  .intGridSeatNum,
-              strAreaDesc: seatLayout[index1].strAreaDesc,
-            },
-          ]);
-          console.log("filter :", {
+      const seatsToSelect = getSeatsToSelect(index1, index2, index3);
+      const availableSeats = seatsToSelect.filter(
+        (s) => seatLayout[index1].rowData[s.index2].seatData[s.index3].strSeatStatus === "0"
+      );
+
+      availableSeats.forEach((s) => {
+        const i2 = s.index2;
+        const i3 = s.index3;
+
+        setConvenienceFees((prev) => prev + cinemaData?.convenienceFees);
+        setSeatLayout((e) => {
+          let arr = [...e];
+          arr[index1].rowData[i2].seatData[i3].strSeatStatus = "-1";
+          return arr;
+        });
+        setSelectedSeats((prev) => [
+          ...prev,
+          `${seatLayout[index1].rowData[i2].strRowPhyID}${seatLayout[index1].rowData[i2].seatData[i3].strSeatNumber}`,
+        ]);
+        setSeatDetails((prev) => [
+          ...prev,
+          {
             areaCode: seatLayout[index1].strAreaCode,
             areaNumber: seatLayout[index1].strAreaNum,
-            SeatRowId: seatLayout[index1].rowData[index2].intGridRowID,
+            SeatRowId: seatLayout[index1].rowData[i2].intGridRowID,
             seatNumber:
-              seatLayout[index1].rowData[index2].seatData[index].intGridSeatNum,
-          });
+              seatLayout[index1].rowData[i2].seatData[i3].intGridSeatNum,
+            strAreaDesc: seatLayout[index1].strAreaDesc,
+          },
+        ]);
 
-          setSelectedPriceExcludingTax((prev) => {
-            let value =
-              prev +
-              seatLayout[index1].area_price -
-              seatLayout[index1].priceTax1 -
-              seatLayout[index1].priceTax2;
-            return value;
-          });
+        setSelectedPriceExcludingTax((prev) => {
+          let value =
+            prev +
+            seatLayout[index1].area_price -
+            seatLayout[index1].priceTax1 -
+            seatLayout[index1].priceTax2;
+          return value;
+        });
 
-          setSelectedPrice((prev) => {
-            let value = prev + seatLayout[index1].area_price;
-            return value;
-          });
-          setTax1((prev) => {
-            let value = prev + seatLayout[index1].priceTax1;
-            return value;
-          });
-          setTax2((prev) => {
-            let value = prev + seatLayout[index1].priceTax2;
-            return value;
-          });
-          setTax3((prev) => {
-            let value = prev + seatLayout[index1].priceTax3;
-            return value;
-          });
-          setTax4((prev) => {
-            let value = prev + seatLayout[index1].priceTax4;
-            return value;
-          });
-        }
+        setSelectedPrice((prev) => {
+          let value = prev + seatLayout[index1].area_price;
+          return value;
+        });
+        setTax1((prev) => {
+          let value = prev + seatLayout[index1].priceTax1;
+          return value;
+        });
+        setTax2((prev) => {
+          let value = prev + seatLayout[index1].priceTax2;
+          return value;
+        });
+        setTax3((prev) => {
+          let value = prev + seatLayout[index1].priceTax3;
+          return value;
+        });
+        setTax4((prev) => {
+          let value = prev + seatLayout[index1].priceTax4;
+          return value;
+        });
       });
     }
   };
@@ -436,82 +492,73 @@ function SeatManagement() {
     if (
       seatLayout[index1].rowData[index2].seatData[index3].strSeatStatus === "-1"
     ) {
-      seatLayout[index1].rowData[index2].seatData.map((data, index) => {
-        if (
-          seatLayout[index1].rowData[index2].seatData[index3]?.strSeatNumber ===
-          seatLayout[index1].rowData[index2].seatData[index]?.strSeatNumber
-        ) {
-          setConvenienceFees((prev) => prev - cinemaData?.convenienceFees);
-          setSeatLayout((e) => {
-            let arr = [...e];
-            arr[index1].rowData[index2].seatData[index].strSeatStatus = "0";
-            return arr;
-          });
-          setSelectedSeats((prev) => {
-            const arr = prev.filter(function (item) {
-              return (
-                item !==
-                `${seatLayout[index1].rowData[index2].strRowPhyID}${seatLayout[index1].rowData[index2].seatData[index].strSeatNumber}`
-              );
-            });
-            return arr;
-          });
-          // setSeatDetails((prev) => {
-          //   const arr = prev.filter((item) => {
-          //     console.log(item, "filter");
-          //     return (
-          //       item.seatNumber !==
-          //         seatLayout[index1].rowData[index2].seatData[index]
-          //           .intGridSeatNum
-          //     );
-          //   });
-          //   console.log("Filtered array:", arr);
-          //   return arr;
-          // });
+      const seatsToDeselect = getSeatsToSelect(index1, index2, index3);
+      const selectedSeatsToDeselect = seatsToDeselect.filter(
+        (s) => seatLayout[index1].rowData[s.index2].seatData[s.index3].strSeatStatus === "-1"
+      );
 
-          setSeatDetails((prev) => {
-            const arr = prev.filter((item) => {
-              return (
-                item.SeatRowId !==
-                  seatLayout[index1].rowData[index2].intGridRowID ||
-                item.seatNumber !==
-                  seatLayout[index1].rowData[index2].seatData[index]
-                    .intGridSeatNum
-              );
-            });
+      selectedSeatsToDeselect.forEach((s) => {
+        const i2 = s.index2;
+        const i3 = s.index3;
 
-            return arr;
+        setConvenienceFees((prev) => prev - cinemaData?.convenienceFees);
+        setSeatLayout((e) => {
+          let arr = [...e];
+          arr[index1].rowData[i2].seatData[i3].strSeatStatus = "0";
+          return arr;
+        });
+        setSelectedSeats((prev) => {
+          const arr = prev.filter(function (item) {
+            return (
+              item !==
+              `${seatLayout[index1].rowData[i2].strRowPhyID}${seatLayout[index1].rowData[i2].seatData[i3].strSeatNumber}`
+            );
+          });
+          return arr;
+        });
+
+        setSeatDetails((prev) => {
+          const arr = prev.filter((item) => {
+            return (
+              item.SeatRowId !==
+                seatLayout[index1].rowData[i2].intGridRowID ||
+              item.seatNumber !==
+                seatLayout[index1].rowData[i2].seatData[i3]
+                  .intGridSeatNum
+            );
           });
 
-          setSelectedPriceExcludingTax((prev) => {
-            let value =
-              prev -
-              seatLayout[index1].area_price +
-              seatLayout[index1].priceTax1 +
-              seatLayout[index1].priceTax2;
-            return value < 0 ? 0 : value;
-          });
-          setSelectedPrice((prev) => {
-            let value = prev - seatLayout[index1].area_price;
-            return value;
-          });
-          setTax1((prev) => {
-            let value = prev - seatLayout[index1].priceTax1;
-            return value;
-          });
-          setTax2((prev) => {
-            let value = prev - seatLayout[index1].priceTax2;
-            return value;
-          });
-          setTax3((prev) => {
-            let value = prev - seatLayout[index1].priceTax3;
-            return value;
-          });
-          setTax4((prev) => {
-            let value = prev - seatLayout[index1].priceTax4;
-            return value;
-          });
-        }
+          return arr;
+        });
+
+        setSelectedPriceExcludingTax((prev) => {
+          let value =
+            prev -
+            seatLayout[index1].area_price +
+            seatLayout[index1].priceTax1 +
+            seatLayout[index1].priceTax2;
+          return value < 0 ? 0 : value;
+        });
+        setSelectedPrice((prev) => {
+          let value = prev - seatLayout[index1].area_price;
+          return value;
+        });
+        setTax1((prev) => {
+          let value = prev - seatLayout[index1].priceTax1;
+          return value;
+        });
+        setTax2((prev) => {
+          let value = prev - seatLayout[index1].priceTax2;
+          return value;
+        });
+        setTax3((prev) => {
+          let value = prev - seatLayout[index1].priceTax3;
+          return value;
+        });
+        setTax4((prev) => {
+          let value = prev - seatLayout[index1].priceTax4;
+          return value;
+        });
       });
     }
   };

@@ -90,6 +90,29 @@ const getFoodAmount = (item) => {
   return 0;
 };
 
+const getTicketQty = (item) => {
+  const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || "";
+  if (seatInfo && seatInfo.includes("-")) {
+    const parts = seatInfo.split("-");
+    if (parts[1]) {
+      return parts[1].trim().split(",").length;
+    }
+  }
+  return 0;
+};
+
+const getThreeDCharges = (item) => {
+  const has3D = item?.movieData?.movieType?.includes("3D") || 
+                (item?.commitBookingData?.curTicketsTax3 > 0) || 
+                (item?.addSeatData?.curTicketsTax3 > 0) ||
+                item?.movieId?.movieType?.includes("3D");
+  if (has3D) {
+    const qty = getTicketQty(item);
+    return qty * 30;
+  }
+  return null;
+};
+
 const TransactionHistory = () => {
   const { adminLoginData } = PagesIndex.useSelector(
     (state) => state?.admin?.AdminSlice
@@ -417,9 +440,11 @@ const TransactionHistory = () => {
       "Order Id",
       "Booking Id",
       "Ticket Amount",
+      "3D Charges",
       "F&B Amount",
       "Convenience Fee",
       "Membership Discount",
+      "Coin Redemption",
       "GST",
       "Total Amount",
       "Payment Status",
@@ -428,6 +453,9 @@ const TransactionHistory = () => {
     ];
 
     const rows = allData?.map((item) => {
+      const threeDCharges = getThreeDCharges(item);
+      const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
+
       return {
         cinema_name: item?.cinemaData?.cinemaName,
         User_details: `${
@@ -446,6 +474,15 @@ const TransactionHistory = () => {
             })
           : "-",
 
+        three_d_charges: threeDCharges !== null
+          ? (threeDCharges > 0
+              ? threeDCharges.toLocaleString("en-IN", {
+                  style: "currency",
+                  currency: "INR",
+                })
+              : "₹0.00")
+          : "-",
+
         fandBAmount: getFoodAmount(item)
           ? getFoodAmount(item).toLocaleString("en-IN", {
               style: "currency",
@@ -459,6 +496,13 @@ const TransactionHistory = () => {
           : "-",
         membershipDiscount: item?.finalBookingCalculation?.ticketCart
           ? item?.finalBookingCalculation?.ticketCart?.membershipDiscount || 0
+          : "-",
+
+        coinRedemption: coinRedemption
+          ? coinRedemption.toLocaleString("en-IN", {
+              style: "currency",
+              currency: "INR",
+            })
           : "-",
 
         gst: item?.finalBookingCalculation?.convenienceFeesObject
@@ -650,12 +694,16 @@ const TransactionHistory = () => {
                       <Index.TableCell width="4%">
                         Ticket Amount
                       </Index.TableCell>
+                      <Index.TableCell width="4%">3D Charges</Index.TableCell>
                       <Index.TableCell width="4%">F&B Amount</Index.TableCell>
                       <Index.TableCell width="4%">
                         Convenience Fee
                       </Index.TableCell>
                       <Index.TableCell width="4%">
                         Membership Discount
+                      </Index.TableCell>
+                      <Index.TableCell width="4%">
+                        Coin Redemption
                       </Index.TableCell>
                       <Index.TableCell width="4%">GST</Index.TableCell>
                       <Index.TableCell width="4%">Total Amount</Index.TableCell>
@@ -676,7 +724,7 @@ const TransactionHistory = () => {
                           variant="td"
                           scope="row"
                           className="no-data-in-list"
-                          colSpan={15}
+                          colSpan={17}
                           align="center"
                         >
                           <Index.CircularProgress size={"20px"} />
@@ -738,6 +786,19 @@ const TransactionHistory = () => {
                                 : "-"}
                             </Index.TableCell>
                             <Index.TableCell>
+                              {(() => {
+                                const threeD = getThreeDCharges(item);
+                                return threeD !== null
+                                  ? (threeD > 0
+                                      ? threeD.toLocaleString("en-IN", {
+                                          style: "currency",
+                                          currency: "INR",
+                                        })
+                                      : "₹0.00")
+                                  : "-";
+                              })()}
+                            </Index.TableCell>
+                            <Index.TableCell>
                               {getFoodAmount(item)
                                 ? getFoodAmount(item).toLocaleString("en-IN", {
                                     style: "currency",
@@ -763,6 +824,14 @@ const TransactionHistory = () => {
                                 ?.membershipDiscount +
                                 item?.finalBookingCalculation?.foodCart
                                   ?.membershipDiscount || 0}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.finalBookingCalculation?.rewardDiscountApplied
+                                ? item?.finalBookingCalculation?.rewardDiscountApplied.toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                : "-"}
                             </Index.TableCell>
                             <Index.TableCell>
                               {item?.finalBookingCalculation
@@ -831,7 +900,7 @@ const TransactionHistory = () => {
                             variant="td"
                             scope="row"
                             className="no-data-in-list"
-                            colSpan={15}
+                            colSpan={17}
                             align="center"
                           >
                             No data available

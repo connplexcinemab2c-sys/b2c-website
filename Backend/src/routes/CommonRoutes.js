@@ -25,6 +25,11 @@ import * as SubscriptionController from "../controller/admin/SubscriptionControl
 import cacheMiddleware from "../middleware/CacheMiddleware.js";
 import cacheKeys from "../utils/cacheKeys.js";
 import { getFranchisePaymentStatus } from "../services/franchise/FranchiseHandlers.js";
+import * as whatsappBooking from "../controller/booking/WhatsAppBookingController.js";
+
+//#region WhatsApp Webhook
+commonRouter.post("/whatsapp/booking", whatsappBooking.receiveBooking);
+//#endregion
 
 //#region Social login
 commonRouter.get(
@@ -66,6 +71,8 @@ commonRouter.get("/seat-layout/:strCinemaId/:strSessId", booking.getSeatLayout);
 commonRouter.get("/init-booking/:strCinemaId/:movieId", booking.initBooking);
 commonRouter.post("/set-seats", booking.setSeats);
 commonRouter.post("/add-seats", booking.addSeats);
+commonRouter.post("/update-order", booking.updateOrder);
+commonRouter.post("/continue-trans", booking.continueTrans);
 commonRouter.get(
   "/ticket-cancel/:CinemaId/:strTransId",
   ticketCancel.cancelTicket,

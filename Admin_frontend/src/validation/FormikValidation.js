@@ -17,7 +17,7 @@ const phoneRegExp =
   /^(?:(?:\+|0{0,2})91(\s*|[\-])?|[0]?)?([6789]\d{2}([ -]?)\d{3}([ -]?)\d{3,})$/;
 const otpRegex = /^\d{4}$/;
 // const nameRegex = /^(?!\s).+(?<!\s)$/gm;
-const nameRegex = /^(.+)$/gm;
+const nameRegex = /^(.+)$/;
 // const nameRegex = /^[^\d\W\s]+$/gm;
 const locationRegex = /@(-?\d+\.\d+),(-?\d+\.\d+),(\d+\.?\d?)+z/;
 // const urlRegex =
@@ -224,7 +224,7 @@ export const regionSchema = Yup.object().shape({
   regionName: Yup.string("Enter city name")
     .required("City name is required")
     .max(30, "Not more than 30 character")
-    .matches(/^[^\d\W\s]+$/gm, "Enter valid city name"),
+    .matches(nameRegex, "Enter valid city name"),
   image: Yup.mixed()
     .required("Please select image")
     .test(
@@ -322,7 +322,7 @@ export const cinemaSchema = Yup.object().shape({
   cinemaName: Yup.string("Enter cinema name")
     .required("Cinema name is required")
     .max(50, "Allowed only 50 characters")
-    .matches(/^[^\d\W\s]+$/gm, "Enter valid Cinema name"),
+    .matches(nameRegex, "Enter valid Cinema name"),
 
   displayName: Yup.string("Enter display name")
     .required("Cinema display name is required")

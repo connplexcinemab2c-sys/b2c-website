@@ -300,8 +300,8 @@ export const paymentResponse = async (req, res) => {
       : user.firstName;
 
     const finalBooking = bookingData.finalBookingCalculation;
-    const ticketTotal = (finalBooking?.ticketCart?.ticketTotal ?? 0) * 100;
-    const fnbTotal = finalBooking?.foodCart?.totalAmountByBase ?? 0;
+    const ticketTotal = (finalBooking?.ticketCart?.total ?? finalBooking?.ticketCart?.ticketTotal ?? 0) * 100;
+    const fnbTotal = finalBooking?.foodCart?.total > 0 ? (finalBooking?.foodCart?.basePrice ?? finalBooking?.foodCart?.totalAmountByBase ?? 0) : 0;
 
     let multipayment = `|PAYTYPE1=CW|AMOUNT1=${ticketTotal}|`;
     if (fnbTotal > 0) {

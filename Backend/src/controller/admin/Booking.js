@@ -656,6 +656,7 @@ export const getAllBookingAdmin = async (req, res) => {
                 category: 1,
                 poster: 1,
                 uniqueFilmCode: 1,
+                movieType: 1,
               },
             },
           ],

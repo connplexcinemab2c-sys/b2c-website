@@ -86,38 +86,17 @@ export const getCouponCart = async (
     foodMembershipDiscount = getNumberUptoTwoDecimal(foodMembershipDiscount)
   }
 
-  const totalTicketPrice = getNumberUptoTwoDecimal(ticketTotal > 0 ? ticketTotal : 0);
-  ticketCart.basePrice = getNumberUptoTwoDecimal(calculateBasePrice(
-    totalTicketPrice,
-    totalTicketPrice < 115 ? 12 : 18
-  ));
-
-  // If Ticket Base Price is less than 115, apply 12% GST; otherwise, apply 18%
-  let ticketGSTPercentage = ticketCart.basePrice < 115 ? 12 : 18;
-
-  ticketCart.membershipDiscount = getNumberUptoTwoDecimal(calculateMembershipDiscount(
+  const ticketMembershipDiscountVal = getNumberUptoTwoDecimal(calculateMembershipDiscount(
     ticketMembershipDiscount,
     parseFloat(ticketCart.ticketTotal)
   ));
-
-  ticketCart.totalAfterDiscount = ticketCart.ticketTotal - ticketCart.membershipDiscount;
-  ticketCart.total =
-  getNumberUptoTwoDecimal(ticketCart.totalAfterDiscount <= 0 ? 0 : ticketCart.totalAfterDiscount);
-// console.log(ticketCart.total, "ticketCart.total");
-  const totalFNBPrice = fnbprice > 0 ? fnbprice : 0;
-  foodCart.basePrice = getNumberUptoTwoDecimal(calculateBasePrice(totalFNBPrice, 5));
-
-  foodCart.membershipDiscount = getNumberUptoTwoDecimal(calculateMembershipDiscount(
+  const foodMembershipDiscountVal = getNumberUptoTwoDecimal(calculateMembershipDiscount(
     foodMembershipDiscount,
-    foodCart.fnbTotal
+    parseFloat(foodCart.fnbTotal)
   ));
-  foodCart.totalAfterDiscount =
-    foodCart.fnbTotal - foodCart.membershipDiscount;
-  foodCart.total =
-    getNumberUptoTwoDecimal(foodCart.fnbTotal - foodCart.membershipDiscount <= 0
-      ? 0
-      : foodCart.fnbTotal - foodCart.membershipDiscount);
-// console.log(foodCart.total, "foodCart.total", foodCart.fnbTotal, foodCart.membershipDiscount);
+
+  ticketCart.membershipDiscount = ticketMembershipDiscountVal;
+  foodCart.membershipDiscount = foodMembershipDiscountVal;
 
   // Calculate and add convenience fee
   const { convenienceFees } = await Cinema.findById(cinemaObjectId, "convenienceFees");
@@ -131,9 +110,6 @@ export const getCouponCart = async (
     total,
   };
 
-  const baseAmount = +foodCart.total + +ticketCart.total + convenienceFeesObject.total;
-  const totalDiscount = +foodCart.discountAmount + +ticketCart.discountAmount;
-
   // Reward points discount
   let rewardDiscount = 0;
   if (rewardCoins > 0) {
@@ -145,21 +121,83 @@ export const getCouponCart = async (
     rewardDiscount = Math.floor(coinsToApply / conversionPoints) * conversionValue;
   }
 
-  const finalAmount = Math.max(0, Math.round((baseAmount - rewardDiscount) * 100) / 100);
-
-  return {
+  let cart = {
     ticketCart,
     foodCart,
-    finalAmount,
-    totalDiscount,
-    rewardDiscount,           // kept for frontend (counponCartDetails?.rewardDiscount)
     rewardCoinsRedeemed: Number(rewardCoins) || 0,
     rewardDiscountApplied: rewardDiscount,
+    rewardDiscount: rewardDiscount,
+    convenienceFeesObject,
+    totalDiscount: 0,
+    finalAmount: 0,
+  };
+
+  recalculateCartPrices(cart, 0);
+
+  return {
+    ...cart,
     isCouponUsage: true,
     isOverAllCouponUsage: true,
-    convenienceFeesObject,
   };
 };
+
+export const recalculateCartPrices = (cart, couponDiscount = 0) => {
+  const ticketTotal = cart.ticketCart.ticketTotal || 0;
+  const ticketMembershipDiscount = cart.ticketCart.membershipDiscount || 0;
+
+  const fnbTotal = cart.foodCart.fnbTotal || 0;
+  const foodMembershipDiscount = cart.foodCart.membershipDiscount || 0;
+
+  const rewardDiscount = cart.rewardDiscountApplied || 0;
+
+  const ticketTotalAfterMembership = Math.max(0, ticketTotal - ticketMembershipDiscount);
+  const foodTotalAfterMembership = Math.max(0, fnbTotal - foodMembershipDiscount);
+
+  const totalDiscountToApply = couponDiscount + rewardDiscount;
+  const sumAfterMembership = ticketTotalAfterMembership + foodTotalAfterMembership;
+
+  let ticketShareOfDiscount = 0;
+  let foodShareOfDiscount = 0;
+
+  if (sumAfterMembership > 0) {
+    ticketShareOfDiscount = (ticketTotalAfterMembership / sumAfterMembership) * totalDiscountToApply;
+    foodShareOfDiscount = (foodTotalAfterMembership / sumAfterMembership) * totalDiscountToApply;
+  }
+
+  let finalTicketTotal = Math.max(0, ticketTotalAfterMembership - ticketShareOfDiscount);
+  let finalFoodTotal = Math.max(0, foodTotalAfterMembership - foodShareOfDiscount);
+
+  finalTicketTotal = getNumberUptoTwoDecimal(finalTicketTotal);
+  finalFoodTotal = getNumberUptoTwoDecimal(finalFoodTotal);
+
+  cart.ticketCart.discountAmount = getNumberUptoTwoDecimal(ticketMembershipDiscount + ticketShareOfDiscount);
+  cart.foodCart.discountAmount = getNumberUptoTwoDecimal(foodMembershipDiscount + foodShareOfDiscount);
+
+  cart.ticketCart.totalAfterDiscount = getNumberUptoTwoDecimal(Math.max(0, ticketTotal - cart.ticketCart.discountAmount));
+  cart.ticketCart.total = cart.ticketCart.totalAfterDiscount;
+
+  cart.foodCart.totalAfterDiscount = getNumberUptoTwoDecimal(Math.max(0, fnbTotal - cart.foodCart.discountAmount));
+  cart.foodCart.total = cart.foodCart.totalAfterDiscount;
+
+  // Recalculate CGST, SGST, and Base Price for Tickets
+  const ticketGSTPercentage = finalTicketTotal < 115 ? 12 : 18;
+  const ticketGstAmount = calculateGst(finalTicketTotal, ticketGSTPercentage);
+  cart.ticketCart.cgst = getNumberUptoTwoDecimal(ticketGstAmount / 2);
+  cart.ticketCart.sgst = cart.ticketCart.cgst;
+  cart.ticketCart.basePrice = getNumberUptoTwoDecimal(finalTicketTotal - cart.ticketCart.cgst - cart.ticketCart.sgst);
+
+  // Recalculate CGST, SGST, and Base Price for Food
+  const foodGstAmount = calculateGst(finalFoodTotal, 5);
+  cart.foodCart.cgst = getNumberUptoTwoDecimal(foodGstAmount / 2);
+  cart.foodCart.sgst = cart.foodCart.cgst;
+  cart.foodCart.basePrice = getNumberUptoTwoDecimal(finalFoodTotal - cart.foodCart.cgst - cart.foodCart.sgst);
+
+  const convenienceFeesTotal = cart.convenienceFeesObject?.total || 0;
+  cart.finalAmount = getNumberUptoTwoDecimal(finalTicketTotal + finalFoodTotal + convenienceFeesTotal);
+  cart.totalDiscount = getNumberUptoTwoDecimal(couponDiscount);
+
+  return cart;
+};;
 
 // Calculate GST
 const calculateGst = (price, gstPercentage) => {

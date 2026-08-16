@@ -349,8 +349,8 @@ const _commitTicketBooking = async (txn, notes, payment) => {
 
   const name = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
   const finalBooking = txn.finalBookingCalculation;
-  const ticketTotal = (finalBooking?.ticketCart?.ticketTotal ?? 0) * 100;
-  const fnbTotal = finalBooking?.foodCart?.totalAmountByBase ?? 0;
+  const ticketTotal = (finalBooking?.ticketCart?.total ?? finalBooking?.ticketCart?.ticketTotal ?? 0) * 100;
+  const fnbTotal = finalBooking?.foodCart?.total > 0 ? (finalBooking?.foodCart?.basePrice ?? finalBooking?.foodCart?.totalAmountByBase ?? 0) : 0;
   let multipayment = `|PAYTYPE1=CW|AMOUNT1=${ticketTotal}|`;
   if (fnbTotal > 0) multipayment += `PAYTYPE2=CWFNB|AMOUNT2=${fnbTotal}|`;
 
