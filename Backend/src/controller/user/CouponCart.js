@@ -64,10 +64,10 @@ export const updateVistaOrderPrice = async ({
       return;
     }
 
-    // Calculate discounted price per ticket in paise/cents
+    // Calculate discounted price per ticket in standard currency units (Rupees)
     const qtyVal = Number(quantity) || tickets.length || 1;
     const discountedPricePerTicket = Number(newTicketTotal) / qtyVal;
-    const priceEachInPaise = Math.round(discountedPricePerTicket * 100);
+    const priceEach = Number(discountedPricePerTicket.toFixed(2));
 
     let updateTicketsXml = "";
     for (const ticket of tickets) {
@@ -76,7 +76,7 @@ export const updateVistaOrderPrice = async ({
         ticketId = ticketId[0];
       }
       if (ticketId) {
-        updateTicketsXml += `<Ticket><Id>${ticketId}</Id><PriceEach>${priceEachInPaise}</PriceEach></Ticket>`;
+        updateTicketsXml += `<Ticket><Id>${ticketId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
       }
     }
 
@@ -175,7 +175,7 @@ export const couponCart = async (req, res) => {
     let coupanResponse;
     let totalDiscount;
 
-    if (isCoupan == true) {
+    if (isCoupan == true || isCoupan === "true") {
       if (coupons.length > 0) {
         coupanResponse = await applyCoupanService(couponDetails, transId);
 
