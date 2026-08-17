@@ -54,42 +54,6 @@ const StyledInputBase = Index.styled(Index.InputBase)(({ theme }) => ({
   },
 }));
 
-const getTicketAmount = (item) => {
-  if (item?.commitBookingData?.curTicketsTotal !== undefined) {
-    return item.commitBookingData.curTicketsTotal;
-  }
-  if (item?.addSeatData?.curTicketsTotal !== undefined) {
-    return item.addSeatData.curTicketsTotal;
-  }
-  if (item?.finalBookingCalculation?.ticketCart?.total !== undefined) {
-    const combinedTotal = item.finalBookingCalculation.ticketCart.total;
-    const foodTotal = item?.addSeatData?.curFoodTotal || 0;
-    if (foodTotal > 0 && combinedTotal > foodTotal) {
-      return combinedTotal - foodTotal;
-    }
-    return combinedTotal;
-  }
-  return 0;
-};
-
-const getFoodAmount = (item) => {
-  let baseFood = 0;
-  if (item?.commitBookingData?.curFoodTotal !== undefined) {
-    baseFood = item.commitBookingData.curFoodTotal;
-  } else if (item?.foodAndBvgResponse?.curFoodTotal !== undefined) {
-    baseFood = item.foodAndBvgResponse.curFoodTotal;
-  } else if (item?.addSeatData?.curFoodTotal !== undefined) {
-    baseFood = item.addSeatData.curFoodTotal;
-  } else if (item?.finalBookingCalculation?.foodCart?.total !== undefined) {
-    baseFood = item.finalBookingCalculation.foodCart.total;
-  }
-  
-  if (baseFood > 0) {
-    return Math.round(baseFood * 1.05 * 100) / 100;
-  }
-  return 0;
-};
-
 const getTicketQty = (item) => {
   const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || "";
   if (seatInfo && seatInfo.includes("-")) {
@@ -111,6 +75,44 @@ const getThreeDCharges = (item) => {
     return qty * 30;
   }
   return null;
+};
+
+const getTicketAmount = (item) => {
+  let baseTicket = 0;
+  if (item?.commitBookingData?.curTicketsTotal !== undefined) {
+    baseTicket = item.commitBookingData.curTicketsTotal;
+  } else if (item?.addSeatData?.curTicketsTotal !== undefined) {
+    baseTicket = item.addSeatData.curTicketsTotal;
+  } else if (item?.finalBookingCalculation?.ticketCart?.total !== undefined) {
+    const combinedTotal = item.finalBookingCalculation.ticketCart.total;
+    const foodTotal = item?.addSeatData?.curFoodTotal || 0;
+    if (foodTotal > 0 && combinedTotal > foodTotal) {
+      baseTicket = combinedTotal - foodTotal;
+    } else {
+      baseTicket = combinedTotal;
+    }
+  }
+  
+  const threeD = getThreeDCharges(item) || 0;
+  return Math.max(0, baseTicket - threeD);
+};
+
+const getFoodAmount = (item) => {
+  let baseFood = 0;
+  if (item?.commitBookingData?.curFoodTotal !== undefined) {
+    baseFood = item.commitBookingData.curFoodTotal;
+  } else if (item?.foodAndBvgResponse?.curFoodTotal !== undefined) {
+    baseFood = item.foodAndBvgResponse.curFoodTotal;
+  } else if (item?.addSeatData?.curFoodTotal !== undefined) {
+    baseFood = item.addSeatData.curFoodTotal;
+  } else if (item?.finalBookingCalculation?.foodCart?.total !== undefined) {
+    baseFood = item.finalBookingCalculation.foodCart.total;
+  }
+  
+  if (baseFood > 0) {
+    return Math.round(baseFood * 1.05 * 100) / 100;
+  }
+  return 0;
 };
 
 const TransactionHistory = () => {

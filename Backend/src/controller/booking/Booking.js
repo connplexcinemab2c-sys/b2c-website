@@ -1824,6 +1824,36 @@ export const transactionDateWiseReport = async (req, res) => {
       createdAt: { $gte: new Date(start), $lte: new Date(end) },
     });
 
+    // 🔵 3D Charges & Coin Redemption (successful payments)
+    const successTransactions = await Transaction.find({
+      deletedStatus: 0,
+      paymentsStatus: true,
+      createdAt: { $gte: new Date(start), $lte: new Date(end) },
+    }).populate("movieId");
+
+    let total3DCharges = 0;
+    let totalCoinRedemption = 0;
+
+    for (const item of successTransactions) {
+      const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
+                    (item?.addSeatData?.curTicketsTax3 > 0) || 
+                    item?.movieId?.movieType?.includes("3D");
+      
+      const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || "";
+      let ticketQty = 0;
+      if (seatInfo && seatInfo.includes("-")) {
+        const parts = seatInfo.split("-");
+        if (parts[1]) {
+          ticketQty = parts[1].trim().split(",").length;
+        }
+      }
+      const threeDCharges = has3D && ticketQty ? ticketQty * 30 : 0;
+      total3DCharges += threeDCharges;
+
+      const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
+      totalCoinRedemption += coinRedemption;
+    }
+
     return res.status(200).json({
       fromDate,
       toDate,
@@ -1835,6 +1865,8 @@ export const transactionDateWiseReport = async (req, res) => {
         failed: failedCount,
         paymentSuccessBookingFailed,
         totalTransactions,
+        total3DCharges: Number(total3DCharges).toFixed(2),
+        totalCoinRedemption: Number(totalCoinRedemption).toFixed(2),
       },
     });
   } catch (err) {

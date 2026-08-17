@@ -278,9 +278,15 @@ const BookingManagementReport = () => {
             //     item?.addSeatData?.strSeatInfo?.split("-")[1]?.trim()?.split(",")
             //       .length
             //   : "-",
-            ticketPrice: item?.commitBookingData?.curTicketsTotal
-              ? item?.commitBookingData?.curTicketsTotal / ticketQty
-              : "-",
+            ticketPrice: (() => {
+              const totalTicketAmt = item?.commitBookingData?.curTicketsTotal !== undefined
+                ? item.commitBookingData.curTicketsTotal
+                : item?.addSeatData?.curTicketsTotal !== undefined
+                ? item.addSeatData.curTicketsTotal
+                : 0;
+              const pureTicketAmt = totalTicketAmt - threeDCharges;
+              return pureTicketAmt > 0 ? pureTicketAmt : 0;
+            })(),
             Item_Desc: "-",
             ItemWise_Qty: "-",
             ItemWise_Amt: "-",
@@ -349,6 +355,8 @@ const BookingManagementReport = () => {
 
         const rows = [
           { "Website Report": "Sales Total", Value: report?.salesTotal || 0 },
+          { "Website Report": "3D Charges", Value: report?.total3DCharges || 0 },
+          { "Website Report": "Coin Redemption", Value: report?.totalCoinRedemption || 0 },
           { "Website Report": "Discount", Value: report?.discountTotal || 0 },
           {
             "Website Report": "Convenience Fees",
