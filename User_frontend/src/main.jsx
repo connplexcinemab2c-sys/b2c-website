@@ -8,7 +8,7 @@ import Store from "./redux/Store";
 import { PersistGate } from "redux-persist/integration/react";
 import { BrowserRouter, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-// import { trackPageView } from "./utils/Analytics";
+import { trackPageView } from "./utils/Analytics";
 
 // ✅ Sentry Setup
 // import * as Sentry from "@sentry/react";
@@ -38,9 +38,9 @@ import { HelmetProvider } from "react-helmet-async";
 const RouteChangeTracker = () => {
   const location = useLocation();
 
-  // useEffect(() => {
-  //   trackPageView(location.pathname + location.search);
-  // }, [location]);
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
 
   return null;
 };

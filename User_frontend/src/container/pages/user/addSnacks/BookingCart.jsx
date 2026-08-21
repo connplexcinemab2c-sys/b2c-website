@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import PagesIndex from "../../../PagesIndex";
 import Index from "../../../Index";
 import { encryptAndSignData } from "../../../../components/common/EncryptData";
+import { trackBeginCheckout } from "../../../../utils/Analytics";
 
 const crypt = (salt, text) => {
   const textToChars = (text) => text.split("").map((c) => c.charCodeAt(0));
@@ -118,6 +119,36 @@ console.log({selectedFood});
         .catch(() => {});
     }
   }, [userToken]);
+
+  useEffect(() => {
+    if (stateData?.cinemaData) {
+      try {
+        const ticketTotal = parseFloat(stateData.cinemaData.ticketPriceDetails?.total || 0);
+        const quantity = stateData.cinemaData.selectedSeats?.length || 1;
+        const movieId = stateData.cinemaData.movieData?._id || "movie_id";
+        const movieName = stateData.cinemaData.movieData?.name || "Movie Ticket";
+        
+        trackBeginCheckout({
+          movieId: {
+            _id: movieId,
+            name: movieName
+          },
+          finalBookingCalculation: {
+            finalAmount: ticketTotal,
+            ticketCart: {
+              ticketTotal: ticketTotal
+            }
+          },
+          setSeatData: {
+            strSeatInfo: `Seats - ${new Array(quantity).fill('S').join(',')}`
+          }
+        });
+      } catch (err) {
+        console.error("Error in begin_checkout tracking useEffect:", err);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleTotalAccordionChange = () => {
     setIsTotalAccordionOpen(!isTotalAccordionOpen);
