@@ -513,6 +513,12 @@ export const setSeats = async (req, res) => {
               timestamp: new Date().toISOString(),
             },
           });
+          let regionId = null;
+          if (cinemaObjId) {
+            const cinemaObj = await Cinema.findById(cinemaObjId).lean();
+            regionId = cinemaObj?.regionId || null;
+          }
+
           await Transaction.findOneAndUpdate(
             { initTransId: strTransId },
             {
@@ -522,6 +528,8 @@ export const setSeats = async (req, res) => {
                 cinemaId: cinemaObjId,
                 showId: showObjId,
                 city: city,
+                cityId: regionId,
+                regionId: regionId,
                 // paymentsBreakup: JSON.parse(paymentsBreakup),
               },
             }
@@ -1129,6 +1137,9 @@ export const getAllBookingUser = async (req, res) => {
         fAndBDetails: true,
         status: true,
         finalBookingCalculation: true,
+        city: true,
+        cityId: true,
+        regionId: true,
       }
     )
       .populate({
@@ -1940,6 +1951,9 @@ export const getBookingDetailsByTransId = async (initTransId) => {
       "commitBookingData.curTicketsTax2": 1,
       fAndBDetails: 1,
       finalBookingCalculation: 1,
+      city: 1,
+      cityId: 1,
+      regionId: 1,
       createdAt: 1,
       updatedAt: 1,
     };

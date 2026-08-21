@@ -361,6 +361,9 @@ export const downloadBookingTicketAsPDF = async (req, res) => {
         finalBookingCalculation: true,
         paymentsBreakup: true,
         fAndBDetails: true,
+        city: true,
+        cityId: true,
+        regionId: true,
       }
     )
       .populate({
