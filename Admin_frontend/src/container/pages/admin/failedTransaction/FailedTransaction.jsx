@@ -510,9 +510,11 @@ const FailedTransaction = () => {
       "Order Id",
       "Booking Id",
       "Ticket Amount",
+      "3D Charges",
       "F&B Amount",
       "Convenience Fee",
       "Membership Discount",
+      "Coin Redemption",
       "GST",
       "Total Amount",
       "Payment Status",
@@ -540,6 +542,7 @@ const FailedTransaction = () => {
         })
         .map((item) => {
           const ticketTotal = getTicketAmount(item);
+          const threeDCharges = getThreeDCharges(item);
           const foodTotal = getFoodAmount(item);
           const convFees =
             item?.finalBookingCalculation?.convenienceFeesObject
@@ -547,6 +550,7 @@ const FailedTransaction = () => {
           const gst = item?.finalBookingCalculation?.convenienceFeesObject?.gst;
           const membershipDiscount =
             item?.finalBookingCalculation?.ticketCart?.membershipDiscount;
+          const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
           const responseAmt = item?.paymentResponse?.amount || item?.finalBookingCalculation?.finalAmount;
 
           return {
@@ -568,6 +572,15 @@ const FailedTransaction = () => {
                 })
               : "-",
 
+            three_d_charges: threeDCharges !== null
+              ? (threeDCharges > 0
+                  ? Number(threeDCharges).toLocaleString("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    })
+                  : "₹0.00")
+              : "-",
+
             fandBAmount: foodTotal
               ? Number(foodTotal).toLocaleString("en-IN", {
                   style: "currency",
@@ -584,6 +597,13 @@ const FailedTransaction = () => {
 
             membershipDiscount: membershipDiscount
               ? Number(membershipDiscount).toLocaleString("en-IN", {
+                  style: "currency",
+                  currency: "INR",
+                })
+              : "-",
+
+            coinRedemption: coinRedemption
+              ? Number(coinRedemption).toLocaleString("en-IN", {
                   style: "currency",
                   currency: "INR",
                 })
@@ -792,6 +812,10 @@ const FailedTransaction = () => {
                       <Index.TableCell width="8%">
                         Ticket Amount
                       </Index.TableCell>
+                      <Index.TableCell width="8%">3D Charges</Index.TableCell>
+                      <Index.TableCell width="8%">
+                        Coin Redemption
+                      </Index.TableCell>
                       <Index.TableCell width="8%">Total Amount</Index.TableCell>
 
                       <Index.TableCell width="10%">Date</Index.TableCell>
@@ -831,7 +855,7 @@ const FailedTransaction = () => {
                           variant="td"
                           scope="row"
                           className="no-data-in-list"
-                          colSpan={15}
+                          colSpan={16}
                           align="center"
                         >
                           <Index.CircularProgress size={"20px"} />
@@ -892,7 +916,27 @@ const FailedTransaction = () => {
                                     })
                                   : "-"}
                               </Index.TableCell>
-
+                              <Index.TableCell>
+                                {(() => {
+                                  const threeD = getThreeDCharges(item);
+                                  return threeD !== null
+                                    ? (threeD > 0
+                                        ? threeD.toLocaleString("en-IN", {
+                                            style: "currency",
+                                            currency: "INR",
+                                          })
+                                        : "₹0.00")
+                                    : "-";
+                                })()}
+                              </Index.TableCell>
+                              <Index.TableCell>
+                                {item?.finalBookingCalculation?.rewardDiscountApplied
+                                  ? item?.finalBookingCalculation?.rewardDiscountApplied.toLocaleString("en-IN", {
+                                      style: "currency",
+                                      currency: "INR",
+                                    })
+                                  : "-"}
+                              </Index.TableCell>
                               <Index.TableCell>
                                 {item?.paymentResponse?.amount &&
                                 !isNaN(
@@ -1008,7 +1052,7 @@ const FailedTransaction = () => {
                             variant="td"
                             scope="row"
                             className="no-data-in-list"
-                            colSpan={15}
+                            colSpan={16}
                             align="center"
                           >
                             No data available

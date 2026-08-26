@@ -726,7 +726,7 @@ const TransactionHistory = () => {
                           variant="td"
                           scope="row"
                           className="no-data-in-list"
-                          colSpan={17}
+                          colSpan={15}
                           align="center"
                         >
                           <Index.CircularProgress size={"20px"} />
@@ -902,7 +902,7 @@ const TransactionHistory = () => {
                             variant="td"
                             scope="row"
                             className="no-data-in-list"
-                            colSpan={17}
+                            colSpan={15}
                             align="center"
                           >
                             No data available
