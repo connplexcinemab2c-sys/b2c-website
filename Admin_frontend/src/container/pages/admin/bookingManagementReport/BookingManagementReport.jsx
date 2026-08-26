@@ -605,7 +605,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                           variant="td"
                           scope="row"
                           className="no-data-in-list"
-                          colSpan={11}
+                          colSpan={9}
                           align="center"
                         >
                           <Index.CircularProgress size={"20px"} />
@@ -773,7 +773,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                             variant="td"
                             scope="row"
                             className="no-data-in-list"
-                            colSpan={11}
+                            colSpan={9}
                             align="center"
                           >
                             No data available
