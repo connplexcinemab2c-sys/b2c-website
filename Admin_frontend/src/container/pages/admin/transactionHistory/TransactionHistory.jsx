@@ -1555,6 +1555,23 @@ const TransactionHistory = () => {
                     </Index.Box>
                     <Index.Box className="log-text">
                       <Index.Box className="log-text-title" component="span">
+                        3D Charges :
+                      </Index.Box>{" "}
+                      {(() => {
+                        const threeD = getThreeDCharges(data);
+                        return threeD !== null ? `₹${threeD.toFixed(2)}` : "-";
+                      })()}
+                    </Index.Box>
+                    <Index.Box className="log-text">
+                      <Index.Box className="log-text-title" component="span">
+                        Coin Redemption :
+                      </Index.Box>{" "}
+                      {data?.finalBookingCalculation?.rewardDiscountApplied
+                        ? `₹${parseFloat(data?.finalBookingCalculation?.rewardDiscountApplied).toFixed(2)}`
+                        : "-"}
+                    </Index.Box>
+                    <Index.Box className="log-text">
+                      <Index.Box className="log-text-title" component="span">
                         Payment Method :
                       </Index.Box>{" "}
                       {data?.paymentResponse?.method
