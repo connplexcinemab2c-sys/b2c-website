@@ -33,50 +33,66 @@ export const updateVistaOrderPrice = async ({
   quantity,
   addSeatData,
 }) => {
-  if (!addSeatData || !addSeatData.strOrderData) {
-    console.warn("No strOrderData in addSeatData, skipping Vista order update.");
+  if (!addSeatData) {
+    console.warn("No addSeatData provided, skipping Vista order update.");
     return;
   }
 
   try {
-    const strOrderData = addSeatData.strOrderData;
-    const orderDataParsed = await parseStringPromise(strOrderData, {
-      tagNameProcessors: [stripPrefix],
-    });
-
-    const rootKey = Object.keys(orderDataParsed)[0];
-    const root = orderDataParsed[rootKey];
-    if (!root) {
-      console.warn("Could not find root element in strOrderData XML.");
-      return;
-    }
-
     let tickets = [];
-    if (root.Tickets && root.Tickets[0]) {
-      const ticketsObj = root.Tickets[0];
-      if (ticketsObj && ticketsObj.Ticket) {
-        tickets = Array.isArray(ticketsObj.Ticket) ? ticketsObj.Ticket : [ticketsObj.Ticket];
+    const strOrderData = addSeatData.strOrderData;
+    if (strOrderData) {
+      try {
+        const orderDataParsed = await parseStringPromise(strOrderData, {
+          tagNameProcessors: [stripPrefix],
+        });
+
+        const rootKey = Object.keys(orderDataParsed)[0];
+        const root = orderDataParsed[rootKey];
+        if (root && root.Tickets && root.Tickets[0]) {
+          const ticketsObj = root.Tickets[0];
+          if (ticketsObj && ticketsObj.Ticket) {
+            tickets = Array.isArray(ticketsObj.Ticket) ? ticketsObj.Ticket : [ticketsObj.Ticket];
+          }
+        }
+      } catch (parseErr) {
+        console.warn("Failed to parse strOrderData XML, falling back to manual generation.", parseErr);
       }
     }
 
-    if (tickets.length === 0) {
-      console.warn("No tickets found in strOrderData XML.");
-      return;
+    // Determine quantity of tickets
+    let qtyVal = Number(quantity);
+    if (!qtyVal && addSeatData.strSeatInfo) {
+      const seatInfo = addSeatData.strSeatInfo || "";
+      const parts = seatInfo.split("-");
+      const seatPart = parts[parts.length - 1].trim();
+      if (seatPart) {
+        qtyVal = seatPart.split(",").map(s => s.trim()).filter(Boolean).length;
+      }
+    }
+    if (!qtyVal) {
+      qtyVal = tickets.length || 1;
     }
 
     // Calculate discounted price per ticket in standard currency units (Rupees)
-    const qtyVal = Number(quantity) || tickets.length || 1;
     const discountedPricePerTicket = Number(newTicketTotal) / qtyVal;
-    const priceEach = Number(discountedPricePerTicket.toFixed(2));
+    // Vista expects PriceEach in cents (Rupees * 100)
+    const priceEach = Math.round(discountedPricePerTicket * 100);
 
     let updateTicketsXml = "";
-    for (const ticket of tickets) {
-      let ticketId = ticket.Id;
-      if (Array.isArray(ticketId)) {
-        ticketId = ticketId[0];
+    if (tickets.length > 0) {
+      for (const ticket of tickets) {
+        let ticketId = ticket.Id;
+        if (Array.isArray(ticketId)) {
+          ticketId = ticketId[0];
+        }
+        if (ticketId) {
+          updateTicketsXml += `<Ticket><Id>${ticketId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
+        }
       }
-      if (ticketId) {
-        updateTicketsXml += `<Ticket><Id>${ticketId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
+    } else {
+      for (let i = 1; i <= qtyVal; i++) {
+        updateTicketsXml += `<Ticket><Id>${i}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
       }
     }
 
