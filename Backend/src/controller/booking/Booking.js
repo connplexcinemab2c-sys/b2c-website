@@ -513,6 +513,12 @@ export const setSeats = async (req, res) => {
               timestamp: new Date().toISOString(),
             },
           });
+          let regionId = null;
+          if (cinemaObjId) {
+            const cinemaObj = await Cinema.findById(cinemaObjId).lean();
+            regionId = cinemaObj?.regionId || null;
+          }
+
           await Transaction.findOneAndUpdate(
             { initTransId: strTransId },
             {
@@ -522,6 +528,8 @@ export const setSeats = async (req, res) => {
                 cinemaId: cinemaObjId,
                 showId: showObjId,
                 city: city,
+                cityId: regionId,
+                regionId: regionId,
                 // paymentsBreakup: JSON.parse(paymentsBreakup),
               },
             }
@@ -1129,6 +1137,9 @@ export const getAllBookingUser = async (req, res) => {
         fAndBDetails: true,
         status: true,
         finalBookingCalculation: true,
+        city: true,
+        cityId: true,
+        regionId: true,
       }
     )
       .populate({
@@ -1824,6 +1835,36 @@ export const transactionDateWiseReport = async (req, res) => {
       createdAt: { $gte: new Date(start), $lte: new Date(end) },
     });
 
+    // 🔵 3D Charges & Coin Redemption (successful payments)
+    const successTransactions = await Transaction.find({
+      deletedStatus: 0,
+      paymentsStatus: true,
+      createdAt: { $gte: new Date(start), $lte: new Date(end) },
+    }).populate("movieId");
+
+    let total3DCharges = 0;
+    let totalCoinRedemption = 0;
+
+    for (const item of successTransactions) {
+      const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
+                    (item?.addSeatData?.curTicketsTax3 > 0) || 
+                    item?.movieId?.movieType?.includes("3D");
+      
+      const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || "";
+      let ticketQty = 0;
+      if (seatInfo && seatInfo.includes("-")) {
+        const parts = seatInfo.split("-");
+        if (parts[1]) {
+          ticketQty = parts[1].trim().split(",").length;
+        }
+      }
+      const threeDCharges = has3D && ticketQty ? ticketQty * 30 : 0;
+      total3DCharges += threeDCharges;
+
+      const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
+      totalCoinRedemption += coinRedemption;
+    }
+
     return res.status(200).json({
       fromDate,
       toDate,
@@ -1835,6 +1876,8 @@ export const transactionDateWiseReport = async (req, res) => {
         failed: failedCount,
         paymentSuccessBookingFailed,
         totalTransactions,
+        total3DCharges: Number(total3DCharges).toFixed(2),
+        totalCoinRedemption: Number(totalCoinRedemption).toFixed(2),
       },
     });
   } catch (err) {
@@ -1908,6 +1951,9 @@ export const getBookingDetailsByTransId = async (initTransId) => {
       "commitBookingData.curTicketsTax2": 1,
       fAndBDetails: 1,
       finalBookingCalculation: 1,
+      city: 1,
+      cityId: 1,
+      regionId: 1,
       createdAt: 1,
       updatedAt: 1,
     };

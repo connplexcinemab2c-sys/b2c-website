@@ -104,7 +104,7 @@ export const paymentRequest = async (req, res) => {
     }
 
     // if after discount user have pay 0 amount than we directly Booked Ticket
-    if (findTransaction.finalBookingCalculation.finalAmount == 0) {
+    if (findTransaction.finalBookingCalculation.finalAmount <= 0) {
       await ccavEncResponseDirectly(res, userId, transId, cinemaId, sessionId);
       return false;
     }

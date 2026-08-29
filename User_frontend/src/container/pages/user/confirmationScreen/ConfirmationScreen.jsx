@@ -3,6 +3,7 @@ import Index from "../../../Index";
 import PagesIndex from "../../../PagesIndex";
 import { getUserToken, userLogOut } from "../../../../redux/user/action";
 import ShowTicketCalculation from "../../../../components/common/ShowTicketCalculation";
+import { trackPurchase } from "../../../../utils/Analytics";
 
 function ConfirmationScreen() {
   const dispatch = PagesIndex.useDispatch();
@@ -38,6 +39,17 @@ function ConfirmationScreen() {
         console.log(res.data, ":res.data", res.data.finalBookingCalculation)
         setBookingDetails(res.data);
         setFinalBookingCalculation(res.data.finalBookingCalculation);
+        
+        // Track GA4 e-commerce purchase event
+        const isFreshConfirmation = location.pathname === "/confirmation-screen" || location.pathname === "/app-confirmation-screen";
+        if (isFreshConfirmation && res.data?.commitStatus === true && transId) {
+          const trackedKey = `tracked_booking_${transId}`;
+          if (!sessionStorage.getItem(trackedKey)) {
+            trackPurchase(res.data);
+            sessionStorage.setItem(trackedKey, "true");
+          }
+        }
+
         dispatch(PagesIndex.hideLoader());
         setLoading(false);
         if (location.pathname === "/confirmation-screen" && transId && userToken) {

@@ -178,6 +178,16 @@ let transaction = new mongoose.Schema(
       type: String,
       required: false,
     },
+    cityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "region",
+      required: false,
+    },
+    regionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "region",
+      required: false,
+    },
   },
   {
     timestamps: true,

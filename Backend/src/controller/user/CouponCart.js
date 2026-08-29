@@ -18,6 +18,101 @@ import {
   applyCoupanService,
   rollbackCoupanService,
 } from "../../services/vistaServices/promotionCoupan.js";
+import { parseStringPromise } from "xml2js";
+import { updateOrderService } from "../../services/vistaServices/AddSeatsExService.js";
+
+const stripPrefix = (name) => {
+  const i = name.indexOf(":");
+  return i < 0 ? name : name.substring(i + 1);
+};
+
+export const updateVistaOrderPrice = async ({
+  cinemaId,
+  transId,
+  newTicketTotal,
+  quantity,
+  addSeatData,
+}) => {
+  if (!addSeatData) {
+    console.warn("No addSeatData provided, skipping Vista order update.");
+    return;
+  }
+
+  try {
+    let tickets = [];
+    const strOrderData = addSeatData.strOrderData;
+    if (strOrderData) {
+      try {
+        const orderDataParsed = await parseStringPromise(strOrderData, {
+          tagNameProcessors: [stripPrefix],
+        });
+
+        const rootKey = Object.keys(orderDataParsed)[0];
+        const root = orderDataParsed[rootKey];
+        if (root && root.Tickets && root.Tickets[0]) {
+          const ticketsObj = root.Tickets[0];
+          if (ticketsObj && ticketsObj.Ticket) {
+            tickets = Array.isArray(ticketsObj.Ticket) ? ticketsObj.Ticket : [ticketsObj.Ticket];
+          }
+        }
+      } catch (parseErr) {
+        console.warn("Failed to parse strOrderData XML, falling back to manual generation.", parseErr);
+      }
+    }
+
+    // Determine quantity of tickets
+    let qtyVal = Number(quantity);
+    if (!qtyVal && addSeatData.strSeatInfo) {
+      const seatInfo = addSeatData.strSeatInfo || "";
+      const parts = seatInfo.split("-");
+      const seatPart = parts[parts.length - 1].trim();
+      if (seatPart) {
+        qtyVal = seatPart.split(",").map(s => s.trim()).filter(Boolean).length;
+      }
+    }
+    if (!qtyVal) {
+      qtyVal = tickets.length || 1;
+    }
+
+    // Calculate discounted price per ticket in standard currency units (Rupees)
+    const discountedPricePerTicket = Number(newTicketTotal) / qtyVal;
+    // Vista expects PriceEach in cents (Rupees * 100)
+    const priceEach = Math.round(discountedPricePerTicket * 100);
+
+    let updateTicketsXml = "";
+    if (tickets.length > 0) {
+      for (const ticket of tickets) {
+        let ticketId = ticket.Id;
+        if (Array.isArray(ticketId)) {
+          ticketId = ticketId[0];
+        }
+        if (ticketId) {
+          updateTicketsXml += `<Ticket><Id>${ticketId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
+        }
+      }
+    } else {
+      for (let i = 1; i <= qtyVal; i++) {
+        updateTicketsXml += `<Ticket><Id>${i}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
+      }
+    }
+
+    const strOrderXml = `<OrderData><Tickets>${updateTicketsXml}</Tickets></OrderData>`;
+    console.log(`Updating Vista order for transId ${transId} with XML: ${strOrderXml}`);
+
+    const updateResult = await updateOrderService({
+      cinemaId,
+      strTransId: transId,
+      strOrderXml,
+    });
+
+    console.log(`Vista updateOrder for transId ${transId} result:`, updateResult);
+    return updateResult;
+  } catch (err) {
+    console.error("Error updating Vista order price:", err);
+    throw err;
+  }
+};
+
 // Get Coupons by Location
 export const couponCart = async (req, res) => {
   try {
@@ -96,7 +191,7 @@ export const couponCart = async (req, res) => {
     let coupanResponse;
     let totalDiscount;
 
-    if (isCoupan == true) {
+    if (isCoupan == true || isCoupan === "true") {
       if (coupons.length > 0) {
         coupanResponse = await applyCoupanService(couponDetails, transId);
 
@@ -174,13 +269,49 @@ export const couponCart = async (req, res) => {
       }
     );
 
+    const findTx = await Transaction.findOne({ initTransId: transId }).populate("cinemaId");
+    if (findTx && findTx.addSeatData && findTx.cinemaId) {
+      try {
+        const curTicketsTotal = Number(findTx.addSeatData.curTicketsTotal) || 0;
+        const newTicketsTotal = Number(cart.ticketCart.total) || 0;
+
+        if (curTicketsTotal !== newTicketsTotal) {
+          await updateVistaOrderPrice({
+            cinemaId: findTx.cinemaId.cinemaId,
+            transId,
+            newTicketTotal: cart.ticketCart.total,
+            quantity,
+            addSeatData: findTx.addSeatData,
+          });
+
+          const curBookingFee = Number(findTx.addSeatData.curBookingFee) || 0;
+          const updatedVistaTotal = newTicketsTotal + curBookingFee;
+
+          // Sync local transaction's addSeatData with recalculated discount totals & taxes
+          await Transaction.findOneAndUpdate(
+            { initTransId: transId },
+            {
+              $set: {
+                "addSeatData.curTicketsTotal": String(cart.ticketCart.total),
+                "addSeatData.curTicketsTax1": String(cart.ticketCart.cgst),
+                "addSeatData.curTicketsTax2": String(cart.ticketCart.sgst),
+                "addSeatData.curTotal": String(updatedVistaTotal),
+              }
+            }
+          );
+          console.log(`Local transaction ${transId} addSeatData synchronized with discounted total: ${cart.ticketCart.total} and GST: ${cart.ticketCart.cgst + cart.ticketCart.sgst}`);
+        }
+      } catch (err) {
+        console.error("Failed to update Vista order price or sync addSeatData inside couponCart:", err);
+      }
+    }
+
     return res.status(200).json({
       status: StatusCodes.OK,
       message:
         coupanResponse?.strMessage?.[0] || coupanResponse?.strException?.[0],
       data: cart,
     });
-    // }
   } catch (error) {
     console.log(error, "error in couponCart");
     return handleErrorResponse(res, error);

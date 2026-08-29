@@ -481,6 +481,9 @@ export const sendToWebhookApi = async (initTransId) => {
         "commitBookingData.curTicketsTax1": 1,
         "commitBookingData.curTicketsTax2": 1,
         fAndBDetails: 1,
+        city: 1,
+        cityId: 1,
+        regionId: 1,
         createdAt: 1,
       };
   

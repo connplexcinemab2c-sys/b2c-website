@@ -68,7 +68,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import "../src/assets/style/slick.css";
 // import "../src/assets/style/slick-theme.min.css"
 import "./container/pages/user/blog/ckeditor.css";
-// import { initGA } from "./utils/Analytics";
+import { initGA } from "./utils/Analytics";
 
 function App() {
   const location = useLocation();
@@ -105,9 +105,9 @@ function App() {
     },
   });
 
-  // useEffect(() => {
-  //   initGA();
-  // }, []);
+  useEffect(() => {
+    initGA();
+  }, []);
 
   console.log(isMaintenanceMode, ":isMaintenanceMode")
 

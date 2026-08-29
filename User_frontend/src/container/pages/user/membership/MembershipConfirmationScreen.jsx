@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 // import { getUserToken } from "../../../../redux/user/action";
 import Index from "../../../Index";
 import PagesIndex from "../../../PagesIndex";
+import { trackMembershipPurchase } from "../../../../utils/Analytics";
 
 function MembershipConfirmationScreen() {
   const dispatch = PagesIndex.useDispatch();
@@ -41,6 +42,15 @@ function MembershipConfirmationScreen() {
           });
           // Set the membership data after hiding the loader
           setMembershipItem(filterData);
+
+          // Track GA4 membership purchase
+          if (filterData.length > 0 && location.pathname === "/membership-success" && transId) {
+            const trackedKey = `tracked_membership_${transId}`;
+            if (!sessionStorage.getItem(trackedKey)) {
+              trackMembershipPurchase(filterData);
+              sessionStorage.setItem(trackedKey, "true");
+            }
+          }
         }
       })
       .catch((error) => {

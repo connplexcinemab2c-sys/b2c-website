@@ -92,7 +92,7 @@ export const paymentRequest = async (req, res) => {
     }
 
     // If full discounts / reward points bring the total to 0, bypass payment gateway
-    if (findTransaction?.finalBookingCalculation?.finalAmount == 0) {
+    if (findTransaction?.finalBookingCalculation?.finalAmount <= 0) {
       await razorpayBookDirectly(res, userId, transId, cinemaId, sessionId);
       return;
     }

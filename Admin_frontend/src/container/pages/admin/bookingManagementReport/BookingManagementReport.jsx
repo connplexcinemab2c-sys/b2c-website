@@ -278,16 +278,22 @@ const BookingManagementReport = () => {
             //     item?.addSeatData?.strSeatInfo?.split("-")[1]?.trim()?.split(",")
             //       .length
             //   : "-",
-            ticketPrice: item?.commitBookingData?.curTicketsTotal
-              ? item?.commitBookingData?.curTicketsTotal / ticketQty
-              : "-",
+            ticketPrice: (() => {
+              const totalTicketAmt = item?.commitBookingData?.curTicketsTotal !== undefined
+                ? item.commitBookingData.curTicketsTotal
+                : item?.addSeatData?.curTicketsTotal !== undefined
+                ? item.addSeatData.curTicketsTotal
+                : 0;
+              const pureTicketAmt = totalTicketAmt - threeDCharges;
+              return pureTicketAmt > 0 ? pureTicketAmt : 0;
+            })(),
             Item_Desc: "-",
             ItemWise_Qty: "-",
             ItemWise_Amt: "-",
             Inv_Qty: "-",
             Inv_Amt: item?.finalBookingCalculation?.finalAmount || "-",
-            Additional_Desc: has3D ? "3D Glasses" : "-",
-            Add_strAmt: has3D ? (threeDCharges > 0 ? threeDCharges : 0) : "-",
+            Additional_Desc: has3D ? "3D Glasses" : "",
+            Add_strAmt: has3D ? (threeDCharges > 0 ? threeDCharges : 0) : "",
             Add_Charges:
               item?.finalBookingCalculation?.convenienceFeesObject?.total || "-",
             Cust_Emailid: item?.userId?.email ? item?.userId?.email : "-",
@@ -349,6 +355,8 @@ const BookingManagementReport = () => {
 
         const rows = [
           { "Website Report": "Sales Total", Value: report?.salesTotal || 0 },
+          { "Website Report": "3D Charges", Value: report?.total3DCharges || 0 },
+          { "Website Report": "Coin Redemption", Value: report?.totalCoinRedemption || 0 },
           { "Website Report": "Discount", Value: report?.discountTotal || 0 },
           {
             "Website Report": "Convenience Fees",
@@ -597,7 +605,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                           variant="td"
                           scope="row"
                           className="no-data-in-list"
-                          colSpan={11}
+                          colSpan={9}
                           align="center"
                         >
                           <Index.CircularProgress size={"20px"} />
@@ -678,7 +686,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                                 {item?.rewardData?.coins ? `${item?.rewardData?.coins} pts` :  "-"}
                               </Index.TableCell>
                               <Index.TableCell>
-                                {has3D ? `₹${threeDCharges.toFixed(2)}` : "-"}
+                                {has3D ? `₹${threeDCharges.toFixed(2)}` : ""}
                               </Index.TableCell>
                               <Index.TableCell
                                 component="td"
@@ -765,7 +773,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                             variant="td"
                             scope="row"
                             className="no-data-in-list"
-                            colSpan={11}
+                            colSpan={9}
                             align="center"
                           >
                             No data available
