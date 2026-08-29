@@ -483,7 +483,7 @@ const TransactionHistory = () => {
                   currency: "INR",
                 })
               : "₹0.00")
-          : "-",
+          : "",
 
         fandBAmount: getFoodAmount(item)
           ? getFoodAmount(item).toLocaleString("en-IN", {
@@ -797,7 +797,7 @@ const TransactionHistory = () => {
                                           currency: "INR",
                                         })
                                       : "₹0.00")
-                                  : "-";
+                                  : "";
                               })()}
                             </Index.TableCell>
                             <Index.TableCell>

@@ -579,7 +579,7 @@ const FailedTransaction = () => {
                       currency: "INR",
                     })
                   : "₹0.00")
-              : "-",
+              : "",
 
             fandBAmount: foodTotal
               ? Number(foodTotal).toLocaleString("en-IN", {
@@ -926,7 +926,7 @@ const FailedTransaction = () => {
                                             currency: "INR",
                                           })
                                         : "₹0.00")
-                                    : "-";
+                                    : "";
                                 })()}
                               </Index.TableCell>
                               <Index.TableCell>

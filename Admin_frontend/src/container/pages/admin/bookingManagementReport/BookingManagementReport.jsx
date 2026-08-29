@@ -292,8 +292,8 @@ const BookingManagementReport = () => {
             ItemWise_Amt: "-",
             Inv_Qty: "-",
             Inv_Amt: item?.finalBookingCalculation?.finalAmount || "-",
-            Additional_Desc: has3D ? "3D Glasses" : "-",
-            Add_strAmt: has3D ? (threeDCharges > 0 ? threeDCharges : 0) : "-",
+            Additional_Desc: has3D ? "3D Glasses" : "",
+            Add_strAmt: has3D ? (threeDCharges > 0 ? threeDCharges : 0) : "",
             Add_Charges:
               item?.finalBookingCalculation?.convenienceFeesObject?.total || "-",
             Cust_Emailid: item?.userId?.email ? item?.userId?.email : "-",
@@ -686,7 +686,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                                 {item?.rewardData?.coins ? `${item?.rewardData?.coins} pts` :  "-"}
                               </Index.TableCell>
                               <Index.TableCell>
-                                {has3D ? `₹${threeDCharges.toFixed(2)}` : "-"}
+                                {has3D ? `₹${threeDCharges.toFixed(2)}` : ""}
                               </Index.TableCell>
                               <Index.TableCell
                                 component="td"
