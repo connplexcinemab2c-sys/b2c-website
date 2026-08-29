@@ -225,12 +225,22 @@ const BookingManagementReport = () => {
     )
       .then((res) => {
         const rows = res?.data?.data?.map((item) => {
-          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || (item?.addSeatData?.curTicketsTax3 > 0) || item?.movieId?.movieType?.includes("3D");
-          const ticketQty = item?.commitBookingData?.strSeatInfo
-            ? item?.commitBookingData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
-            : item?.addSeatData?.strSeatInfo
-            ? item?.addSeatData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
-            : 0;
+          const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || item?.setSeatData?.strSeatInfo || "";
+          let ticketQty = 0;
+          if (seatInfo) {
+            if (seatInfo.includes("-")) {
+              const parts = seatInfo.split("-");
+              if (parts[1]) {
+                ticketQty = parts[1].trim().split(",").length;
+              }
+            } else {
+              ticketQty = seatInfo.split(",").length;
+            }
+          }
+          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
+                        (item?.addSeatData?.curTicketsTax3 > 0) || 
+                        item?.movieId?.movieType?.includes("3D") ||
+                        item?.movieId?.name?.toUpperCase().includes("3D");
           const threeDCharges = has3D && ticketQty ? ticketQty * 30 : 0;
           const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
 
@@ -291,7 +301,14 @@ const BookingManagementReport = () => {
             ItemWise_Qty: "-",
             ItemWise_Amt: "-",
             Inv_Qty: "-",
-            Inv_Amt: item?.finalBookingCalculation?.finalAmount || "-",
+            Inv_Amt: (() => {
+              const baseAmount = item?.finalBookingCalculation?.finalAmount && !isNaN(parseFloat(item?.finalBookingCalculation?.finalAmount))
+                ? parseFloat(item?.finalBookingCalculation?.finalAmount)
+                : item?.paymentResponse?.amount && !isNaN(parseFloat(item?.paymentResponse?.amount))
+                ? parseFloat(item?.paymentResponse?.amount)
+                : null;
+              return baseAmount !== null ? baseAmount + threeDCharges : "-";
+            })(),
             Additional_Desc: has3D ? "3D Glasses" : "",
             Add_strAmt: has3D ? (threeDCharges > 0 ? threeDCharges : 0) : "",
             Add_Charges:
@@ -616,12 +633,22 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                     <Index.TableBody>
                       {filterDataList?.length ? (
                         filterDataList?.map((item, index) => {
-                          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || (item?.addSeatData?.curTicketsTax3 > 0) || item?.movieId?.movieType?.includes("3D");
-                          const ticketQty = item?.commitBookingData?.strSeatInfo
-                            ? item?.commitBookingData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
-                            : item?.addSeatData?.strSeatInfo
-                            ? item?.addSeatData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
-                            : 0;
+                          const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || item?.setSeatData?.strSeatInfo || "";
+                          let ticketQty = 0;
+                          if (seatInfo) {
+                            if (seatInfo.includes("-")) {
+                              const parts = seatInfo.split("-");
+                              if (parts[1]) {
+                                ticketQty = parts[1].trim().split(",").length;
+                              }
+                            } else {
+                              ticketQty = seatInfo.split(",").length;
+                            }
+                          }
+                          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
+                                        (item?.addSeatData?.curTicketsTax3 > 0) || 
+                                        item?.movieId?.movieType?.includes("3D") ||
+                                        item?.movieId?.name?.toUpperCase().includes("3D");
                           const threeDCharges = has3D && ticketQty ? ticketQty * 30 : 0;
                           const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
 
@@ -675,10 +702,17 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                                 {ticketQty || 0}
                                 <br></br>
                                 <b>Total Amount :</b>{" "}
-                                {item?.paymentResponse?.amount ?(item?.paymentResponse?.amount)?.toLocaleString("en-IN", {
-                                  style: "currency",
-                                  currency: "INR",
-                                }): "-"}
+                                {(() => {
+                                  const baseAmount = item?.paymentResponse?.amount && !isNaN(parseFloat(item?.paymentResponse?.amount))
+                                    ? parseFloat(item?.paymentResponse?.amount)
+                                    : item?.finalBookingCalculation?.finalAmount && !isNaN(parseFloat(item?.finalBookingCalculation?.finalAmount))
+                                    ? parseFloat(item?.finalBookingCalculation?.finalAmount)
+                                    : null;
+                                  return baseAmount !== null ? (baseAmount + threeDCharges).toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  }) : "-";
+                                })()}
                                 <br></br>
                                 <b>Device Type :</b> {item?.bookedFrom || "-"}
                                 <br></br>

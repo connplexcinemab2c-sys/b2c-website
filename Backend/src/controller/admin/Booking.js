@@ -989,7 +989,7 @@ export const getAllFailedBooking = async (req, res) => {
           as: "movieData",
           pipeline: [
             {
-              $project: { name: 1, poster: 1, category: 1, uniqueFilmCode: 1 },
+              $project: { name: 1, poster: 1, category: 1, uniqueFilmCode: 1, movieType: 1 },
             },
           ],
         },

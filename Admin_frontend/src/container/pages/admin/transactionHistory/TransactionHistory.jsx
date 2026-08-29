@@ -55,11 +55,15 @@ const StyledInputBase = Index.styled(Index.InputBase)(({ theme }) => ({
 }));
 
 const getTicketQty = (item) => {
-  const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || "";
-  if (seatInfo && seatInfo.includes("-")) {
-    const parts = seatInfo.split("-");
-    if (parts[1]) {
-      return parts[1].trim().split(",").length;
+  const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || item?.setSeatData?.strSeatInfo || "";
+  if (seatInfo) {
+    if (seatInfo.includes("-")) {
+      const parts = seatInfo.split("-");
+      if (parts[1]) {
+        return parts[1].trim().split(",").length;
+      }
+    } else {
+      return seatInfo.split(",").length;
     }
   }
   return 0;
@@ -67,9 +71,11 @@ const getTicketQty = (item) => {
 
 const getThreeDCharges = (item) => {
   const has3D = item?.movieData?.movieType?.includes("3D") || 
+                item?.movieData?.name?.toUpperCase().includes("3D") ||
                 (item?.commitBookingData?.curTicketsTax3 > 0) || 
                 (item?.addSeatData?.curTicketsTax3 > 0) ||
-                item?.movieId?.movieType?.includes("3D");
+                item?.movieId?.movieType?.includes("3D") ||
+                item?.movieId?.name?.toUpperCase().includes("3D");
   if (has3D) {
     const qty = getTicketQty(item);
     return qty * 30;
@@ -518,12 +524,14 @@ const TransactionHistory = () => {
         //     ? parseFloat(item?.paymentResponse?.amount)
         //     : "-",
 
-        total_amountincTax:
-          item?.paymentResponse?.amount && !isNaN(parseFloat(item?.paymentResponse?.amount))
+        total_amountincTax: (() => {
+          const baseAmount = item?.paymentResponse?.amount && !isNaN(parseFloat(item?.paymentResponse?.amount))
             ? parseFloat(item?.paymentResponse?.amount)
             : item?.finalBookingCalculation?.finalAmount && !isNaN(parseFloat(item?.finalBookingCalculation?.finalAmount))
             ? parseFloat(item?.finalBookingCalculation?.finalAmount)
-            : "-",
+            : null;
+          return baseAmount !== null ? baseAmount + (threeDCharges || 0) : "-";
+        })(),
 
         // Only view status 1 for Success and 4 & 5 for Fail
         Payment_status: getPaymentStatus(item),
@@ -848,15 +856,21 @@ const TransactionHistory = () => {
                                 : "-"}
                             </Index.TableCell>
                             <Index.TableCell>
-                              {item?.paymentResponse?.amount &&
-                              !isNaN(parseFloat(item?.paymentResponse?.amount))
-                                ? parseFloat(
-                                    item?.paymentResponse?.amount
-                                  ).toLocaleString("en-IN", {
+                              {(() => {
+                                const baseAmount = item?.paymentResponse?.amount && !isNaN(parseFloat(item?.paymentResponse?.amount))
+                                  ? parseFloat(item?.paymentResponse?.amount)
+                                  : item?.finalBookingCalculation?.finalAmount && !isNaN(parseFloat(item?.finalBookingCalculation?.finalAmount))
+                                  ? parseFloat(item?.finalBookingCalculation?.finalAmount)
+                                  : null;
+                                if (baseAmount !== null) {
+                                  const threeD = getThreeDCharges(item) || 0;
+                                  return (baseAmount + threeD).toLocaleString("en-IN", {
                                     style: "currency",
                                     currency: "INR",
-                                  })
-                                : "-"}
+                                  });
+                                }
+                                return "-";
+                              })()}
                             </Index.TableCell>
                             <Index.TableCell>
                               {item?.createdAt

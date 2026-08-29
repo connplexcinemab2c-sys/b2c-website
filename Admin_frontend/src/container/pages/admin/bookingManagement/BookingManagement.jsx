@@ -43,6 +43,35 @@ const StyledInputBase = Index.styled(Index.InputBase)(({ theme }) => ({
   },
 }));
 
+const getTicketQty = (item) => {
+  const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || item?.setSeatData?.strSeatInfo || "";
+  if (seatInfo) {
+    if (seatInfo.includes("-")) {
+      const parts = seatInfo.split("-");
+      if (parts[1]) {
+        return parts[1].trim().split(",").length;
+      }
+    } else {
+      return seatInfo.split(",").length;
+    }
+  }
+  return 0;
+};
+
+const getThreeDCharges = (item) => {
+  const has3D = item?.movieData?.movieType?.includes("3D") || 
+                item?.movieData?.name?.toUpperCase().includes("3D") ||
+                (item?.commitBookingData?.curTicketsTax3 > 0) || 
+                (item?.addSeatData?.curTicketsTax3 > 0) ||
+                item?.movieId?.movieType?.includes("3D") ||
+                item?.movieId?.name?.toUpperCase().includes("3D");
+  if (has3D) {
+    const qty = getTicketQty(item);
+    return qty * 30;
+  }
+  return 0;
+};
+
 const BookingManagement = () => {
   const dispatch = useDispatch();
   const { adminLoginData } = PagesIndex.useSelector(
@@ -381,31 +410,43 @@ const BookingManagement = () => {
                               {item?.setSeatData?.strSeatInfo ||
                                 item?.addSeatData?.strSeatInfo}
                               <br></br>
-                              <b>Total seat :</b>{" "}
-                              {item?.setSeatData?.strSeatInfo
-                                ? item?.setSeatData?.strSeatInfo
-                                    ?.split("-")[1]
-                                    ?.trim()
-                                    ?.split(",").length
-                                : item?.addSeatData?.strSeatInfo
-                                    ?.split("-")[1]
-                                    ?.trim()
-                                    ?.split(",").length}
+                              <b>Total seat :</b> {getTicketQty(item)}
                               <br></br>
                               <b>Total Ticket Amount :</b>{" "}
-                              {item?.finalBookingCalculation?.ticketCart?.ticketTotal?.toLocaleString(
+                              {((item?.finalBookingCalculation?.ticketCart?.ticketTotal || 0) - getThreeDCharges(item)).toLocaleString(
                                 "en-IN",
                                 {
                                   style: "currency",
                                   currency: "INR",
                                 }
-                              ) || "0.00"}
+                              )}
+                              {getThreeDCharges(item) > 0 && (
+                                <>
+                                  <br></br>
+                                  <b>3D Charges :</b>{" "}
+                                  {getThreeDCharges(item).toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })}
+                                </>
+                              )}
                               <br></br>
                               <b>Total Paid Amount :</b>{" "}
-                              {item?.paymentResponse?.amount ? (item?.paymentResponse?.amount)?.toLocaleString("en-IN", {
-                                style: "currency",
-                                currency: "INR",
-                              }) : "-"}
+                              {(() => {
+                                const baseAmount = item?.paymentResponse?.amount && !isNaN(parseFloat(item?.paymentResponse?.amount))
+                                  ? parseFloat(item?.paymentResponse?.amount)
+                                  : item?.finalBookingCalculation?.finalAmount && !isNaN(parseFloat(item?.finalBookingCalculation?.finalAmount))
+                                  ? parseFloat(item?.finalBookingCalculation?.finalAmount)
+                                  : null;
+                                if (baseAmount !== null) {
+                                  const threeD = getThreeDCharges(item);
+                                  return (baseAmount + threeD).toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  });
+                                }
+                                return "-";
+                              })()}
                               <br></br>
                               <b>Device Type :</b> {item?.bookedFrom || "-"}
                               <br></br>
@@ -1121,7 +1162,18 @@ const BookingManagement = () => {
                             Amount
                           </Index.Typography>
                           <Index.Typography className="view-details-value">
-                            {data?.paymentResponse?.amount ? parseFloat(data?.paymentResponse?.amount).toFixed(2) : "-"}
+                            {(() => {
+                              const baseAmount = data?.paymentResponse?.amount && !isNaN(parseFloat(data?.paymentResponse?.amount))
+                                ? parseFloat(data?.paymentResponse?.amount)
+                                : data?.finalBookingCalculation?.finalAmount && !isNaN(parseFloat(data?.finalBookingCalculation?.finalAmount))
+                                ? parseFloat(data?.finalBookingCalculation?.finalAmount)
+                                : null;
+                              if (baseAmount !== null) {
+                                const threeD = getThreeDCharges(data);
+                                return (baseAmount + threeD).toFixed(2);
+                              }
+                              return "-";
+                            })()}
                           </Index.Typography>
                         </Index.Box>
 

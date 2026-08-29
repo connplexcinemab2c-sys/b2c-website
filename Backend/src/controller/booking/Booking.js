@@ -1848,7 +1848,8 @@ export const transactionDateWiseReport = async (req, res) => {
     for (const item of successTransactions) {
       const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
                     (item?.addSeatData?.curTicketsTax3 > 0) || 
-                    item?.movieId?.movieType?.includes("3D");
+                    item?.movieId?.movieType?.includes("3D") ||
+                    item?.movieId?.name?.toUpperCase().includes("3D");
       
       const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || "";
       let ticketQty = 0;
