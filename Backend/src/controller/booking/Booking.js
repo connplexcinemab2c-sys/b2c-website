@@ -1488,14 +1488,14 @@ export const transactionReport = async (req, res) => {
     if (fromDate) {
       matchStage.createdAt = matchStage.createdAt || {};
       matchStage.createdAt.$gte = new Date(
-        moment(fromDate).startOf("day").toISOString()
+        moment(fromDate, ["YYYY-MM-DD", "DD-MM-YYYY", "YYYY-MM-DDTHH:mm:ss.SSSZ", "MM/DD/YYYY"]).startOf("day").toISOString()
       );
     }
 
     if (toDate) {
       matchStage.createdAt = matchStage.createdAt || {};
       matchStage.createdAt.$lte = new Date(
-        moment(toDate).endOf("day").toISOString()
+        moment(toDate, ["YYYY-MM-DD", "DD-MM-YYYY", "YYYY-MM-DDTHH:mm:ss.SSSZ", "MM/DD/YYYY"]).endOf("day").toISOString()
       );
     }
 
@@ -1739,11 +1739,11 @@ export const transactionDateWiseReport = async (req, res) => {
 
     const timezone = "Asia/Kolkata";
     const start = momentTimezone
-      .tz(fromDate, "YYYY-MM-DD", timezone)
+      .tz(fromDate, ["YYYY-MM-DD", "DD-MM-YYYY", "YYYY-MM-DDTHH:mm:ss.SSSZ", "MM/DD/YYYY"], timezone)
       .startOf("day")
       .toISOString();
     const end = momentTimezone
-      .tz(toDate, "YYYY-MM-DD", timezone)
+      .tz(toDate, ["YYYY-MM-DD", "DD-MM-YYYY", "YYYY-MM-DDTHH:mm:ss.SSSZ", "MM/DD/YYYY"], timezone)
       .endOf("day")
       .toISOString();
 
