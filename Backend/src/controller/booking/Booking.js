@@ -302,18 +302,15 @@ export const addSeats = async (req, res) => {
     }
 
     try {
-      const strOrderXml = `<Order><Tickets><Ticket><TicketTypeCode>${strType}</TicketTypeCode><Quantity>${intQty}</Quantity><Price>-1</Price></Ticket></Tickets></Order>`;
-      
-      const result = await addSeatsExService({
-        cinemaId,
-        strTransId,
-        lngSessionId: strSessId,
-        strOrderXml,
-        blnUserSelectedSeating: false,
-        strAdditionalParameters: "",
-      });
+      let config = {
+        method: "get",
+        maxBodyLength: Infinity,
+        url: `${process.env.VISTA_URL}/api.asmx/AddSeats?CinemaId=${cinemaId}&strTransId=${strTransId}&strSessId=${strSessId}&strType=${strType}&intQty=${intQty}`,
+      };
 
-      if (result.success) {
+      const response = await axios.request(config);
+
+      if (response.data.Status == 1) {
         createLog({
           transaction_id: strTransId,
           session_id: strSessId,
@@ -325,7 +322,7 @@ export const addSeats = async (req, res) => {
           },
         });
 
-        const properties = result.properties || {};
+        const properties = response.data.data || {};
         if (!properties.strTransId) {
           properties.strTransId = strTransId;
         }
@@ -361,14 +358,14 @@ export const addSeats = async (req, res) => {
           step: {
             success: false,
             message: "Add Seats Failed",
-            error: result.strException,
+            error: response.data.data || response.data.msg || "Vista seat blocking failed",
             timestamp: new Date().toISOString(),
           },
         });
         return res.status(400).json({
           status: StatusCodes.BAD_REQUEST,
           message: ResponseMessage.BAD_REQUEST,
-          data: result.strException || "Vista seat blocking failed",
+          data: response.data.data || response.data.msg || "Vista seat blocking failed",
         });
       }
     } catch (error) {
