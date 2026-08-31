@@ -728,7 +728,87 @@ export const getAllBookingAdmin = async (req, res) => {
     as: "rewardData"
   }
       },
-     { $unwind: { path: "$rewardData", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$rewardData", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "rewards",
+          let: { transactionId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$transactionId", "$$transactionId"] },
+                    { $eq: ["$type", "redeemed"] }
+                  ]
+                }
+              }
+            },
+            {
+              $project: {
+                type: 1,
+                coins: 1,
+              }
+            }
+          ],
+          as: "redeemedRewardData"
+        }
+      },
+      { $unwind: { path: "$redeemedRewardData", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "rewards",
+          let: { userId: "$userId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $ne: ["$$userId", null] },
+                    { $eq: ["$userId", "$$userId"] },
+                    { $eq: ["$deletedStatus", 0] }
+                  ]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: "$userId",
+                totalRedeemedCoins: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$type", "redeemed"] },
+                      "$coins",
+                      0
+                    ]
+                  }
+                },
+                availableCoins: {
+                  $sum: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $ne: ["$type", "redeemed"] },
+                          {
+                            $or: [
+                              { $eq: ["$expiryDate", null] },
+                              { $gt: ["$expiryDate", new Date()] }
+                            ]
+                          }
+                        ]
+                      },
+                      { $subtract: ["$coins", "$redeemCoins"] },
+                      0
+                    ]
+                  }
+                }
+              }
+            }
+          ],
+          as: "userRewardStats"
+        }
+      },
+      { $unwind: { path: "$userRewardStats", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "appliedcoupons",
@@ -777,6 +857,8 @@ export const getAllBookingAdmin = async (req, res) => {
                 couponData: 1,
                 finalBookingCalculation: 1,
                 rewardData: 1,
+                redeemedRewardData: 1,
+                userRewardStats: 1,
                 "paymentResponse.id": 1,
                 "paymentResponse.amount": 1,
                 "paymentResponse.order_status": 1,

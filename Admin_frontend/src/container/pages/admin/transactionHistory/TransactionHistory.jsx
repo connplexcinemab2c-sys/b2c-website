@@ -453,6 +453,10 @@ const TransactionHistory = () => {
       "Convenience Fee",
       "Membership Discount",
       "Coin Redemption",
+      "Coins Redeemed",
+      "Coins Earned",
+      "User Pending Coins",
+      "User Total Redeemed Coins",
       "GST",
       "Total Amount",
       "Payment Status",
@@ -512,6 +516,11 @@ const TransactionHistory = () => {
               currency: "INR",
             })
           : "-",
+
+        coinsRedeemed: item?.redeemedRewardData?.coins ?? 0,
+        coinsEarned: item?.rewardData?.coins ?? 0,
+        userPendingCoins: item?.userRewardStats?.availableCoins ?? 0,
+        userTotalRedeemedCoins: item?.userRewardStats?.totalRedeemedCoins ?? 0,
 
         gst: item?.finalBookingCalculation?.convenienceFeesObject
           ? item?.finalBookingCalculation?.convenienceFeesObject?.gst || 0
@@ -715,6 +724,9 @@ const TransactionHistory = () => {
                       <Index.TableCell width="4%">
                         Coin Redemption
                       </Index.TableCell>
+                      <Index.TableCell width="4%">Coins Redeemed</Index.TableCell>
+                      <Index.TableCell width="4%">Coins Earned</Index.TableCell>
+                      <Index.TableCell width="4%">User Pending Coins</Index.TableCell>
                       <Index.TableCell width="4%">GST</Index.TableCell>
                       <Index.TableCell width="4%">Total Amount</Index.TableCell>
                       <Index.TableCell width="10%">Date</Index.TableCell>
@@ -842,6 +854,15 @@ const TransactionHistory = () => {
                                     currency: "INR",
                                   })
                                 : "-"}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.redeemedRewardData?.coins ?? 0}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.rewardData?.coins ?? 0}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.userRewardStats?.availableCoins ?? 0}
                             </Index.TableCell>
                             <Index.TableCell>
                               {item?.finalBookingCalculation
@@ -1583,6 +1604,30 @@ const TransactionHistory = () => {
                       {data?.finalBookingCalculation?.rewardDiscountApplied
                         ? `₹${parseFloat(data?.finalBookingCalculation?.rewardDiscountApplied).toFixed(2)}`
                         : "-"}
+                    </Index.Box>
+                    <Index.Box className="log-text">
+                      <Index.Box className="log-text-title" component="span">
+                        Coins Redeemed :
+                      </Index.Box>{" "}
+                      {data?.redeemedRewardData?.coins ?? 0}
+                    </Index.Box>
+                    <Index.Box className="log-text">
+                      <Index.Box className="log-text-title" component="span">
+                        Coins Earned :
+                      </Index.Box>{" "}
+                      {data?.rewardData?.coins ?? 0}
+                    </Index.Box>
+                    <Index.Box className="log-text">
+                      <Index.Box className="log-text-title" component="span">
+                        User Pending Coins :
+                      </Index.Box>{" "}
+                      {data?.userRewardStats?.availableCoins ?? 0}
+                    </Index.Box>
+                    <Index.Box className="log-text">
+                      <Index.Box className="log-text-title" component="span">
+                        User Total Redeemed Coins :
+                      </Index.Box>{" "}
+                      {data?.userRewardStats?.totalRedeemedCoins ?? 0}
                     </Index.Box>
                     <Index.Box className="log-text">
                       <Index.Box className="log-text-title" component="span">
