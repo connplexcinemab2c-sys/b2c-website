@@ -69,41 +69,68 @@ const getTicketQty = (item) => {
   return 0;
 };
 
-const getTicketAmount = (item) => {
-  let baseTicket = 0;
-  if (item?.commitBookingData?.curTicketsTotal !== undefined) {
-    baseTicket = item.commitBookingData.curTicketsTotal;
-  } else if (item?.addSeatData?.curTicketsTotal !== undefined) {
-    baseTicket = item.addSeatData.curTicketsTotal;
-  } else if (item?.finalBookingCalculation?.ticketCart?.total !== undefined) {
-    const combinedTotal = item.finalBookingCalculation.ticketCart.total;
-    const foodTotal = item?.addSeatData?.curFoodTotal || 0;
-    if (foodTotal > 0 && combinedTotal > foodTotal) {
-      baseTicket = combinedTotal - foodTotal;
-    } else {
-      baseTicket = combinedTotal;
-    }
+const getThreeDCharges = (item) => {
+  const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
+                (item?.addSeatData?.curTicketsTax3 > 0) ||
+                item?.movieData?.movieType?.includes("3D") || 
+                item?.movieData?.name?.toUpperCase().includes("3D") ||
+                item?.movieId?.movieType?.includes("3D") ||
+                item?.movieId?.name?.toUpperCase().includes("3D");
+  if (has3D) {
+    const qty = getTicketQty(item);
+    return qty * 30;
   }
+  return 0;
+};
+
+const getTicketAmount = (item) => {
+  let grossTicket = 0;
   
-  return Math.max(0, baseTicket);
+  if (item?.finalBookingCalculation?.ticketCart?.ticketTotal !== undefined && Number(item.finalBookingCalculation.ticketCart.ticketTotal) > 0) {
+    grossTicket = Number(item.finalBookingCalculation.ticketCart.ticketTotal);
+  } else if (item?.addSeatData?.curTicketsTotal !== undefined && Number(item.addSeatData.curTicketsTotal) > 0) {
+    const seatTicket = parseFloat(item.addSeatData.curTicketsTotal) || 0;
+    const memberDisc = parseFloat(item?.finalBookingCalculation?.ticketCart?.membershipDiscount) || 0;
+    const couponDisc = parseFloat(item?.finalBookingCalculation?.totalDiscount) || 0;
+    grossTicket = seatTicket + memberDisc + couponDisc;
+  } else if (item?.commitBookingData?.curTicketsTotal !== undefined && Number(item.commitBookingData.curTicketsTotal) > 0) {
+    const commitTicket = parseFloat(item.commitBookingData.curTicketsTotal) || 0;
+    const memberDisc = parseFloat(item?.finalBookingCalculation?.ticketCart?.membershipDiscount) || 0;
+    const couponDisc = parseFloat(item?.finalBookingCalculation?.totalDiscount) || 0;
+    grossTicket = commitTicket + memberDisc + couponDisc;
+  } else if (item?.finalBookingCalculation?.ticketCart?.total !== undefined) {
+    const cartTotal = parseFloat(item.finalBookingCalculation.ticketCart.total) || 0;
+    const memberDisc = parseFloat(item?.finalBookingCalculation?.ticketCart?.membershipDiscount) || 0;
+    const couponDisc = parseFloat(item?.finalBookingCalculation?.totalDiscount) || 0;
+    grossTicket = cartTotal + memberDisc + couponDisc;
+  }
+
+  const threeD = getThreeDCharges(item) || 0;
+  if (threeD > 0 && grossTicket >= threeD) {
+    return Math.max(0, grossTicket - threeD);
+  }
+  return Math.max(0, grossTicket);
 };
 
 const getFoodAmount = (item) => {
   let baseFood = 0;
-  if (item?.commitBookingData?.curFoodTotal !== undefined) {
-    baseFood = item.commitBookingData.curFoodTotal;
+  if (item?.finalBookingCalculation?.foodCart?.fnbTotal !== undefined && Number(item.finalBookingCalculation.foodCart.fnbTotal) > 0) {
+    baseFood = Number(item.finalBookingCalculation.foodCart.fnbTotal);
+  } else if (item?.finalBookingCalculation?.foodCart?.total !== undefined && Number(item.finalBookingCalculation.foodCart.total) > 0) {
+    const foodTotal = parseFloat(item.finalBookingCalculation.foodCart.total) || 0;
+    const foodMemberDisc = parseFloat(item?.finalBookingCalculation?.foodCart?.membershipDiscount) || 0;
+    baseFood = foodTotal + foodMemberDisc;
+  } else if (item?.fAndBDetails && item?.fAndBDetails?.length > 0) {
+    baseFood = item.fAndBDetails.reduce((acc, f) => acc + (parseFloat(f.price) || 0), 0);
   } else if (item?.foodAndBvgResponse?.curFoodTotal !== undefined) {
-    baseFood = item.foodAndBvgResponse.curFoodTotal;
+    baseFood = parseFloat(item.foodAndBvgResponse.curFoodTotal) || 0;
   } else if (item?.addSeatData?.curFoodTotal !== undefined) {
-    baseFood = item.addSeatData.curFoodTotal;
-  } else if (item?.finalBookingCalculation?.foodCart?.total !== undefined) {
-    baseFood = item.finalBookingCalculation.foodCart.total;
+    baseFood = parseFloat(item.addSeatData.curFoodTotal) || 0;
+  } else if (item?.commitBookingData?.curFoodTotal !== undefined) {
+    baseFood = parseFloat(item.commitBookingData.curFoodTotal) || 0;
   }
   
-  if (baseFood > 0) {
-    return Math.round(baseFood * 1.05 * 100) / 100;
-  }
-  return 0;
+  return Math.max(0, baseFood);
 };
 
 const TransactionHistory = () => {
@@ -432,16 +459,18 @@ const TransactionHistory = () => {
       "User Details",
       "Order Id",
       "Booking Id",
-      "Ticket Amount",
+      "Gross Ticket Amount",
+      "3D Charges",
       "F&B Amount",
       "Convenience Fee",
+      "GST",
       "Membership Discount",
+      "Coupon Discount",
       "Coin Redemption",
       "Coins Redeemed",
       "Coins Earned",
       "User Pending Coins",
       "User Total Redeemed Coins",
-      "GST",
       "Total Amount",
       "Payment Status",
       "Booking Status",
@@ -449,10 +478,15 @@ const TransactionHistory = () => {
     ];
 
     const rows = allData?.map((item) => {
+      const threeDCharges = getThreeDCharges(item);
       const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
+      const couponDiscount = item?.finalBookingCalculation?.totalDiscount || 0;
+      const membershipDiscount =
+        (item?.finalBookingCalculation?.ticketCart?.membershipDiscount || 0) +
+        (item?.finalBookingCalculation?.foodCart?.membershipDiscount || 0);
 
       return {
-        cinema_name: item?.cinemaData?.cinemaName,
+        cinema_name: item?.cinemaData?.cinemaName || "-",
         User_details: `${
           item?.userData?.firstName && item?.userData?.firstName
         } ${item?.userData?.lastName && item?.userData?.lastName} ${
@@ -467,45 +501,53 @@ const TransactionHistory = () => {
               style: "currency",
               currency: "INR",
             })
-          : "-",
-
+          : "₹0.00",
+        three_d_charges: threeDCharges > 0
+          ? threeDCharges.toLocaleString("en-IN", {
+              style: "currency",
+              currency: "INR",
+            })
+          : "₹0.00",
         fandBAmount: getFoodAmount(item)
           ? getFoodAmount(item).toLocaleString("en-IN", {
               style: "currency",
               currency: "INR",
             })
           : "₹0.00",
-
         ConvenienceFee: item?.finalBookingCalculation?.convenienceFeesObject
-          ? item?.finalBookingCalculation?.convenienceFeesObject
-              ?.convenienceFees || 0
-          : "-",
-        membershipDiscount:
-          (item?.finalBookingCalculation?.ticketCart?.membershipDiscount || 0) +
-          (item?.finalBookingCalculation?.foodCart?.membershipDiscount || 0) || "-",
-
-        coinRedemption: coinRedemption
+          ? (item?.finalBookingCalculation?.convenienceFeesObject?.convenienceFees || 0).toLocaleString("en-IN", {
+              style: "currency",
+              currency: "INR",
+            })
+          : "₹0.00",
+        gst: item?.finalBookingCalculation?.convenienceFeesObject
+          ? (item?.finalBookingCalculation?.convenienceFeesObject?.gst || 0).toLocaleString("en-IN", {
+              style: "currency",
+              currency: "INR",
+            })
+          : "₹0.00",
+        membershipDiscount: membershipDiscount > 0
+          ? membershipDiscount.toLocaleString("en-IN", {
+              style: "currency",
+              currency: "INR",
+            })
+          : "₹0.00",
+        couponDiscount: couponDiscount > 0
+          ? couponDiscount.toLocaleString("en-IN", {
+              style: "currency",
+              currency: "INR",
+            })
+          : "₹0.00",
+        coinRedemption: coinRedemption > 0
           ? coinRedemption.toLocaleString("en-IN", {
               style: "currency",
               currency: "INR",
             })
-          : "-",
-
+          : "₹0.00",
         coinsRedeemed: item?.redeemedRewardData?.coins ?? 0,
         coinsEarned: item?.rewardData?.coins ?? 0,
         userPendingCoins: item?.userRewardStats?.availableCoins ?? 0,
         userTotalRedeemedCoins: item?.userRewardStats?.totalRedeemedCoins ?? 0,
-
-        gst: item?.finalBookingCalculation?.convenienceFeesObject
-          ? item?.finalBookingCalculation?.convenienceFeesObject?.gst || 0
-          : "-",
-
-        // Amount not including membership discount and show payment response amount
-        // total_amountincTax:
-        //   item?.paymentResponse?.amount &&
-        //   !isNaN(parseFloat(item?.paymentResponse?.amount))
-        //     ? parseFloat(item?.paymentResponse?.amount)
-        //     : "-",
 
         total_amountincTax: (() => {
           const baseAmount = item?.paymentResponse?.amount && !isNaN(parseFloat(item?.paymentResponse?.amount))
@@ -513,10 +555,14 @@ const TransactionHistory = () => {
             : item?.finalBookingCalculation?.finalAmount && !isNaN(parseFloat(item?.finalBookingCalculation?.finalAmount))
             ? parseFloat(item?.finalBookingCalculation?.finalAmount)
             : null;
-          return baseAmount !== null ? baseAmount : "-";
+          return baseAmount !== null
+            ? baseAmount.toLocaleString("en-IN", {
+                style: "currency",
+                currency: "INR",
+              })
+            : "-";
         })(),
 
-        // Only view status 1 for Success and 4 & 5 for Fail
         Payment_status: getPaymentStatus(item),
         Booking_status: getBookingStatus(item),
 
@@ -678,35 +724,39 @@ const TransactionHistory = () => {
                 >
                   <Index.TableHead>
                     <Index.TableRow>
-                      <Index.TableCell width="25%">Cinema Name</Index.TableCell>
-                      <Index.TableCell width="25%">
+                      <Index.TableCell width="15%">Cinema Name</Index.TableCell>
+                      <Index.TableCell width="15%">
                         User Details
                       </Index.TableCell>
-                      <Index.TableCell width="20%">Order Id</Index.TableCell>
-                      <Index.TableCell width="20%">Booking Id</Index.TableCell>
-                      <Index.TableCell width="4%">
-                        Ticket Amount
+                      <Index.TableCell width="10%">Order Id</Index.TableCell>
+                      <Index.TableCell width="10%">Booking Id</Index.TableCell>
+                      <Index.TableCell width="5%">
+                        Gross Ticket Amount
                       </Index.TableCell>
+                      <Index.TableCell width="4%">3D Charges</Index.TableCell>
                       <Index.TableCell width="4%">F&B Amount</Index.TableCell>
                       <Index.TableCell width="4%">
                         Convenience Fee
                       </Index.TableCell>
+                      <Index.TableCell width="4%">GST</Index.TableCell>
                       <Index.TableCell width="4%">
                         Membership Discount
                       </Index.TableCell>
                       <Index.TableCell width="4%">
+                        Coupon Discount
+                      </Index.TableCell>
+                      <Index.TableCell width="4%">
                         Coin Redemption
                       </Index.TableCell>
-                      <Index.TableCell width="4%">Coins Redeemed</Index.TableCell>
-                      <Index.TableCell width="4%">Coins Earned</Index.TableCell>
-                      <Index.TableCell width="4%">User Pending Coins</Index.TableCell>
-                      <Index.TableCell width="4%">GST</Index.TableCell>
-                      <Index.TableCell width="4%">Total Amount</Index.TableCell>
-                      <Index.TableCell width="10%">Date</Index.TableCell>
-                      <Index.TableCell width="10%">
+                      <Index.TableCell width="3%">Coins Redeemed</Index.TableCell>
+                      <Index.TableCell width="3%">Coins Earned</Index.TableCell>
+                      <Index.TableCell width="3%">User Pending Coins</Index.TableCell>
+                      <Index.TableCell width="5%">Total Amount</Index.TableCell>
+                      <Index.TableCell width="8%">Date</Index.TableCell>
+                      <Index.TableCell width="5%">
                         Payment Status
                       </Index.TableCell>
-                      <Index.TableCell width="10%">
+                      <Index.TableCell width="5%">
                         Booking Status
                       </Index.TableCell>
                     </Index.TableRow>
@@ -719,7 +769,7 @@ const TransactionHistory = () => {
                           variant="td"
                           scope="row"
                           className="no-data-in-list"
-                          colSpan={17}
+                          colSpan={19}
                           align="center"
                         >
                           <Index.CircularProgress size={"20px"} />
@@ -778,7 +828,18 @@ const TransactionHistory = () => {
                                     style: "currency",
                                     currency: "INR",
                                   })
-                                : "-"}
+                                : "₹0.00"}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {(() => {
+                                const threeD = getThreeDCharges(item);
+                                return threeD > 0
+                                  ? threeD.toLocaleString("en-IN", {
+                                      style: "currency",
+                                      currency: "INR",
+                                    })
+                                  : "₹0.00";
+                              })()}
                             </Index.TableCell>
                             <Index.TableCell>
                               {getFoodAmount(item)
@@ -799,30 +860,7 @@ const TransactionHistory = () => {
                                     style: "currency",
                                     currency: "INR",
                                   })
-                                : "-"}
-                            </Index.TableCell>
-                            <Index.TableCell>
-                              {item?.finalBookingCalculation?.ticketCart
-                                ?.membershipDiscount +
-                                item?.finalBookingCalculation?.foodCart
-                                  ?.membershipDiscount || 0}
-                            </Index.TableCell>
-                            <Index.TableCell>
-                              {item?.finalBookingCalculation?.rewardDiscountApplied
-                                ? item?.finalBookingCalculation?.rewardDiscountApplied.toLocaleString("en-IN", {
-                                    style: "currency",
-                                    currency: "INR",
-                                  })
-                                : "-"}
-                            </Index.TableCell>
-                            <Index.TableCell>
-                              {item?.redeemedRewardData?.coins ?? 0}
-                            </Index.TableCell>
-                            <Index.TableCell>
-                              {item?.rewardData?.coins ?? 0}
-                            </Index.TableCell>
-                            <Index.TableCell>
-                              {item?.userRewardStats?.availableCoins ?? 0}
+                                : "₹0.00"}
                             </Index.TableCell>
                             <Index.TableCell>
                               {item?.finalBookingCalculation
@@ -834,7 +872,45 @@ const TransactionHistory = () => {
                                     style: "currency",
                                     currency: "INR",
                                   })
-                                : "-"}
+                                : "₹0.00"}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {(() => {
+                                const memDisc =
+                                  (item?.finalBookingCalculation?.ticketCart?.membershipDiscount || 0) +
+                                  (item?.finalBookingCalculation?.foodCart?.membershipDiscount || 0);
+                                return memDisc > 0
+                                  ? memDisc.toLocaleString("en-IN", {
+                                      style: "currency",
+                                      currency: "INR",
+                                    })
+                                  : "₹0.00";
+                              })()}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.finalBookingCalculation?.totalDiscount > 0
+                                ? (item.finalBookingCalculation.totalDiscount).toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                : "₹0.00"}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.finalBookingCalculation?.rewardDiscountApplied > 0
+                                ? item.finalBookingCalculation.rewardDiscountApplied.toLocaleString("en-IN", {
+                                    style: "currency",
+                                    currency: "INR",
+                                  })
+                                : "₹0.00"}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.redeemedRewardData?.coins ?? 0}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.rewardData?.coins ?? 0}
+                            </Index.TableCell>
+                            <Index.TableCell>
+                              {item?.userRewardStats?.availableCoins ?? 0}
                             </Index.TableCell>
                             <Index.TableCell>
                               {(() => {
@@ -1543,16 +1619,74 @@ const TransactionHistory = () => {
                     </Index.Box>
                     <Index.Box className="log-text">
                       <Index.Box className="log-text-title" component="span">
-                        Amount :
+                        Gross Ticket Amount :
                       </Index.Box>{" "}
-                      {data?.paymentResponse?.amount ? parseFloat(data?.paymentResponse?.amount).toFixed(2) : "-"}
+                      {getTicketAmount(data) ? `₹${getTicketAmount(data).toFixed(2)}` : "₹0.00"}
                     </Index.Box>
+                    {getThreeDCharges(data) > 0 && (
+                      <Index.Box className="log-text">
+                        <Index.Box className="log-text-title" component="span">
+                          3D Charges :
+                        </Index.Box>{" "}
+                        {`₹${getThreeDCharges(data).toFixed(2)}`}
+                      </Index.Box>
+                    )}
+                    {getFoodAmount(data) > 0 && (
+                      <Index.Box className="log-text">
+                        <Index.Box className="log-text-title" component="span">
+                          F&B Amount :
+                        </Index.Box>{" "}
+                        {`₹${getFoodAmount(data).toFixed(2)}`}
+                      </Index.Box>
+                    )}
+                    {data?.finalBookingCalculation?.convenienceFeesObject?.convenienceFees > 0 && (
+                      <Index.Box className="log-text">
+                        <Index.Box className="log-text-title" component="span">
+                          Convenience Fee :
+                        </Index.Box>{" "}
+                        {`₹${parseFloat(data.finalBookingCalculation.convenienceFeesObject.convenienceFees).toFixed(2)}`}
+                      </Index.Box>
+                    )}
+                    {data?.finalBookingCalculation?.convenienceFeesObject?.gst > 0 && (
+                      <Index.Box className="log-text">
+                        <Index.Box className="log-text-title" component="span">
+                          GST :
+                        </Index.Box>{" "}
+                        {`₹${parseFloat(data.finalBookingCalculation.convenienceFeesObject.gst).toFixed(2)}`}
+                      </Index.Box>
+                    )}
+                    {((data?.finalBookingCalculation?.ticketCart?.membershipDiscount || 0) + (data?.finalBookingCalculation?.foodCart?.membershipDiscount || 0)) > 0 && (
+                      <Index.Box className="log-text">
+                        <Index.Box className="log-text-title" component="span">
+                          Membership Discount :
+                        </Index.Box>{" "}
+                        {`- ₹${((data?.finalBookingCalculation?.ticketCart?.membershipDiscount || 0) + (data?.finalBookingCalculation?.foodCart?.membershipDiscount || 0)).toFixed(2)}`}
+                      </Index.Box>
+                    )}
+                    {(data?.finalBookingCalculation?.totalDiscount || 0) > 0 && (
+                      <Index.Box className="log-text">
+                        <Index.Box className="log-text-title" component="span">
+                          Coupon Discount :
+                        </Index.Box>{" "}
+                        {`- ₹${parseFloat(data.finalBookingCalculation.totalDiscount).toFixed(2)}`}
+                      </Index.Box>
+                    )}
+                    {(data?.finalBookingCalculation?.rewardDiscountApplied || 0) > 0 && (
+                      <Index.Box className="log-text">
+                        <Index.Box className="log-text-title" component="span">
+                          Coin Redemption :
+                        </Index.Box>{" "}
+                        {`- ₹${parseFloat(data.finalBookingCalculation.rewardDiscountApplied).toFixed(2)}`}
+                      </Index.Box>
+                    )}
                     <Index.Box className="log-text">
                       <Index.Box className="log-text-title" component="span">
-                        Coin Redemption :
+                        Total Amount Paid :
                       </Index.Box>{" "}
-                      {data?.finalBookingCalculation?.rewardDiscountApplied
-                        ? `₹${parseFloat(data?.finalBookingCalculation?.rewardDiscountApplied).toFixed(2)}`
+                      {data?.paymentResponse?.amount
+                        ? `₹${parseFloat(data?.paymentResponse?.amount).toFixed(2)}`
+                        : data?.finalBookingCalculation?.finalAmount
+                        ? `₹${parseFloat(data?.finalBookingCalculation?.finalAmount).toFixed(2)}`
                         : "-"}
                     </Index.Box>
                     <Index.Box className="log-text">
