@@ -69,20 +69,6 @@ const getTicketQty = (item) => {
   return 0;
 };
 
-const getThreeDCharges = (item) => {
-  const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
-                (item?.addSeatData?.curTicketsTax3 > 0) ||
-                item?.movieData?.movieType?.includes("3D") || 
-                item?.movieData?.name?.toUpperCase().includes("3D") ||
-                item?.movieId?.movieType?.includes("3D") ||
-                item?.movieId?.name?.toUpperCase().includes("3D");
-  if (has3D) {
-    const qty = getTicketQty(item);
-    return qty * 30;
-  }
-  return 0;
-};
-
 const getTicketAmount = (item) => {
   let grossTicket = 0;
   
@@ -105,10 +91,6 @@ const getTicketAmount = (item) => {
     grossTicket = cartTotal + memberDisc + couponDisc;
   }
 
-  const threeD = getThreeDCharges(item) || 0;
-  if (threeD > 0 && grossTicket >= threeD) {
-    return Math.max(0, grossTicket - threeD);
-  }
   return Math.max(0, grossTicket);
 };
 
@@ -116,20 +98,10 @@ const getGrossTicketAmount = getTicketAmount;
 
 const getNetTicketAmount = (item) => {
   if (item?.finalBookingCalculation?.ticketCart?.totalAfterDiscount !== undefined && Number(item.finalBookingCalculation.ticketCart.totalAfterDiscount) >= 0) {
-    let net = Number(item.finalBookingCalculation.ticketCart.totalAfterDiscount);
-    const threeD = getThreeDCharges(item) || 0;
-    if (threeD > 0 && net >= threeD) {
-      net = Math.max(0, net - threeD);
-    }
-    return net;
+    return Number(item.finalBookingCalculation.ticketCart.totalAfterDiscount);
   }
   if (item?.finalBookingCalculation?.ticketCart?.total !== undefined && Number(item.finalBookingCalculation.ticketCart.total) >= 0) {
-    let net = Number(item.finalBookingCalculation.ticketCart.total);
-    const threeD = getThreeDCharges(item) || 0;
-    if (threeD > 0 && net >= threeD) {
-      net = Math.max(0, net - threeD);
-    }
-    return net;
+    return Number(item.finalBookingCalculation.ticketCart.total);
   }
   const gross = getGrossTicketAmount(item);
   const memberDisc = parseFloat(item?.finalBookingCalculation?.ticketCart?.membershipDiscount) || 0;
@@ -486,7 +458,6 @@ const TransactionHistory = () => {
       "Order Id",
       "Booking Id",
       "Gross Ticket Amount",
-      "3D Charges",
       "Membership Discount",
       "Coupon Discount",
       "Coin Redemption",
@@ -505,7 +476,6 @@ const TransactionHistory = () => {
     ];
 
     const rows = allData?.map((item) => {
-      const threeDCharges = getThreeDCharges(item);
       const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
       const couponDiscount = item?.finalBookingCalculation?.totalDiscount || 0;
       const membershipDiscount =
@@ -525,12 +495,6 @@ const TransactionHistory = () => {
           : "-",
         ticket_amount: getGrossTicketAmount(item)
           ? getGrossTicketAmount(item).toLocaleString("en-IN", {
-              style: "currency",
-              currency: "INR",
-            })
-          : "₹0.00",
-        three_d_charges: threeDCharges > 0
-          ? threeDCharges.toLocaleString("en-IN", {
               style: "currency",
               currency: "INR",
             })
@@ -764,7 +728,6 @@ const TransactionHistory = () => {
                       <Index.TableCell width="5%">
                         Gross Ticket Amount
                       </Index.TableCell>
-                      <Index.TableCell width="4%">3D Charges</Index.TableCell>
                       <Index.TableCell width="4%">
                         Membership Discount
                       </Index.TableCell>
@@ -803,7 +766,7 @@ const TransactionHistory = () => {
                           variant="td"
                           scope="row"
                           className="no-data-in-list"
-                          colSpan={20}
+                          colSpan={19}
                           align="center"
                         >
                           <Index.CircularProgress size={"20px"} />
@@ -863,17 +826,6 @@ const TransactionHistory = () => {
                                     currency: "INR",
                                   })
                                 : "₹0.00"}
-                            </Index.TableCell>
-                            <Index.TableCell>
-                              {(() => {
-                                const threeD = getThreeDCharges(item);
-                                return threeD > 0
-                                  ? threeD.toLocaleString("en-IN", {
-                                      style: "currency",
-                                      currency: "INR",
-                                    })
-                                  : "₹0.00";
-                              })()}
                             </Index.TableCell>
                             <Index.TableCell>
                               {(() => {
@@ -1681,14 +1633,6 @@ const TransactionHistory = () => {
                       </Index.Box>{" "}
                       {getGrossTicketAmount(data) ? `₹${getGrossTicketAmount(data).toFixed(2)}` : "₹0.00"}
                     </Index.Box>
-                    {getThreeDCharges(data) > 0 && (
-                      <Index.Box className="log-text">
-                        <Index.Box className="log-text-title" component="span">
-                          3D Charges :
-                        </Index.Box>{" "}
-                        {`₹${getThreeDCharges(data).toFixed(2)}`}
-                      </Index.Box>
-                    )}
                     {((data?.finalBookingCalculation?.ticketCart?.membershipDiscount || 0) + (data?.finalBookingCalculation?.foodCart?.membershipDiscount || 0)) > 0 && (
                       <Index.Box className="log-text">
                         <Index.Box className="log-text-title" component="span">
