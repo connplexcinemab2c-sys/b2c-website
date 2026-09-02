@@ -497,7 +497,8 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
 
   if (
     adminLoginData?.type == "Admin" ||
-    adminLoginData?.roleId?.permissions?.includes("bookings_view")
+    adminLoginData?.roleId?.permissions?.includes("bookings_view") ||
+    adminLoginData?.roleId?.permissions?.includes("transaction_view")
   ) {
     return (
       <>

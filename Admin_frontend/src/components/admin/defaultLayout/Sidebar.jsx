@@ -845,9 +845,12 @@ const Sidebar = ({ open, setOpen }) => {
                       <></>
                     )}
 
-                    {adminLoginData?.roleId?.permissions?.includes(
+                    {(adminLoginData?.roleId?.permissions?.includes(
                       "bookings_view"
-                    ) ? (
+                    ) ||
+                      adminLoginData?.roleId?.permissions?.includes(
+                        "transaction_view"
+                      )) ? (
                       <PagesIndex.Link
                         to={"/admin/transaction-report"}
                         className="sidebar-links"
