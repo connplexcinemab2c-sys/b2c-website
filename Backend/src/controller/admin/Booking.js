@@ -759,17 +759,13 @@ export const getAllBookingAdmin = async (req, res) => {
       {
         $lookup: {
           from: "rewards",
-          let: { transactionId: "$_id" },
+          localField: "_id",
+          foreignField: "transactionId",
           pipeline: [
             {
               $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$transactionId", "$$transactionId"] },
-                    { $eq: ["$type", "earned"] }
-                  ]
-                }
-              }
+                type: "earned",
+              },
             },
             {
               $project: {
@@ -777,55 +773,46 @@ export const getAllBookingAdmin = async (req, res) => {
                 coins: 1,
                 lastName: 1,
                 isExpired: 1,
-                expiryDate: 1
-              }
-            }
+                expiryDate: 1,
+              },
+            },
           ],
-          as: "rewardData"
-        }
+          as: "rewardData",
+        },
       },
       { $unwind: { path: "$rewardData", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "rewards",
-          let: { transactionId: "$_id" },
+          localField: "_id",
+          foreignField: "transactionId",
           pipeline: [
             {
               $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$transactionId", "$$transactionId"] },
-                    { $eq: ["$type", "redeemed"] }
-                  ]
-                }
-              }
+                type: "redeemed",
+              },
             },
             {
               $project: {
                 type: 1,
                 coins: 1,
-              }
-            }
+              },
+            },
           ],
-          as: "redeemedRewardData"
-        }
+          as: "redeemedRewardData",
+        },
       },
       { $unwind: { path: "$redeemedRewardData", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "rewards",
-          let: { userId: "$userId" },
+          localField: "userId",
+          foreignField: "userId",
           pipeline: [
             {
               $match: {
-                $expr: {
-                  $and: [
-                    { $ne: ["$$userId", null] },
-                    { $eq: ["$userId", "$$userId"] },
-                    { $eq: ["$deletedStatus", 0] }
-                  ]
-                }
-              }
+                deletedStatus: 0,
+              },
             },
             {
               $group: {
@@ -835,9 +822,9 @@ export const getAllBookingAdmin = async (req, res) => {
                     $cond: [
                       { $eq: ["$type", "redeemed"] },
                       "$coins",
-                      0
-                    ]
-                  }
+                      0,
+                    ],
+                  },
                 },
                 availableCoins: {
                   $sum: {
@@ -848,21 +835,21 @@ export const getAllBookingAdmin = async (req, res) => {
                           {
                             $or: [
                               { $eq: ["$expiryDate", null] },
-                              { $gt: ["$expiryDate", new Date()] }
-                            ]
-                          }
-                        ]
+                              { $gt: ["$expiryDate", new Date()] },
+                            ],
+                          },
+                        ],
                       },
-                      { $subtract: ["$coins", "$redeemCoins"] },
-                      0
-                    ]
-                  }
-                }
-              }
-            }
+                      { $subtract: ["$coins", { $ifNull: ["$redeemCoins", 0] }] },
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
           ],
-          as: "userRewardStats"
-        }
+          as: "userRewardStats",
+        },
       },
       { $unwind: { path: "$userRewardStats", preserveNullAndEmptyArrays: true } },
       {

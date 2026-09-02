@@ -193,6 +193,8 @@ let transaction = new mongoose.Schema(
     timestamps: true,
   }
 );
+transaction.index({ createdAt: -1, deletedStatus: 1 });
+transaction.index({ cinemaId: 1, createdAt: -1 });
 
 const Transaction = mongoose.model("transaction", transaction);
 export default Transaction;

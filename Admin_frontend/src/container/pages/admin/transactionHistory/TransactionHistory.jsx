@@ -141,8 +141,8 @@ const TransactionHistory = () => {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState("");
   const [count, setCount] = useState(0);
-  const [excel, setExcel] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState("");
   const fileName = "Transaction";
   const [searchValue, setSearchValue] = useState("");
   const [cinemaList, setCinemaList] = useState([]);
@@ -407,6 +407,7 @@ const TransactionHistory = () => {
       showAbortedTransaction: abortedTransaction,
     };
 
+    setExportProgress("Fetching page 1...");
     // First request
     const firstResponse = await PagesIndex.DataService.post(
       PagesIndex.Api.GET_BOOKINGS_DETAILS,
@@ -416,12 +417,14 @@ const TransactionHistory = () => {
     const data = firstResponse?.data?.data || [];
     totalCount = firstResponse?.data?.totalCount || 0;
 
-    const totalPages = Math.ceil(totalCount / pageSize);
+    const totalPages = Math.ceil(totalCount / pageSize) || 1;
     allData.push(...data);
+    setExportProgress(`Fetched 1 of ${totalPages} pages...`);
 
     // Fetch remaining pages
     while (currentPageNum < totalPages) {
       currentPageNum += 1;
+      setExportProgress(`Fetching page ${currentPageNum} of ${totalPages}...`);
 
       const response = await PagesIndex.DataService.post(
         PagesIndex.Api.GET_BOOKINGS_DETAILS,
@@ -437,17 +440,21 @@ const TransactionHistory = () => {
   const handleExport = async () => {
     try {
       setIsExporting(true);
+      setExportProgress("Starting export...");
       const allData = await fetchAllData();
       if (!allData || allData.length === 0) {
         PagesIndex.toast.info("No transaction data found to export.");
         setIsExporting(false);
+        setExportProgress("");
         return;
       }
+      setExportProgress("Generating Excel file...");
       generateExcel(allData);
     } catch (error) {
       console.error("Export error:", error);
       PagesIndex.toast.error("Failed to export data. Please try again.");
       setIsExporting(false);
+      setExportProgress("");
     }
   };
 
@@ -581,6 +588,7 @@ const TransactionHistory = () => {
       { compression: true }
     );
     setIsExporting(false);
+    setExportProgress("");
   };
 
   // const filterMovie = (data) => {
@@ -684,7 +692,9 @@ const TransactionHistory = () => {
                           ) : null
                         }
                       >
-                        {isExporting ? "Exporting..." : "Export excel"}
+                        {isExporting
+                          ? exportProgress || "Exporting..."
+                          : "Export excel"}
                       </Index.Button>
                     </Index.Box>
                     {/* </a> */}

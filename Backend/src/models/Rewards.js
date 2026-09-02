@@ -78,6 +78,9 @@ const RewardsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+RewardsSchema.index({ userId: 1, deletedStatus: 1 });
+RewardsSchema.index({ transactionId: 1, type: 1 });
+
 const Rewards = mongoose.model("rewards", RewardsSchema);
 
 export default Rewards;
