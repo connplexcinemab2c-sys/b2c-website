@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import Index from "../../../Index";
 import PagesIndex from "../../../PagesIndex";
 import "./TransactionHistory.css";
-import { adminLogout } from "../../../../redux-toolkit/slice/admin-slice/AdminSlice";
-import { useDispatch } from "react-redux";
-import { Drawer } from "@mui/material";
 // import { API_ENDPOINT } from "../../../../config/DataService";
 
 const getPaymentStatus = (item) => {
@@ -132,7 +129,6 @@ const TransactionHistory = () => {
   const { adminLoginData } = PagesIndex.useSelector(
     (state) => state?.admin?.AdminSlice
   );
-  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [bookingsList, setBookingsList] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -344,42 +340,6 @@ const TransactionHistory = () => {
   useEffect(() => {
     getCinemaList();
   }, []);
-  useEffect(() => {
-    const customHeadings =
-      bookingsList &&
-      bookingsList?.map((item) => {
-        const userDetailsArray = [
-          item?.userData?.firstName,
-          item?.userData?.lastName,
-          item?.userData?.email,
-          item?.userData?.mobileNumber,
-        ];
-
-        const userDetails = userDetailsArray.some(Boolean)
-          ? userDetailsArray.filter(Boolean).join(" ")
-          : "-";
-
-        return {
-          "Cinema Name": item?.cinemaData?.cinemaName || "-",
-          "User Details": userDetails,
-          "Order Id": item?.initTransId || "-",
-          "Booking Id": item?.addSeatData?.strBookId || "-",
-          Amount: item?.paymentResponse?.amount
-            ? (item?.paymentResponse?.amount)?.toLocaleString("en-IN", {
-                style: "currency",
-                currency: "INR",
-              })
-            : "-",
-          "Payment Status": item?.paymentsStatus ? "Success" : "Fail",
-          "Booking Status": item?.commitStatus ? "Success" : "Fail",
-          Date: item?.createdAt
-            ? PagesIndex.moment(item?.createdAt).format("DD/MM/YYYY hh:mm A")
-            : "-",
-        };
-      });
-
-    setExcel(customHeadings);
-  }, [bookingsList]);
 
   const handleOpen = (msg) => {
     setOpen(true);
@@ -645,7 +605,8 @@ const TransactionHistory = () => {
   ]);
   if (
     adminLoginData?.type == "Admin" ||
-    adminLoginData?.roleId?.permissions?.includes("transaction_view")
+    adminLoginData?.roleId?.permissions?.includes("transaction_view") ||
+    adminLoginData?.roleId?.permissions?.includes("bookings_view")
   ) {
     return (
       <>
@@ -931,22 +892,6 @@ const TransactionHistory = () => {
                             </Index.TableCell>
                             <Index.TableCell>
                               {item?.userRewardStats?.availableCoins ?? 0}
-                            </Index.TableCell>
-                            <Index.TableCell>
-                              {(() => {
-                                const baseAmount = item?.paymentResponse?.amount && !isNaN(parseFloat(item?.paymentResponse?.amount))
-                                  ? parseFloat(item?.paymentResponse?.amount)
-                                  : item?.finalBookingCalculation?.finalAmount && !isNaN(parseFloat(item?.finalBookingCalculation?.finalAmount))
-                                  ? parseFloat(item?.finalBookingCalculation?.finalAmount)
-                                  : null;
-                                if (baseAmount !== null) {
-                                  return baseAmount.toLocaleString("en-IN", {
-                                    style: "currency",
-                                    currency: "INR",
-                                  });
-                                }
-                                return "-";
-                              })()}
                             </Index.TableCell>
                             <Index.TableCell>
                               {item?.createdAt
@@ -1781,7 +1726,7 @@ const TransactionHistory = () => {
       </>
     );
   } else {
-    dispatch(adminLogout());
+    return <PagesIndex.Navigate to="/admin/dashboard" replace />;
   }
 };
 

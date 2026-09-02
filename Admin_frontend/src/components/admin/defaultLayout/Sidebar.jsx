@@ -818,9 +818,7 @@ const Sidebar = ({ open, setOpen }) => {
                     disablePadding
                     className="admin-sidebar-submenulist"
                   >
-                    {adminLoginData?.roleId?.permissions?.includes(
-                      "bookings_view"
-                    ) ? (
+                    {hasPermission(adminLoginData, "bookings_view") ? (
                       <PagesIndex.Link
                         to={"/admin/bookings"}
                         onClick={(e) => setOpen(false)}
@@ -845,12 +843,10 @@ const Sidebar = ({ open, setOpen }) => {
                       <></>
                     )}
 
-                    {(adminLoginData?.roleId?.permissions?.includes(
-                      "bookings_view"
-                    ) ||
-                      adminLoginData?.roleId?.permissions?.includes(
-                        "transaction_view"
-                      )) ? (
+                    {hasPermission(adminLoginData, [
+                      "bookings_view",
+                      "transaction_view",
+                    ]) ? (
                       <PagesIndex.Link
                         to={"/admin/transaction-report"}
                         className="sidebar-links"
@@ -875,9 +871,10 @@ const Sidebar = ({ open, setOpen }) => {
                       <></>
                     )}
 
-                    {adminLoginData?.roleId?.permissions?.includes(
-                      "transaction_view"
-                    ) ? (
+                    {hasPermission(adminLoginData, [
+                      "bookings_view",
+                      "transaction_view",
+                    ]) ? (
                       <PagesIndex.Link
                         to={"/admin/transaction-history"}
                         className="sidebar-links"
@@ -902,9 +899,7 @@ const Sidebar = ({ open, setOpen }) => {
                       <></>
                     )}
 
-                    {adminLoginData?.roleId?.permissions?.includes(
-                      "career_request_view"
-                    ) ? (
+                    {hasPermission(adminLoginData, "career_request_view") ? (
                       <PagesIndex.Link
                         to={"/admin/group-booking"}
                         className="sidebar-links"
