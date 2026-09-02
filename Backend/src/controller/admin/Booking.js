@@ -603,9 +603,65 @@ export const getAllBookingAdmin = async (req, res) => {
 
     // Build the aggregation pipeline
 
-    console.log(query, "Final Query");
-    const aggregationPipeline = [
-      { $match: query },
+    let totalCount = 0;
+    let bookingDetails = [];
+
+    const projectFields = {
+      initTransId: 1,
+      bookedFrom: 1,
+      status: 1,
+      cancellationPolicy: 1,
+      paymentsStatus: 1,
+      commitStatus: 1,
+      deletedStatus: 1,
+      refundStatus: 1,
+      createdAt: 1,
+      updatedAt: 1,
+      paymentsBreakup: 1,
+      couponData: 1,
+      finalBookingCalculation: 1,
+      rewardData: 1,
+      redeemedRewardData: 1,
+      userRewardStats: 1,
+      "paymentResponse.id": 1,
+      "paymentResponse.amount": 1,
+      "paymentResponse.order_status": 1,
+      "paymentResponse.payment_mode": 1,
+      "paymentResponse.order_id": 1,
+      "paymentResponse.tracking_id": 1,
+      "paymentResponse.status": 1,
+      "paymentResponse.method": 1,
+      "cinemaData.cinemaName": 1,
+      "cinemaData.address": 1,
+      "cinemaData.googleUrl": 1,
+      "cinemaData.emailId": 1,
+      "movieData.name": 1,
+      "movieData.category": 1,
+      "movieData.poster": 1,
+      "movieData.movieType": 1,
+      "showData.screenName": 1,
+      "showData.sessionRealShow": 1,
+      "userData.email": 1,
+      "userData.mobileNumber": 1,
+      "userData.firstName": 1,
+      "userData.lastName": 1,
+      "commitBookingData.strBookId": 1,
+      "commitBookingData.strSeatInfo": 1,
+      "commitBookingData.curTicketsTax3": 1,
+      "addSeatData.strBookId": 1,
+      "addSeatData.curTotal": 1,
+      "addSeatData.curTicketsTotal": 1,
+      "addSeatData.strSeatInfo": 1,
+      "addSeatData.curTicketsTax3": 1,
+      fAndBDetails: 1,
+      "foodAndBvgResponse.curTotal": 1,
+      "foodAndBvgResponse.curTicketsTotal": 1,
+      "foodAndBvgResponse.curFoodTotal": 1,
+      "setSeatData.strSeatInfo": 1,
+      logs: 1,
+    };
+
+    const lookupStages = [
       {
         $lookup: {
           from: "users",
@@ -701,32 +757,32 @@ export const getAllBookingAdmin = async (req, res) => {
         },
       },
       {
-  $lookup: {
-    from: "rewards",
-    let: { transactionId: "$_id" },
-    pipeline: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $eq: ["$transactionId", "$$transactionId"] },
-              { $eq: ["$type", "earned"] }
-            ]
-          }
+        $lookup: {
+          from: "rewards",
+          let: { transactionId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$transactionId", "$$transactionId"] },
+                    { $eq: ["$type", "earned"] }
+                  ]
+                }
+              }
+            },
+            {
+              $project: {
+                type: 1,
+                coins: 1,
+                lastName: 1,
+                isExpired: 1,
+                expiryDate: 1
+              }
+            }
+          ],
+          as: "rewardData"
         }
-      },
-      {
-        $project: {
-          type: 1,
-          coins: 1,
-          lastName: 1,
-          isExpired: 1,
-          expiryDate: 1
-        }
-      }
-    ],
-    as: "rewardData"
-  }
       },
       { $unwind: { path: "$rewardData", preserveNullAndEmptyArrays: true } },
       {
@@ -831,83 +887,46 @@ export const getAllBookingAdmin = async (req, res) => {
           as: "couponData",
         },
       },
-      ...(searchConditions.length > 0
-        ? [{ $match: { $or: searchConditions } }]
-        : []),
-      {
-        $facet: {
-          totalCount: [{ $count: "count" }],
-          data: [
-            { $sort: { createdAt: -1 } },
-            { $skip: skip },
-            { $limit: limit },
-            {
-              $project: {
-                initTransId: 1,
-                bookedFrom: 1,
-                status: 1,
-                cancellationPolicy: 1,
-                paymentsStatus: 1,
-                commitStatus: 1,
-                deletedStatus: 1,
-                refundStatus: 1,
-                createdAt: 1,
-                updatedAt: 1,
-                paymentsBreakup: 1,
-                couponData: 1,
-                finalBookingCalculation: 1,
-                rewardData: 1,
-                redeemedRewardData: 1,
-                userRewardStats: 1,
-                "paymentResponse.id": 1,
-                "paymentResponse.amount": 1,
-                "paymentResponse.order_status": 1,
-                "paymentResponse.payment_mode": 1,
-                "paymentResponse.order_id": 1,
-                "paymentResponse.tracking_id": 1,
-                "paymentResponse.status": 1,
-                "paymentResponse.method": 1,
-                "cinemaData.cinemaName": 1,
-                "cinemaData.address": 1,
-                "cinemaData.googleUrl": 1,
-                "cinemaData.emailId": 1,
-                "movieData.name": 1,
-                "movieData.category": 1,
-                "movieData.poster": 1,
-                "movieData.movieType": 1,
-                "showData.screenName": 1,
-                "showData.sessionRealShow": 1,
-                "userData.email": 1,
-                "userData.mobileNumber": 1,
-                "userData.firstName": 1,
-                "userData.lastName": 1,
-                "commitBookingData.strBookId": 1,
-                "commitBookingData.strSeatInfo": 1,
-                "commitBookingData.curTicketsTax3": 1,
-                "addSeatData.strBookId": 1,
-                "addSeatData.curTotal": 1,
-                "addSeatData.curTicketsTotal": 1,
-                "addSeatData.strSeatInfo": 1,
-                "addSeatData.curTicketsTax3": 1,
-                fAndBDetails: 1,
-                "foodAndBvgResponse.curTotal": 1,
-                "foodAndBvgResponse.curTicketsTotal": 1,
-                "foodAndBvgResponse.curFoodTotal": 1,
-                "setSeatData.strSeatInfo": 1,
-                logs: 1,
-              },
-            },
-          ],
-        },
-      },
     ];
 
-    const results = await Transaction.aggregate(
-      aggregationPipeline
-    ).allowDiskUse(true);
+    if (searchConditions.length === 0) {
+      // 🚀 FAST PATH: When user filters by date, status, or cinema without text search
+      totalCount = await Transaction.countDocuments(query);
+      bookingDetails = await Transaction.aggregate([
+        { $match: query },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        ...lookupStages,
+        { $project: projectFields }
+      ]).allowDiskUse(true);
+    } else {
+      // SEARCH PATH: When user searches for customer name, email, cinema, etc.
+      const aggregationPipeline = [
+        { $match: query },
+        ...lookupStages,
+        { $match: { $or: searchConditions } },
+        {
+          $facet: {
+            totalCount: [{ $count: "count" }],
+            data: [
+              { $sort: { createdAt: -1 } },
+              { $skip: skip },
+              { $limit: limit },
+              { $project: projectFields },
+            ],
+          },
+        },
+      ];
 
-    const totalCount = results[0].totalCount[0]?.count || 0;
-    const bookingDetails = results[0].data;
+      const results = await Transaction.aggregate(
+        aggregationPipeline
+      ).allowDiskUse(true);
+
+      totalCount = results[0]?.totalCount[0]?.count || 0;
+      bookingDetails = results[0]?.data || [];
+    }
+
     BookingDetailsExportCsv(bookingDetails);
 
     return res.status(StatusCodes.OK).json({

@@ -97,28 +97,25 @@ const getTicketAmount = (item) => {
 const getGrossTicketAmount = getTicketAmount;
 
 const getNetTicketAmount = (item) => {
-  if (item?.finalBookingCalculation?.ticketCart?.totalAfterDiscount !== undefined && Number(item.finalBookingCalculation.ticketCart.totalAfterDiscount) >= 0) {
-    return Number(item.finalBookingCalculation.ticketCart.totalAfterDiscount);
-  }
-  if (item?.finalBookingCalculation?.ticketCart?.total !== undefined && Number(item.finalBookingCalculation.ticketCart.total) >= 0) {
-    return Number(item.finalBookingCalculation.ticketCart.total);
-  }
   const gross = getGrossTicketAmount(item);
-  const memberDisc = parseFloat(item?.finalBookingCalculation?.ticketCart?.membershipDiscount) || 0;
+  const ticketMemberDisc = parseFloat(item?.finalBookingCalculation?.ticketCart?.membershipDiscount) || 0;
   const couponDisc = parseFloat(item?.finalBookingCalculation?.totalDiscount) || 0;
   const coinDisc = parseFloat(item?.finalBookingCalculation?.rewardDiscountApplied) || 0;
-  return Math.max(0, gross - memberDisc - couponDisc - coinDisc);
+  return Math.max(0, gross - ticketMemberDisc - couponDisc - coinDisc);
 };
 
 const getFoodAmount = (item) => {
+  if (item?.finalBookingCalculation?.foodCart) {
+    const fnbTotal = Number(item.finalBookingCalculation.foodCart.fnbTotal || 0);
+    const total = Number(item.finalBookingCalculation.foodCart.total || 0);
+    const memberDisc = Number(item.finalBookingCalculation.foodCart.membershipDiscount || 0);
+    if (fnbTotal > 0) return fnbTotal;
+    if (total > 0) return total + memberDisc;
+    return 0;
+  }
+
   let baseFood = 0;
-  if (item?.finalBookingCalculation?.foodCart?.fnbTotal !== undefined && Number(item.finalBookingCalculation.foodCart.fnbTotal) > 0) {
-    baseFood = Number(item.finalBookingCalculation.foodCart.fnbTotal);
-  } else if (item?.finalBookingCalculation?.foodCart?.total !== undefined && Number(item.finalBookingCalculation.foodCart.total) > 0) {
-    const foodTotal = parseFloat(item.finalBookingCalculation.foodCart.total) || 0;
-    const foodMemberDisc = parseFloat(item?.finalBookingCalculation?.foodCart?.membershipDiscount) || 0;
-    baseFood = foodTotal + foodMemberDisc;
-  } else if (item?.fAndBDetails && item?.fAndBDetails?.length > 0) {
+  if (item?.fAndBDetails && item?.fAndBDetails?.length > 0) {
     baseFood = item.fAndBDetails.reduce((acc, f) => acc + (parseFloat(f.price) || 0), 0);
   } else if (item?.foodAndBvgResponse?.curFoodTotal !== undefined) {
     baseFood = parseFloat(item.foodAndBvgResponse.curFoodTotal) || 0;
@@ -306,22 +303,14 @@ const TransactionHistory = () => {
   //   handleFilter();
   // }, [fromDate, toDate]);
 
-  const getBookingsList = () => {
+  const getBookingsList = (pageNumber = currentPage) => {
     setLoading(true);
     const data = {
-      page: currentPage,
+      page: pageNumber,
       search: searchValue,
       limit: rowsPerPage,
       startDate: fromDate,
       endDate: toDate,
-      // startDate: new Date(
-      //   PagesIndex.moment(fromDate).utcOffset("+5:30").format("YYYY-MM-DD") +
-      //     "T00:00:00.000Z"
-      // ),
-      // endDate: new Date(
-      //   PagesIndex.moment(toDate).utcOffset("+5:30").format("YYYY-MM-DD") +
-      //     "T23:59:59.000Z"
-      // ),
       showAbortedTransaction: abortedTransaction,
       cinemaId: selectedCinema === "All" ? "" : selectedCinema,
       paymentStatus: paymentStatus === "All" ? "" : paymentStatus,
@@ -329,14 +318,14 @@ const TransactionHistory = () => {
     };
     PagesIndex.DataService.post(PagesIndex.Api.GET_BOOKINGS_DETAILS, data)
       .then((res) => {
-        setBookingsList(res?.data?.data);
-        setFilteredData(res?.data?.data);
-        setCount(res?.data?.totalCount);
+        setBookingsList(res?.data?.data || []);
+        setFilteredData(res?.data?.data || []);
+        setCount(res?.data?.totalCount || 0);
         setLoading(false);
         setIsBtnLoading(false);
       })
       .catch((err) => {
-        PagesIndex.toast.error(err?.response?.data?.message);
+        PagesIndex.toast.error(err?.response?.data?.message || "Error fetching transactions");
         setBookingsList([]);
         setFilteredData([]);
         setLoading(false);
@@ -403,8 +392,8 @@ const TransactionHistory = () => {
 
   const fetchAllData = async () => {
     const allData = [];
-    const pageSize = 1000;
-    let currentPage = 1;
+    const pageSize = 500;
+    let currentPageNum = 1;
     let totalCount = 0;
 
     const baseParameters = {
@@ -421,34 +410,45 @@ const TransactionHistory = () => {
     // First request
     const firstResponse = await PagesIndex.DataService.post(
       PagesIndex.Api.GET_BOOKINGS_DETAILS,
-      { ...baseParameters, page: currentPage }
+      { ...baseParameters, page: currentPageNum }
     );
 
-    const data = firstResponse.data.data || [];
-    totalCount = firstResponse.data.totalCount || 0;
+    const data = firstResponse?.data?.data || [];
+    totalCount = firstResponse?.data?.totalCount || 0;
 
     const totalPages = Math.ceil(totalCount / pageSize);
     allData.push(...data);
 
     // Fetch remaining pages
-    while (currentPage < totalPages) {
-      currentPage += 1;
+    while (currentPageNum < totalPages) {
+      currentPageNum += 1;
 
       const response = await PagesIndex.DataService.post(
         PagesIndex.Api.GET_BOOKINGS_DETAILS,
-        { ...baseParameters, page: currentPage }
+        { ...baseParameters, page: currentPageNum }
       );
 
-      allData.push(...(response.data.data || []));
+      allData.push(...(response?.data?.data || []));
     }
 
     return allData;
   };
 
   const handleExport = async () => {
-    setIsExporting(true);
-    const allData = await fetchAllData();
-    generateExcel(allData);
+    try {
+      setIsExporting(true);
+      const allData = await fetchAllData();
+      if (!allData || allData.length === 0) {
+        PagesIndex.toast.info("No transaction data found to export.");
+        setIsExporting(false);
+        return;
+      }
+      generateExcel(allData);
+    } catch (error) {
+      console.error("Export error:", error);
+      PagesIndex.toast.error("Failed to export data. Please try again.");
+      setIsExporting(false);
+    }
   };
 
   const generateExcel = async (allData) => {
@@ -618,9 +618,9 @@ const TransactionHistory = () => {
   //   setCurrentPage(0);
   // };
   const handleFilter = () => {
-    if (bookingStatus || paymentStatus || selectedCinema || searchValue)
-      setIsBtnLoading(true);
-    getBookingsList();
+    setCurrentPage(1);
+    setIsBtnLoading(true);
+    getBookingsList(1);
   };
 
   const debounce = useEffect(() => {
@@ -1102,12 +1102,11 @@ const TransactionHistory = () => {
                                       )}
                                       minDate={PagesIndex.dayjs("2022-01-01")}
                                       onChange={(date) => {
-                                        setFromDate(
-                                          PagesIndex.moment(date?.$d).format(
-                                            "YYYY-MM-DD"
-                                          )
+                                        const formattedFrom = PagesIndex.moment(date?.$d).format(
+                                          "YYYY-MM-DD"
                                         );
-                                        if (!toDate || date >= toDate) {
+                                        setFromDate(formattedFrom);
+                                        if (toDate && PagesIndex.moment(toDate).isBefore(formattedFrom)) {
                                           setToDate(null);
                                         }
                                       }}
