@@ -1441,7 +1441,7 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
       </>
     );
   } else {
-    dispatch(adminLogout());
+    return <PagesIndex.Navigate to="/admin/dashboard" replace />;
   }
 };
 

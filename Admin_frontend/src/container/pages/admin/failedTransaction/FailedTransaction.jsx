@@ -728,7 +728,8 @@ const FailedTransaction = () => {
   ]);
   if (
     adminLoginData?.type == "Admin" ||
-    adminLoginData?.roleId?.permissions?.includes("transaction_view")
+    adminLoginData?.roleId?.permissions?.includes("transaction_view") ||
+    adminLoginData?.roleId?.permissions?.includes("bookings_view")
   ) {
     return (
       <>
@@ -1715,7 +1716,7 @@ const FailedTransaction = () => {
       </>
     );
   } else {
-    dispatch(adminLogout());
+    return <PagesIndex.Navigate to="/admin/dashboard" replace />;
   }
 };
 

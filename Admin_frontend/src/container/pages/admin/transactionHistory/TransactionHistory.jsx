@@ -284,7 +284,6 @@ const TransactionHistory = () => {
       selectedCinema === ""
     ) {
       getBookingsList();
-      setFilteredData(bookingsList);
     }
   }, [
     fromDate,
@@ -603,11 +602,31 @@ const TransactionHistory = () => {
     // paymentStatus,
     // selectedCinema,
   ]);
-  if (
+  const isAuthorized =
     adminLoginData?.type == "Admin" ||
     adminLoginData?.roleId?.permissions?.includes("transaction_view") ||
-    adminLoginData?.roleId?.permissions?.includes("bookings_view")
-  ) {
+    adminLoginData?.roleId?.permissions?.includes("bookings_view");
+
+  const isAuthLoading =
+    !adminLoginData ||
+    (Array.isArray(adminLoginData) && adminLoginData.length === 0);
+
+  if (isAuthLoading) {
+    return (
+      <Index.Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+        }}
+      >
+        <Index.CircularProgress />
+      </Index.Box>
+    );
+  }
+
+  if (isAuthorized) {
     return (
       <>
         <Index.Box className="">
