@@ -188,7 +188,13 @@ export const paymentResponse = async (req, res) => {
     // ── 5. Load booking data ──────────────────────────────────────────────────
     const bookingData = await Transaction.findOne(
       { initTransId: transId },
-      { createdAt: true, paymentResponse: true, finalBookingCalculation: true }
+      {
+        createdAt: true,
+        paymentResponse: true,
+        finalBookingCalculation: true,
+        addSeatData: true,
+        foodAndBvgResponse: true,
+      }
     ).sort({ createdAt: -1 });
 
     if (!bookingData) {
@@ -210,12 +216,10 @@ export const paymentResponse = async (req, res) => {
     );
 
     // ── 7. Calculate booking session window (10 minutes from Transaction.createdAt)
-    const bookingStartTime = moment().format("HH:mm:ss");
-    const bookingEndTime = moment(bookingData?.createdAt)
-      .add(10, "minutes")
-      .format("HH:mm:ss");
+    const isSessionExpired =
+      moment().diff(moment(bookingData?.createdAt), "minutes", true) > 10;
 
-    console.log("bookingStartTime", bookingStartTime, "bookingEndTime", bookingEndTime, "valid:", bookingStartTime < bookingEndTime);
+    console.log("booking session expiry check - expired:", isSessionExpired);
 
     // ── 8. Build Razorpay payment data object (stored in paymentResponse field)
     let fetchedPaymentTicket = {};
@@ -256,7 +260,7 @@ export const paymentResponse = async (req, res) => {
 
     // ── 12. Session window check Booking must be completed within 10 minutes of Transaction.createdAt ──────────────────────────────────────────────
 
-    if (bookingStartTime >= bookingEndTime) {
+    if (isSessionExpired) {
       console.log("Booking time exceeded 10 minutes");
 
       createLog({
@@ -300,8 +304,22 @@ export const paymentResponse = async (req, res) => {
       : user.firstName;
 
     const finalBooking = bookingData.finalBookingCalculation;
-    const ticketTotal = Math.round((finalBooking?.ticketCart?.total ?? finalBooking?.ticketCart?.ticketTotal ?? 0) * 100);
-    const fnbTotal = finalBooking?.foodCart?.total > 0 ? (finalBooking?.foodCart?.basePrice ?? finalBooking?.foodCart?.totalAmountByBase ?? 0) : 0;
+    // Vista holds seats at the gross ticket total (in paise, so * 100).
+    // Use ticketTotal (gross) so that Vista's udsCommitBook matches the reserved order amount.
+    const grossTicket =
+      Number(finalBooking?.ticketCart?.ticketTotal) ||
+      Number(bookingData?.addSeatData?.curTicketsTotal) ||
+      Number(finalBooking?.ticketCart?.total) ||
+      0;
+    const ticketTotal = Math.round(grossTicket * 100);
+
+    // Food total in paise. Vista's food amount is basePrice / curFoodTotal in paise (* 100).
+    const foodAmount =
+      Number(bookingData?.foodAndBvgResponse?.curFoodTotal) ||
+      Number(finalBooking?.foodCart?.basePrice) ||
+      Number(finalBooking?.foodCart?.total) ||
+      0;
+    const fnbTotal = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
 
     let multipayment = `|PAYTYPE1=CW|AMOUNT1=${ticketTotal}|`;
     if (fnbTotal > 0) {

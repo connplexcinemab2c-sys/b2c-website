@@ -306,10 +306,10 @@ const _commitTicketBooking = async (txn, notes, payment) => {
   ).sort({ createdAt: -1 });
 
   // Enforce 10-minute booking session window from Transaction.createdAt
-  const now = moment().format("HH:mm:ss");
-  const windowEnd = moment(txn.createdAt).add(10, "minutes").format("HH:mm:ss");
+  const isSessionExpired =
+    moment().diff(moment(txn.createdAt), "minutes", true) > 10;
 
-  if (now >= windowEnd) {
+  if (isSessionExpired) {
     console.log(`[RazorpayCron] Ticket ${transId} session expired — auto-refunding`);
     createLog({
       transaction_id: transId,
@@ -349,8 +349,23 @@ const _commitTicketBooking = async (txn, notes, payment) => {
 
   const name = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
   const finalBooking = txn.finalBookingCalculation;
-  const ticketTotal = (finalBooking?.ticketCart?.total ?? finalBooking?.ticketCart?.ticketTotal ?? 0) * 100;
-  const fnbTotal = finalBooking?.foodCart?.total > 0 ? (finalBooking?.foodCart?.basePrice ?? finalBooking?.foodCart?.totalAmountByBase ?? 0) : 0;
+  // Vista holds seats at the gross ticket total (in paise, so * 100).
+  // Use ticketTotal (gross) so that Vista's udsCommitBook matches the reserved order amount.
+  const grossTicket =
+    Number(finalBooking?.ticketCart?.ticketTotal) ||
+    Number(txn?.addSeatData?.curTicketsTotal) ||
+    Number(finalBooking?.ticketCart?.total) ||
+    0;
+  const ticketTotal = Math.round(grossTicket * 100);
+
+  // Food total in paise. Vista's food amount is basePrice / curFoodTotal in paise (* 100).
+  const foodAmount =
+    Number(txn?.foodAndBvgResponse?.curFoodTotal) ||
+    Number(finalBooking?.foodCart?.basePrice) ||
+    Number(finalBooking?.foodCart?.total) ||
+    0;
+  const fnbTotal = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
+
   let multipayment = `|PAYTYPE1=CW|AMOUNT1=${ticketTotal}|`;
   if (fnbTotal > 0) multipayment += `PAYTYPE2=CWFNB|AMOUNT2=${fnbTotal}|`;
 

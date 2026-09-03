@@ -303,46 +303,57 @@ export const couponCart = async (req, res) => {
           const newTicketsTotal = Number(cart.ticketCart.total) || 0;
 
           if (curTicketsTotal !== newTicketsTotal) {
-            const updateResult = await updateVistaOrderPrice({
-              cinemaId: cinemaDoc.cinemaId,
-              transId,
-              newTicketTotal: cart.ticketCart.total,
-              quantity,
-              addSeatData: findTx.addSeatData,
-              setSeatData: findTx.setSeatData,
-            });
-
-            createLog({
-              transaction_id: transId,
-              type: "Booking",
-              step: {
-                logType: "updateVistaOrderPrice",
-                success: updateResult?.success !== false,
+            let updateSuccess = false;
+            try {
+              const updateResult = await updateVistaOrderPrice({
+                cinemaId: cinemaDoc.cinemaId,
+                transId,
                 newTicketTotal: cart.ticketCart.total,
-                discountAmount: cart.ticketCart.discountAmount,
-                cgst: cart.ticketCart.cgst,
-                sgst: cart.ticketCart.sgst,
-                message: `Vista order updated to ₹${cart.ticketCart.total} (CGST: ₹${cart.ticketCart.cgst}, SGST: ₹${cart.ticketCart.sgst})`,
-                timestamp: new Date().toISOString(),
-              },
-            });
+                quantity,
+                addSeatData: findTx.addSeatData,
+                setSeatData: findTx.setSeatData,
+              });
 
-            const curBookingFee = Number(findTx.addSeatData.curBookingFee) || 0;
-            const updatedVistaTotal = newTicketsTotal + curBookingFee;
+              updateSuccess = updateResult?.success === true;
 
-            // Sync local transaction's addSeatData with recalculated discount totals & taxes
-            await Transaction.findOneAndUpdate(
-              { initTransId: transId },
-              {
-                $set: {
-                  "addSeatData.curTicketsTotal": String(cart.ticketCart.total),
-                  "addSeatData.curTicketsTax1": String(cart.ticketCart.cgst),
-                  "addSeatData.curTicketsTax2": String(cart.ticketCart.sgst),
-                  "addSeatData.curTotal": String(updatedVistaTotal),
+              createLog({
+                transaction_id: transId,
+                type: "Booking",
+                step: {
+                  logType: "updateVistaOrderPrice",
+                  success: updateSuccess,
+                  newTicketTotal: cart.ticketCart.total,
+                  discountAmount: cart.ticketCart.discountAmount,
+                  cgst: cart.ticketCart.cgst,
+                  sgst: cart.ticketCart.sgst,
+                  message: updateSuccess
+                    ? `Vista order updated to ₹${cart.ticketCart.total} (CGST: ₹${cart.ticketCart.cgst}, SGST: ₹${cart.ticketCart.sgst})`
+                    : `Vista order update not applied (keeping original Vista reservation)`,
+                  timestamp: new Date().toISOString(),
+                },
+              });
+            } catch (updateErr) {
+              console.warn(`Vista updateOrder failed for transId ${transId}:`, updateErr.message);
+            }
+
+            // Only sync local transaction's addSeatData if Vista order was confirmed updated
+            if (updateSuccess) {
+              const curBookingFee = Number(findTx.addSeatData.curBookingFee) || 0;
+              const updatedVistaTotal = newTicketsTotal + curBookingFee;
+
+              await Transaction.findOneAndUpdate(
+                { initTransId: transId },
+                {
+                  $set: {
+                    "addSeatData.curTicketsTotal": String(cart.ticketCart.total),
+                    "addSeatData.curTicketsTax1": String(cart.ticketCart.cgst),
+                    "addSeatData.curTicketsTax2": String(cart.ticketCart.sgst),
+                    "addSeatData.curTotal": String(updatedVistaTotal),
+                  }
                 }
-              }
-            );
-            console.log(`Local transaction ${transId} addSeatData synchronized with discounted total: ${cart.ticketCart.total} and GST: ${cart.ticketCart.cgst + cart.ticketCart.sgst}`);
+              );
+              console.log(`Local transaction ${transId} addSeatData synchronized with discounted total: ${cart.ticketCart.total}`);
+            }
           }
         } else {
           console.warn(`Could not resolve cinemaId for transId ${transId}, skipping Vista order update.`);

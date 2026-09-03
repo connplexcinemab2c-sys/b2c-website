@@ -95,6 +95,8 @@ export const paymentResponse = async (req, res) => {
           paymentsStatus: true,
           commitStatus: true,
           commitBookingData: true,
+          addSeatData: true,
+          foodAndBvgResponse: true,
         }
       ).sort({ createdAt: -1 });
 
@@ -121,17 +123,10 @@ export const paymentResponse = async (req, res) => {
         couponIds.push(item._id);
       });
 
-      let bookingStartTime = moment().format("hh:mm:ss");
-      let bookingEndTime = moment(bookingData?.createdAt)
-        .add(10, "minutes")
-        .format("hh:mm:ss");
+      const isSessionExpired =
+        moment().diff(moment(bookingData?.createdAt), "minutes", true) > 10;
 
-      console.log(
-        "bookingStartTime",
-        bookingStartTime,
-        bookingEndTime,
-        bookingStartTime < bookingEndTime
-      );
+      console.log("CCAvenue booking session expiry check - expired:", isSessionExpired);
 
       await Transaction.findOneAndUpdate(
         { initTransId: strTransId },
@@ -166,7 +161,7 @@ export const paymentResponse = async (req, res) => {
       }
       //end
 
-      if (bookingStartTime < bookingEndTime) {
+      if (!isSessionExpired) {
         // await Transaction.findOneAndUpdate(
         //   { initTransId: strTransId },
         //   {
@@ -185,8 +180,23 @@ export const paymentResponse = async (req, res) => {
           ? `${user?.firstName} ${user?.lastName}`
           : user?.firstName;
 
-        let ticketTotal = Math.round((bookingData?.finalBookingCalculation?.ticketCart?.total ?? bookingData?.finalBookingCalculation?.ticketCart?.ticketTotal ?? 0) * 100);
-        let fnbTotal = bookingData?.finalBookingCalculation?.foodCart?.total > 0 ? (bookingData?.finalBookingCalculation?.foodCart?.basePrice ?? bookingData?.finalBookingCalculation?.foodCart?.totalAmountByBase ?? 0) : 0;
+        const finalBooking = bookingData?.finalBookingCalculation;
+        // Vista holds seats at the gross ticket total (in paise, so * 100).
+        // Use ticketTotal (gross) so that Vista's udsCommitBook matches the reserved order amount.
+        const grossTicket =
+          Number(finalBooking?.ticketCart?.ticketTotal) ||
+          Number(bookingData?.addSeatData?.curTicketsTotal) ||
+          Number(finalBooking?.ticketCart?.total) ||
+          0;
+        let ticketTotal = Math.round(grossTicket * 100);
+
+        // Food total in paise. Vista's food amount is basePrice / curFoodTotal in paise (* 100).
+        const foodAmount =
+          Number(bookingData?.foodAndBvgResponse?.curFoodTotal) ||
+          Number(finalBooking?.foodCart?.basePrice) ||
+          Number(finalBooking?.foodCart?.total) ||
+          0;
+        let fnbTotal = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
 
         let multipayment = `|PAYTYPE1=CW|AMOUNT1=${ticketTotal}|`;
 
