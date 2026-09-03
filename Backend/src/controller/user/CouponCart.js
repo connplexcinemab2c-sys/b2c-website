@@ -20,6 +20,8 @@ import {
 } from "../../services/vistaServices/promotionCoupan.js";
 import { parseStringPromise } from "xml2js";
 import { updateOrderService } from "../../services/vistaServices/AddSeatsExService.js";
+import Cinema from "../../models/Cinema.js";
+import { createLog } from "../../services/LogsServices.js";
 
 const stripPrefix = (name) => {
   const i = name.indexOf(":");
@@ -32,6 +34,7 @@ export const updateVistaOrderPrice = async ({
   newTicketTotal,
   quantity,
   addSeatData,
+  setSeatData,
 }) => {
   if (!addSeatData) {
     console.warn("No addSeatData provided, skipping Vista order update.");
@@ -64,6 +67,14 @@ export const updateVistaOrderPrice = async ({
     let qtyVal = Number(quantity);
     if (!qtyVal && addSeatData.strSeatInfo) {
       const seatInfo = addSeatData.strSeatInfo || "";
+      const parts = seatInfo.split("-");
+      const seatPart = parts[parts.length - 1].trim();
+      if (seatPart) {
+        qtyVal = seatPart.split(",").map(s => s.trim()).filter(Boolean).length;
+      }
+    }
+    if (!qtyVal && setSeatData && setSeatData.strSeatInfo) {
+      const seatInfo = setSeatData.strSeatInfo || "";
       const parts = seatInfo.split("-");
       const seatPart = parts[parts.length - 1].trim();
       if (seatPart) {
@@ -270,36 +281,71 @@ export const couponCart = async (req, res) => {
     );
 
     const findTx = await Transaction.findOne({ initTransId: transId }).populate("cinemaId");
-    if (findTx && findTx.addSeatData && findTx.cinemaId) {
+    if (findTx && findTx.addSeatData) {
       try {
-        const curTicketsTotal = Number(findTx.addSeatData.curTicketsTotal) || 0;
-        const newTicketsTotal = Number(cart.ticketCart.total) || 0;
+        let cinemaDoc = findTx.cinemaId;
+        if (!cinemaDoc || !cinemaDoc.cinemaId) {
+          const cId = findTx.cinemaId || cinemaObjectId || couponDetails?.cinema_id;
+          if (cId) {
+            cinemaDoc = await Cinema.findById(cId);
+          }
+        }
 
-        if (curTicketsTotal !== newTicketsTotal) {
-          await updateVistaOrderPrice({
-            cinemaId: findTx.cinemaId.cinemaId,
-            transId,
-            newTicketTotal: cart.ticketCart.total,
-            quantity,
-            addSeatData: findTx.addSeatData,
-          });
-
-          const curBookingFee = Number(findTx.addSeatData.curBookingFee) || 0;
-          const updatedVistaTotal = newTicketsTotal + curBookingFee;
-
-          // Sync local transaction's addSeatData with recalculated discount totals & taxes
+        if (cinemaDoc && !findTx.cinemaId) {
           await Transaction.findOneAndUpdate(
             { initTransId: transId },
-            {
-              $set: {
-                "addSeatData.curTicketsTotal": String(cart.ticketCart.total),
-                "addSeatData.curTicketsTax1": String(cart.ticketCart.cgst),
-                "addSeatData.curTicketsTax2": String(cart.ticketCart.sgst),
-                "addSeatData.curTotal": String(updatedVistaTotal),
-              }
-            }
+            { $set: { cinemaId: cinemaDoc._id } }
           );
-          console.log(`Local transaction ${transId} addSeatData synchronized with discounted total: ${cart.ticketCart.total} and GST: ${cart.ticketCart.cgst + cart.ticketCart.sgst}`);
+        }
+
+        if (cinemaDoc?.cinemaId) {
+          const curTicketsTotal = Number(findTx.addSeatData.curTicketsTotal) || 0;
+          const newTicketsTotal = Number(cart.ticketCart.total) || 0;
+
+          if (curTicketsTotal !== newTicketsTotal) {
+            const updateResult = await updateVistaOrderPrice({
+              cinemaId: cinemaDoc.cinemaId,
+              transId,
+              newTicketTotal: cart.ticketCart.total,
+              quantity,
+              addSeatData: findTx.addSeatData,
+              setSeatData: findTx.setSeatData,
+            });
+
+            createLog({
+              transaction_id: transId,
+              type: "Booking",
+              step: {
+                logType: "updateVistaOrderPrice",
+                success: updateResult?.success !== false,
+                newTicketTotal: cart.ticketCart.total,
+                discountAmount: cart.ticketCart.discountAmount,
+                cgst: cart.ticketCart.cgst,
+                sgst: cart.ticketCart.sgst,
+                message: `Vista order updated to ₹${cart.ticketCart.total} (CGST: ₹${cart.ticketCart.cgst}, SGST: ₹${cart.ticketCart.sgst})`,
+                timestamp: new Date().toISOString(),
+              },
+            });
+
+            const curBookingFee = Number(findTx.addSeatData.curBookingFee) || 0;
+            const updatedVistaTotal = newTicketsTotal + curBookingFee;
+
+            // Sync local transaction's addSeatData with recalculated discount totals & taxes
+            await Transaction.findOneAndUpdate(
+              { initTransId: transId },
+              {
+                $set: {
+                  "addSeatData.curTicketsTotal": String(cart.ticketCart.total),
+                  "addSeatData.curTicketsTax1": String(cart.ticketCart.cgst),
+                  "addSeatData.curTicketsTax2": String(cart.ticketCart.sgst),
+                  "addSeatData.curTotal": String(updatedVistaTotal),
+                }
+              }
+            );
+            console.log(`Local transaction ${transId} addSeatData synchronized with discounted total: ${cart.ticketCart.total} and GST: ${cart.ticketCart.cgst + cart.ticketCart.sgst}`);
+          }
+        } else {
+          console.warn(`Could not resolve cinemaId for transId ${transId}, skipping Vista order update.`);
         }
       } catch (err) {
         console.error("Failed to update Vista order price or sync addSeatData inside couponCart:", err);

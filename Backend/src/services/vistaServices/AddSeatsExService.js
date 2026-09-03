@@ -199,10 +199,34 @@ export const updateOrderService = async ({ cinemaId, strTransId, strOrderXml }) 
   const intException = parseInt(objExecuteResult.intException[0] || "0", 10);
   const strException = objExecuteResult.strException[0] || "";
 
+  // Parse any serialized properties returned inside strData XML
+  const properties = {};
+  const strData = objExecuteResult.strData ? objExecuteResult.strData[0] : null;
+  if (strData) {
+    try {
+      const dataParsed = await parseStringPromise(strData, {
+        tagNameProcessors: [stripPrefix],
+      });
+      const rootKey = Object.keys(dataParsed)[0];
+      const root = dataParsed[rootKey];
+      for (const key in root) {
+        const val = root[key];
+        if (Array.isArray(val)) {
+          properties[key] = typeof val[0] === "string" ? val[0] : val[0];
+        } else {
+          properties[key] = val;
+        }
+      }
+    } catch (parseErr) {
+      console.error("Error parsing updateOrder strData XML response:", parseErr);
+    }
+  }
+
   return {
     success: blnSuccess,
     intException,
     strException,
+    properties,
   };
 };
 

@@ -300,7 +300,7 @@ export const paymentResponse = async (req, res) => {
       : user.firstName;
 
     const finalBooking = bookingData.finalBookingCalculation;
-    const ticketTotal = (finalBooking?.ticketCart?.total ?? finalBooking?.ticketCart?.ticketTotal ?? 0) * 100;
+    const ticketTotal = Math.round((finalBooking?.ticketCart?.total ?? finalBooking?.ticketCart?.ticketTotal ?? 0) * 100);
     const fnbTotal = finalBooking?.foodCart?.total > 0 ? (finalBooking?.foodCart?.basePrice ?? finalBooking?.foodCart?.totalAmountByBase ?? 0) : 0;
 
     let multipayment = `|PAYTYPE1=CW|AMOUNT1=${ticketTotal}|`;
@@ -447,11 +447,40 @@ export const paymentResponse = async (req, res) => {
 
 
 export const _handleBookingSuccess = async (strTransId, vistaResponse, user) => {
+  const tx = await Transaction.findOne(
+    { initTransId: strTransId },
+    { addSeatData: 1, finalBookingCalculation: 1 }
+  );
+  let commitData = vistaResponse?.data?.data || {};
+  if (
+    tx?.finalBookingCalculation?.ticketCart?.discountAmount > 0 &&
+    tx?.finalBookingCalculation?.ticketCart?.total
+  ) {
+    const discountedTotal = String(tx.finalBookingCalculation.ticketCart.total);
+    const cgst = String(tx.finalBookingCalculation.ticketCart.cgst);
+    const sgst = String(tx.finalBookingCalculation.ticketCart.sgst);
+    commitData = {
+      ...commitData,
+      curTicketsTotal:
+        commitData.curTicketsTotal && Number(commitData.curTicketsTotal) === Number(discountedTotal)
+          ? commitData.curTicketsTotal
+          : discountedTotal,
+      curTicketsTax1:
+        commitData.curTicketsTax1 && Number(commitData.curTicketsTotal) === Number(discountedTotal)
+          ? commitData.curTicketsTax1
+          : cgst,
+      curTicketsTax2:
+        commitData.curTicketsTax2 && Number(commitData.curTicketsTotal) === Number(discountedTotal)
+          ? commitData.curTicketsTax2
+          : sgst,
+    };
+  }
+
   await Transaction.findOneAndUpdate(
     { initTransId: strTransId },
     {
       $set: {
-        commitBookingData: vistaResponse.data.data,
+        commitBookingData: commitData,
         status: 1,
         commitStatus: true,
         discountCouponStatus: true,
