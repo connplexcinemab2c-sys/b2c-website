@@ -69,6 +69,7 @@ import "../src/assets/style/slick.css";
 // import "../src/assets/style/slick-theme.min.css"
 import "./container/pages/user/blog/ckeditor.css";
 import { initGA } from "./utils/Analytics";
+import { captureUtmFromUrl } from "./utils/utmTracker";
 
 function App() {
   const location = useLocation();
@@ -78,7 +79,9 @@ function App() {
       top: 0,
       behavior: "instant",
     });
-  }, [location.pathname]);
+    // Capture and persist any UTM campaign parameters from the landing URL (30-day cookie + localStorage)
+    captureUtmFromUrl();
+  }, [location.pathname, location.search]);
   // useEffect(() => {
   //   let myElement = document.getElementById("connplex");
   //   myElement.addEventListener("contextmenu", function (event) {

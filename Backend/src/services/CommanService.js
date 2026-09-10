@@ -19,6 +19,7 @@ import SubscriptionMembership from "../models/SubscriptionMembership.js";
 import VistaLog from "../models/VistaLog.js";
 import SmsLog from "../models/SmsLog.js";
 import WebhookResponse from "../models/WebhookResponse.js";
+import WhatsAppOrder from "../models/WhatsAppOrder.js";
 import { parseUserAgent } from "../utils/parseUserAgent.js";
 import { getBookingDetailsByTransId } from "../controller/booking/Booking.js";
 
@@ -484,6 +485,10 @@ export const sendToWebhookApi = async (initTransId) => {
         city: 1,
         cityId: 1,
         regionId: 1,
+        utm_source: 1,
+        utm_campaign: 1,
+        normalized_phone: 1,
+        is_whatsapp_conversion: 1,
         createdAt: 1,
       };
   
@@ -529,6 +534,19 @@ export const sendToWebhookApi = async (initTransId) => {
   filteredData.smsUrl = smsUrl;
   filteredData.ticketUrl = ticketUrl;
   filteredData.ticketLink = ticketUrl;
+
+  // Inject WhatsApp Conversion Tracking & Attribution fields
+  try {
+    const whatsAppOrder = await WhatsAppOrder.findOne({ initTransId }).lean();
+    filteredData.utm_source = bookingDetails.utm_source || whatsAppOrder?.utm_source || "whatsapp";
+    filteredData.utm_campaign = bookingDetails.utm_campaign || whatsAppOrder?.utm_campaign || null;
+    filteredData.normalized_phone = bookingDetails.normalized_phone || whatsAppOrder?.phone || null;
+    filteredData.customer_phone = whatsAppOrder?.phone || bookingDetails.normalized_phone || null;
+    filteredData.is_whatsapp_conversion = bookingDetails.is_whatsapp_conversion ?? whatsAppOrder?.is_conversion ?? false;
+    filteredData.order_items = whatsAppOrder?.items || [];
+  } catch (trackingErr) {
+    console.warn("[WhatsAppTracking] Error querying conversion order for webhook:", trackingErr?.message);
+  }
 
   try {
     const URL = process.env.WHATSAPP_WEBHOOK_URL || "https://api.bitamin.com/webhook/theconnplex/019dbfa5-ead7-761d-944d-9260ef66b5aa";

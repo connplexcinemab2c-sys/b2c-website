@@ -24,6 +24,7 @@ import { BookingFailed, bookingSuccess } from "../../utils/Mailers.js";
 import { userNotification } from "../Notification.js";
 import { createLog } from "../LogsServices.js";
 import calculateAndSaveCoins, { processCoinRedemption } from "../../controller/user/RewardsController.js";
+import { processOrderAttribution } from "../WhatsAppConversionService.js";
 
 // ---------------------------------------------------------------------------
 // Ticket booking — verify Razorpay payment & commit Vista booking
@@ -69,7 +70,24 @@ export const paymentResponse = async (req, res) => {
       paymentStatus,
       appliedRewardPoints,
       error: razorpayError, // Razorpay error object forwarded by frontend on failure
+      utm_source,
+      utm_campaign,
+      phone,
     } = req.body;
+
+    // Persist UTM and phone if provided at verification
+    if (transId && (utm_source || utm_campaign || phone)) {
+      await Transaction.updateOne(
+        { initTransId: transId },
+        {
+          $set: {
+            ...(utm_source ? { utm_source: String(utm_source).toLowerCase().trim() } : {}),
+            ...(utm_campaign ? { utm_campaign: String(utm_campaign).toLowerCase().trim() } : {}),
+            ...(phone ? { normalized_phone: normalizePhoneNumber(phone) } : {}),
+          },
+        }
+      ).catch(() => {});
+    }
 
     // ── 1. Load user ──────────────────────────────────────────────────────────
     const user = await User.findById(userId);
@@ -523,11 +541,18 @@ export const _handleBookingSuccess = async (strTransId, vistaResponse, user) => 
     `Your ticket is booked for ${bookingDetails?.movieId?.name} movie on ${movieDate}. ` +
     `Here is your ticket for quick reference: ${smsUrl} VCS industries limited`;
 
-      if (bookingDetails.paymentsStatus === true && bookingDetails.commitStatus === true && process.env.SENDING_WHATSAPP_WEBHOOK_API == "true") {
+      if (bookingDetails.paymentsStatus === true && bookingDetails.commitStatus === true) {
         try {
-          await sendToWebhookApi(strTransId);
-        } catch (error) {
-          console.error("Webhook error in ticketBooked:", error);
+          await processOrderAttribution(strTransId);
+        } catch (attributionErr) {
+          console.error("Attribution error in ticketBooked:", attributionErr);
+        }
+        if (process.env.SENDING_WHATSAPP_WEBHOOK_API == "true") {
+          try {
+            await sendToWebhookApi(strTransId);
+          } catch (error) {
+            console.error("Webhook error in ticketBooked:", error);
+          }
         }
       }
 

@@ -3,6 +3,7 @@ import PagesIndex from "../../../PagesIndex";
 import Index from "../../../Index";
 import { encryptAndSignData } from "../../../../components/common/EncryptData";
 import { trackBeginCheckout } from "../../../../utils/Analytics";
+import { getStoredUtm, normalizePhoneNumber } from "../../../../utils/utmTracker";
 
 const crypt = (salt, text) => {
   const textToChars = (text) => text.split("").map((c) => c.charCodeAt(0));
@@ -238,12 +239,11 @@ console.log({selectedFood});
       user_id: "005",
       post_date_time: PagesIndex.moment().format("YYYY-MM-DD HH:mm:ss"),
       type: "VOUCHER",
-      customer_number: userDetails?.mobileNumber || "",
+      customer_number: normalizePhoneNumber(userDetails?.mobileNumber) || userDetails?.mobileNumber || "",
     };
 
-    // const ticketBasePriceFromVista = stateData?.cinemaData?.ticketPriceDetails?.total -  stateData?.cinemaData?.ticketPriceDetails?.tax1 - stateData?.cinemaData?.ticketPriceDetails?.tax2
+    const activeUtm = getStoredUtm();
 
-    // console.log(ticketCart?.totalAfterDiscount , ":ticketCart?.totalAfterDiscount", ticketBasePriceFromVista , stateData?.cinemaData?.ticketPriceDetails)
     let Payload = {
       isCoupan: isCoupan,
       couponDetails: coupanPayload,
@@ -261,6 +261,9 @@ console.log({selectedFood});
       userTicketSpentAmount: Number(ticketCart?.totalAfterDiscount.toFixed(2)),
       quantity: stateData?.cinemaData?.selectedSeats.length,
       rewardCoins: appliedRewardPoints,
+      utm_source: activeUtm?.utm_source || "whatsapp",
+      utm_campaign: activeUtm?.utm_campaign || null,
+      phone: normalizePhoneNumber(userDetails?.mobileNumber) || userDetails?.mobileNumber || "",
     };
     //     const Payload={
     //   "autoApply": false,
@@ -511,6 +514,12 @@ console.log({selectedFood});
       stateData?.cinemaData?.pGroupCode
     }|${selectedFood.length ? true : false}|${appliedRewardPoints}|Web`;
     urlencoded.append("id", crypt("testText123", payLoadString));
+    const activeUtm = getStoredUtm();
+    if (activeUtm?.utm_source) urlencoded.append("utm_source", activeUtm.utm_source);
+    if (activeUtm?.utm_campaign) urlencoded.append("utm_campaign", activeUtm.utm_campaign);
+    if (userDetails?.mobileNumber) {
+      urlencoded.append("phone", normalizePhoneNumber(userDetails.mobileNumber));
+    }
 
     dispatch(PagesIndex.showLoader());
     const orderRes = await PagesIndex.apiPostHandler(
@@ -604,6 +613,11 @@ console.log({selectedFood});
         verifyPayload.append("userId", userId);
         verifyPayload.append("appliedRewardPoints", appliedRewardPoints);
         verifyPayload.append("paymentStatus", "success");
+        if (activeUtm?.utm_source) verifyPayload.append("utm_source", activeUtm.utm_source);
+        if (activeUtm?.utm_campaign) verifyPayload.append("utm_campaign", activeUtm.utm_campaign);
+        if (userDetails?.mobileNumber) {
+          verifyPayload.append("phone", normalizePhoneNumber(userDetails.mobileNumber));
+        }
 
         const verifyRes = await PagesIndex.apiPostHandler(
           PagesIndex.Api.RAZORPAY_VERIFY_PAYMENT,

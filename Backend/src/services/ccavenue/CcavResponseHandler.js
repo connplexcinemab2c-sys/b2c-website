@@ -28,6 +28,7 @@ import SubscriberMembership from "../../models/SubscriptionMembership.js";
 import calculateAndSaveCoins, { processCoinRedemption } from "../../controller/user/RewardsController.js";
 import mongoose from "mongoose";
 import SubscriptionWelcomeGift from "../../models/SubscriptionWelcomeGift.js";
+import { processOrderAttribution } from "../WhatsAppConversionService.js";
 import GeneralSetting from "../../models/GeneralSetting.js";
 import { createLog } from "../LogsServices.js";
 dotenv.config();
@@ -701,11 +702,18 @@ export const ticketBooked = async (res, strTransId, response, user) => {
   };
 
  
-  if (bookingDetails.paymentsStatus === true && bookingDetails.commitStatus === true && process.env.SENDING_WHATSAPP_WEBHOOK_API == "true") {
+  if (bookingDetails.paymentsStatus === true && bookingDetails.commitStatus === true) {
     try {
-      await sendToWebhookApi(strTransId);
-    } catch (error) {
-      console.error("Webhook error in ticketBooked:", error);
+      await processOrderAttribution(strTransId);
+    } catch (attributionErr) {
+      console.error("Attribution error in ticketBooked:", attributionErr);
+    }
+    if (process.env.SENDING_WHATSAPP_WEBHOOK_API == "true") {
+      try {
+        await sendToWebhookApi(strTransId);
+      } catch (error) {
+        console.error("Webhook error in ticketBooked:", error);
+      }
     }
   }
 

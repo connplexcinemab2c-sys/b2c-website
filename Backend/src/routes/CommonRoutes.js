@@ -26,9 +26,15 @@ import cacheMiddleware from "../middleware/CacheMiddleware.js";
 import cacheKeys from "../utils/cacheKeys.js";
 import { getFranchisePaymentStatus } from "../services/franchise/FranchiseHandlers.js";
 import * as whatsappBooking from "../controller/booking/WhatsAppBookingController.js";
+import * as whatsappTracking from "../controller/booking/WhatsAppTrackingController.js";
 
-//#region WhatsApp Webhook
+//#region WhatsApp Webhook & Conversion Tracking
 commonRouter.post("/whatsapp/booking", whatsappBooking.receiveBooking);
+commonRouter.post("/whatsapp/campaigns", whatsappTracking.createCampaign);
+commonRouter.get("/whatsapp/campaigns", whatsappTracking.getCampaigns);
+commonRouter.post("/whatsapp/campaigns/recipients", whatsappTracking.addRecipients);
+commonRouter.get("/whatsapp/conversions", whatsappTracking.getConversions);
+commonRouter.get("/whatsapp/check-conversion/:phone", whatsappTracking.checkConversion);
 //#endregion
 
 //#region Social login

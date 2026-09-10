@@ -188,6 +188,26 @@ let transaction = new mongoose.Schema(
       ref: "region",
       required: false,
     },
+    utm_source: {
+      type: String,
+      required: false,
+      default: null,
+    },
+    utm_campaign: {
+      type: String,
+      required: false,
+      default: null,
+    },
+    normalized_phone: {
+      type: String,
+      required: false,
+      default: null,
+    },
+    is_whatsapp_conversion: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   {
     timestamps: true,

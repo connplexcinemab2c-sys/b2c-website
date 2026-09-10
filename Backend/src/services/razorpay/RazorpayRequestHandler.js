@@ -18,6 +18,7 @@ import SubscriberMembership from "../../models/SubscriptionMembership.js";
 import { User } from "../../models/User.js";
 import ResponseMessage from "../../utils/ResponseMessage.js";
 import { createLog } from "../LogsServices.js";
+import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 import { verifyMembershipCoupon } from "../CouponCartService.js";
 import { buySubscriptionMembershipDirectly, razorpayBookDirectly } from "./RazorpayResponseHandler.js";
 
@@ -45,7 +46,7 @@ export const paymentRequest = async (req, res) => {
   }
 
   try {
-    const { id } = req.body;
+    const { id, utm_source, utm_campaign, phone } = req.body;
     const salt = process.env.salt;
     const decryptBody = decryptPayment(salt, id);
     const parts = decryptBody.split("|");
@@ -64,6 +65,20 @@ export const paymentRequest = async (req, res) => {
       appliedRewardPoints,
       booking_type,
     ] = parts;
+
+    // Attach UTM and normalized phone to Transaction for conversion attribution
+    if (transId && (utm_source || utm_campaign || phone)) {
+      await Transaction.updateOne(
+        { initTransId: transId },
+        {
+          $set: {
+            ...(utm_source ? { utm_source: String(utm_source).toLowerCase().trim() } : {}),
+            ...(utm_campaign ? { utm_campaign: String(utm_campaign).toLowerCase().trim() } : {}),
+            ...(phone ? { normalized_phone: normalizePhoneNumber(phone) } : {}),
+          },
+        }
+      ).catch((err) => console.warn("[WhatsAppTracking] Error updating Transaction UTM:", err?.message));
+    }
 
     const now = moment.tz("Asia/Kolkata");
 
