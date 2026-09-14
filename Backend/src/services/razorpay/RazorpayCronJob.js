@@ -15,6 +15,7 @@ import SubscriptionTransaction from "../../models/SubscriptionTransaction.js";
 import { User } from "../../models/User.js";
 import { smsSend2Digital } from "../../services/CommanService.js";
 import { createLog } from "../LogsServices.js";
+import { buildMultiPaymentDetails } from "../vistaServices/VistaPaymentHelper.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Time window for "stuck" transactions
@@ -348,26 +349,11 @@ const _commitTicketBooking = async (txn, notes, payment) => {
   if (!user) return;
 
   const name = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
-  const finalBooking = txn.finalBookingCalculation;
-  // Vista holds seats at the gross ticket total (in paise, so * 100).
-  // Use ticketTotal (gross) so that Vista's udsCommitBook matches the reserved order amount.
-  const grossTicket =
-    Number(finalBooking?.ticketCart?.ticketTotal) ||
-    Number(txn?.addSeatData?.curTicketsTotal) ||
-    Number(finalBooking?.ticketCart?.total) ||
-    0;
-  const ticketTotal = Math.round(grossTicket * 100);
-
-  // Food total in paise. Vista's food amount is basePrice / curFoodTotal in paise (* 100).
-  const foodAmount =
-    Number(txn?.foodAndBvgResponse?.curFoodTotal) ||
-    Number(finalBooking?.foodCart?.basePrice) ||
-    Number(finalBooking?.foodCart?.total) ||
-    0;
-  const fnbTotal = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
-
-  let multipayment = `|PAYTYPE1=CW|AMOUNT1=${ticketTotal}|`;
-  if (fnbTotal > 0) multipayment += `PAYTYPE2=CWFNB|AMOUNT2=${fnbTotal}|`;
+  const { multipayment } = buildMultiPaymentDetails({
+    finalBooking: txn.finalBookingCalculation,
+    addSeatData: txn.addSeatData,
+    foodAndBvgResponse: txn.foodAndBvgResponse,
+  });
 
   try {
     const response = await axios.request({

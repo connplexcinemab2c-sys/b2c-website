@@ -38,7 +38,7 @@ export const updateVistaOrderPrice = async ({
 }) => {
   if (!addSeatData) {
     console.warn("No addSeatData provided, skipping Vista order update.");
-    return;
+    return { success: false, reason: "No addSeatData provided" };
   }
 
   try {
@@ -119,8 +119,8 @@ export const updateVistaOrderPrice = async ({
     console.log(`Vista updateOrder for transId ${transId} result:`, updateResult);
     return updateResult;
   } catch (err) {
-    console.error("Error updating Vista order price:", err);
-    throw err;
+    console.warn(`Vista updateOrder unavailable for transId ${transId}:`, err.message);
+    return { success: false, reason: err.message };
   }
 };
 
@@ -304,6 +304,7 @@ export const couponCart = async (req, res) => {
 
           if (curTicketsTotal !== newTicketsTotal) {
             let updateSuccess = false;
+            let failureReason = "";
             try {
               const updateResult = await updateVistaOrderPrice({
                 cinemaId: cinemaDoc.cinemaId,
@@ -315,26 +316,36 @@ export const couponCart = async (req, res) => {
               });
 
               updateSuccess = updateResult?.success === true;
-
-              createLog({
-                transaction_id: transId,
-                type: "Booking",
-                step: {
-                  logType: "updateVistaOrderPrice",
-                  success: updateSuccess,
-                  newTicketTotal: cart.ticketCart.total,
-                  discountAmount: cart.ticketCart.discountAmount,
-                  cgst: cart.ticketCart.cgst,
-                  sgst: cart.ticketCart.sgst,
-                  message: updateSuccess
-                    ? `Vista order updated to ₹${cart.ticketCart.total} (CGST: ₹${cart.ticketCart.cgst}, SGST: ₹${cart.ticketCart.sgst})`
-                    : `Vista order update not applied (keeping original Vista reservation)`,
-                  timestamp: new Date().toISOString(),
-                },
-              });
+              if (!updateSuccess) {
+                failureReason =
+                  updateResult?.strException ||
+                  updateResult?.reason ||
+                  "Direct Vista order update not permitted by cinema service";
+              }
             } catch (updateErr) {
+              failureReason = updateErr.message;
               console.warn(`Vista updateOrder failed for transId ${transId}:`, updateErr.message);
             }
+
+            const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE || "DISC";
+            createLog({
+              transaction_id: transId,
+              type: "Booking",
+              step: {
+                logType: "updateVistaOrderPrice",
+                success: true,
+                directVistaUpdateApplied: updateSuccess,
+                settlementMode: updateSuccess ? "DIRECT_ORDER_UPDATE" : "COMMIT_MULTICARRIER_TENDER",
+                newTicketTotal: cart.ticketCart.total,
+                discountAmount: cart.ticketCart.discountAmount,
+                cgst: cart.ticketCart.cgst,
+                sgst: cart.ticketCart.sgst,
+                message: updateSuccess
+                  ? `Vista order updated to ₹${cart.ticketCart.total} (CGST: ₹${cart.ticketCart.cgst}, SGST: ₹${cart.ticketCart.sgst})`
+                  : `Discount of ₹${cart.ticketCart.discountAmount} registered; direct cinema update bypassed (${failureReason}), settled via MultiPayment (${discountPaytype}) during Vista commit`,
+                timestamp: new Date().toISOString(),
+              },
+            });
 
             // Only sync local transaction's addSeatData if Vista order was confirmed updated
             if (updateSuccess) {

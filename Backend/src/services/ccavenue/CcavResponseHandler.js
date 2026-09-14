@@ -31,6 +31,7 @@ import SubscriptionWelcomeGift from "../../models/SubscriptionWelcomeGift.js";
 import { processOrderAttribution } from "../WhatsAppConversionService.js";
 import GeneralSetting from "../../models/GeneralSetting.js";
 import { createLog } from "../LogsServices.js";
+import { buildMultiPaymentDetails, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
 dotenv.config();
 export const paymentResponse = async (req, res) => {
   try {
@@ -181,29 +182,11 @@ export const paymentResponse = async (req, res) => {
           ? `${user?.firstName} ${user?.lastName}`
           : user?.firstName;
 
-        const finalBooking = bookingData?.finalBookingCalculation;
-        // Vista holds seats at the gross ticket total (in paise, so * 100).
-        // Use ticketTotal (gross) so that Vista's udsCommitBook matches the reserved order amount.
-        const grossTicket =
-          Number(finalBooking?.ticketCart?.ticketTotal) ||
-          Number(bookingData?.addSeatData?.curTicketsTotal) ||
-          Number(finalBooking?.ticketCart?.total) ||
-          0;
-        let ticketTotal = Math.round(grossTicket * 100);
-
-        // Food total in paise. Vista's food amount is basePrice / curFoodTotal in paise (* 100).
-        const foodAmount =
-          Number(bookingData?.foodAndBvgResponse?.curFoodTotal) ||
-          Number(finalBooking?.foodCart?.basePrice) ||
-          Number(finalBooking?.foodCart?.total) ||
-          0;
-        let fnbTotal = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
-
-        let multipayment = `|PAYTYPE1=CW|AMOUNT1=${ticketTotal}|`;
-
-        if (fnbTotal > 0) {
-          multipayment += `PAYTYPE2=CWFNB|AMOUNT2=${fnbTotal}|`;
-        }
+        const { multipayment } = buildMultiPaymentDetails({
+          finalBooking: bookingData?.finalBookingCalculation,
+          addSeatData: bookingData?.addSeatData,
+          foodAndBvgResponse: bookingData?.foodAndBvgResponse,
+        });
         await checkAndGrantWelcomeGift(userId);
         if (process.env.VISTA_TICKET_BOOKING == "true") {
           try {
@@ -617,30 +600,7 @@ export const ticketBooked = async (res, strTransId, response, user) => {
     { initTransId: strTransId },
     { addSeatData: 1, finalBookingCalculation: 1 }
   );
-  let commitData = response?.data?.data || {};
-  if (
-    tx?.finalBookingCalculation?.ticketCart?.discountAmount > 0 &&
-    tx?.finalBookingCalculation?.ticketCart?.total
-  ) {
-    const discountedTotal = String(tx.finalBookingCalculation.ticketCart.total);
-    const cgst = String(tx.finalBookingCalculation.ticketCart.cgst);
-    const sgst = String(tx.finalBookingCalculation.ticketCart.sgst);
-    commitData = {
-      ...commitData,
-      curTicketsTotal:
-        commitData.curTicketsTotal && Number(commitData.curTicketsTotal) === Number(discountedTotal)
-          ? commitData.curTicketsTotal
-          : discountedTotal,
-      curTicketsTax1:
-        commitData.curTicketsTax1 && Number(commitData.curTicketsTotal) === Number(discountedTotal)
-          ? commitData.curTicketsTax1
-          : cgst,
-      curTicketsTax2:
-        commitData.curTicketsTax2 && Number(commitData.curTicketsTotal) === Number(discountedTotal)
-          ? commitData.curTicketsTax2
-          : sgst,
-    };
-  }
+  const commitData = formatCommitBookingData(response?.data?.data, tx);
 
   await Transaction.findOneAndUpdate(
     { initTransId: strTransId },
