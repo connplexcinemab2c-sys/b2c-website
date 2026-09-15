@@ -156,13 +156,20 @@ export const recalculateCartPrices = (cart, couponDiscount = 0) => {
   const totalDiscountToApply = couponDiscount + rewardDiscount;
   const sumAfterMembership = ticketTotalAfterMembership + foodTotalAfterMembership;
 
+  // Cap effective discount at the sum of payable items after membership
+  const effectiveDiscount = Math.min(totalDiscountToApply, sumAfterMembership);
+
   let ticketShareOfDiscount = 0;
   let foodShareOfDiscount = 0;
 
   if (sumAfterMembership > 0) {
-    ticketShareOfDiscount = (ticketTotalAfterMembership / sumAfterMembership) * totalDiscountToApply;
-    foodShareOfDiscount = (foodTotalAfterMembership / sumAfterMembership) * totalDiscountToApply;
+    ticketShareOfDiscount = (ticketTotalAfterMembership / sumAfterMembership) * effectiveDiscount;
+    foodShareOfDiscount = (foodTotalAfterMembership / sumAfterMembership) * effectiveDiscount;
   }
+
+  // Ensure individual shares do not exceed respective balances
+  ticketShareOfDiscount = Math.min(ticketTotalAfterMembership, ticketShareOfDiscount);
+  foodShareOfDiscount = Math.min(foodTotalAfterMembership, foodShareOfDiscount);
 
   let finalTicketTotal = Math.max(0, ticketTotalAfterMembership - ticketShareOfDiscount);
   let finalFoodTotal = Math.max(0, foodTotalAfterMembership - foodShareOfDiscount);
@@ -170,8 +177,12 @@ export const recalculateCartPrices = (cart, couponDiscount = 0) => {
   finalTicketTotal = getNumberUptoTwoDecimal(finalTicketTotal);
   finalFoodTotal = getNumberUptoTwoDecimal(finalFoodTotal);
 
-  cart.ticketCart.discountAmount = getNumberUptoTwoDecimal(ticketMembershipDiscount + ticketShareOfDiscount);
-  cart.foodCart.discountAmount = getNumberUptoTwoDecimal(foodMembershipDiscount + foodShareOfDiscount);
+  cart.ticketCart.discountAmount = getNumberUptoTwoDecimal(
+    Math.min(ticketTotal, ticketMembershipDiscount + ticketShareOfDiscount)
+  );
+  cart.foodCart.discountAmount = getNumberUptoTwoDecimal(
+    Math.min(fnbTotal, foodMembershipDiscount + foodShareOfDiscount)
+  );
 
   cart.ticketCart.totalAfterDiscount = getNumberUptoTwoDecimal(Math.max(0, ticketTotal - cart.ticketCart.discountAmount));
   cart.ticketCart.total = cart.ticketCart.totalAfterDiscount;
@@ -194,10 +205,11 @@ export const recalculateCartPrices = (cart, couponDiscount = 0) => {
 
   const convenienceFeesTotal = cart.convenienceFeesObject?.total || 0;
   cart.finalAmount = getNumberUptoTwoDecimal(finalTicketTotal + finalFoodTotal + convenienceFeesTotal);
-  cart.totalDiscount = getNumberUptoTwoDecimal(couponDiscount);
+  const effectiveCouponDiscount = Math.max(0, effectiveDiscount - rewardDiscount);
+  cart.totalDiscount = getNumberUptoTwoDecimal(effectiveCouponDiscount);
 
   return cart;
-};;
+};
 
 // Calculate GST
 const calculateGst = (price, gstPercentage) => {

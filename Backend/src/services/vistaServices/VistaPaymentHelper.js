@@ -19,10 +19,14 @@ export const buildMultiPaymentDetails = ({
     0;
   const ticketGrossPaise = Math.round(grossTicket * 100);
 
-  const paidTicket =
-    Number(finalBooking?.ticketCart?.total) > 0
-      ? Number(finalBooking?.ticketCart?.total)
-      : grossTicket;
+  const hasPaidTicket =
+    finalBooking?.ticketCart?.total !== undefined &&
+    finalBooking?.ticketCart?.total !== null &&
+    !isNaN(Number(finalBooking?.ticketCart?.total));
+
+  const paidTicket = hasPaidTicket
+    ? Math.max(0, Number(finalBooking.ticketCart.total))
+    : grossTicket;
   let paidTicketPaise = Math.round(paidTicket * 100);
 
   let discountPaise = 0;
@@ -47,10 +51,16 @@ export const buildMultiPaymentDetails = ({
   let multipayment = "";
 
   if (discountPaise > 0) {
-    multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
-    payIndex++;
-    multipayment += `PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
-    payIndex++;
+    if (paidTicketPaise > 0) {
+      multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
+      payIndex++;
+      multipayment += `PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
+      payIndex++;
+    } else {
+      // 100% ticket discount: customer paid 0 for tickets
+      multipayment += `|PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
+      payIndex++;
+    }
   } else {
     multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${ticketGrossPaise}|`;
     payIndex++;
@@ -84,7 +94,13 @@ export const formatCommitBookingData = (vistaData, tx) => {
   let commitData = vistaData ? { ...vistaData } : {};
   const ticketCart = tx?.finalBookingCalculation?.ticketCart;
 
-  if (ticketCart && ticketCart.discountAmount > 0 && ticketCart.total) {
+  const hasDiscount = ticketCart && Number(ticketCart.discountAmount) > 0;
+  const hasTicketTotal =
+    ticketCart &&
+    ticketCart.total !== undefined &&
+    ticketCart.total !== null;
+
+  if (hasDiscount && hasTicketTotal) {
     const discountedTotal = String(ticketCart.total);
     const cgst = String(ticketCart.cgst);
     const sgst = String(ticketCart.sgst);

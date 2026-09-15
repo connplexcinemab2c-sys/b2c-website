@@ -222,7 +222,7 @@ export const couponCart = async (req, res) => {
                   coupanCode: coupons[0],
                   lngSessionId: coupanResponse?.lngTrans[0],
                   discountOn: discountOn,
-                  discountValue: totalDiscount,
+                  discountValue: cart.totalDiscount,
                 },
               },
             }
