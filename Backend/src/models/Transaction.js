@@ -190,8 +190,10 @@ let transaction = new mongoose.Schema(
     },
     utm_source: {
       type: String,
-      required: false,
-      default: null,
+      default: "direct",
+      trim: true,
+      lowercase: true,
+      index: true,
     },
     utm_campaign: {
       type: String,

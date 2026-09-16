@@ -50,7 +50,7 @@ export const processOrderAttribution = async (initTransId, utmData = {}) => {
     const normalizedPhone = normalizePhoneNumber(rawPhone);
 
     // 2. Resolve UTM parameters
-    const utm_source = (utmData?.utm_source || bookingDetails.utm_source || "whatsapp").toLowerCase();
+    const utm_source = (utmData?.utm_source || bookingDetails.utm_source || "direct").toLowerCase();
     const utm_campaign = (utmData?.utm_campaign || bookingDetails.utm_campaign || null)?.toLowerCase()?.trim() || null;
 
     // 3. Resolve Order ID
@@ -143,6 +143,10 @@ export const processOrderAttribution = async (initTransId, utmData = {}) => {
           `[WhatsAppTracking] Match confirmed: Phone ${normalizedPhone} converted on campaign ${matchedRecipient.campaign_id} for order ${order_id}`
         );
       }
+    }
+
+    if (utm_source === "whatsapp") {
+      is_conversion = true;
     }
 
     // 7. Upsert into WhatsAppOrder

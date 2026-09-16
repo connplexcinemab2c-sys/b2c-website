@@ -58,7 +58,7 @@ export const whatsAppOrderSchema = new mongoose.Schema(
     },
     utm_source: {
       type: String,
-      default: "whatsapp",
+      default: "direct",
       trim: true,
       lowercase: true,
       index: true,

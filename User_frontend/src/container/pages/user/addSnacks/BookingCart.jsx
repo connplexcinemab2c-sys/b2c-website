@@ -261,7 +261,7 @@ console.log({selectedFood});
       userTicketSpentAmount: Number(ticketCart?.totalAfterDiscount.toFixed(2)),
       quantity: stateData?.cinemaData?.selectedSeats.length,
       rewardCoins: appliedRewardPoints,
-      utm_source: activeUtm?.utm_source || "whatsapp",
+      utm_source: activeUtm?.utm_source || "direct",
       utm_campaign: activeUtm?.utm_campaign || null,
       phone: normalizePhoneNumber(userDetails?.mobileNumber) || userDetails?.mobileNumber || "",
     };
@@ -515,7 +515,7 @@ console.log({selectedFood});
     }|${selectedFood.length ? true : false}|${appliedRewardPoints}|Web`;
     urlencoded.append("id", crypt("testText123", payLoadString));
     const activeUtm = getStoredUtm();
-    if (activeUtm?.utm_source) urlencoded.append("utm_source", activeUtm.utm_source);
+    urlencoded.append("utm_source", activeUtm?.utm_source || "direct");
     if (activeUtm?.utm_campaign) urlencoded.append("utm_campaign", activeUtm.utm_campaign);
     if (userDetails?.mobileNumber) {
       urlencoded.append("phone", normalizePhoneNumber(userDetails.mobileNumber));
@@ -613,7 +613,7 @@ console.log({selectedFood});
         verifyPayload.append("userId", userId);
         verifyPayload.append("appliedRewardPoints", appliedRewardPoints);
         verifyPayload.append("paymentStatus", "success");
-        if (activeUtm?.utm_source) verifyPayload.append("utm_source", activeUtm.utm_source);
+        verifyPayload.append("utm_source", activeUtm?.utm_source || "direct");
         if (activeUtm?.utm_campaign) verifyPayload.append("utm_campaign", activeUtm.utm_campaign);
         if (userDetails?.mobileNumber) {
           verifyPayload.append("phone", normalizePhoneNumber(userDetails.mobileNumber));

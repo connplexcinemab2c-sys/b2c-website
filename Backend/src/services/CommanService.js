@@ -538,7 +538,7 @@ export const sendToWebhookApi = async (initTransId) => {
   // Inject WhatsApp Conversion Tracking & Attribution fields
   try {
     const whatsAppOrder = await WhatsAppOrder.findOne({ initTransId }).lean();
-    filteredData.utm_source = bookingDetails.utm_source || whatsAppOrder?.utm_source || "whatsapp";
+    filteredData.utm_source = bookingDetails.utm_source || whatsAppOrder?.utm_source || "direct";
     filteredData.utm_campaign = bookingDetails.utm_campaign || whatsAppOrder?.utm_campaign || null;
     filteredData.normalized_phone = bookingDetails.normalized_phone || whatsAppOrder?.phone || null;
     filteredData.customer_phone = whatsAppOrder?.phone || bookingDetails.normalized_phone || null;

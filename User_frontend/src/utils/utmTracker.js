@@ -63,7 +63,7 @@ export const captureUtmFromUrl = () => {
 
     if (utmSource || utmCampaign) {
       const utmData = {
-        utm_source: utmSource ? utmSource.trim().toLowerCase() : "whatsapp",
+        utm_source: utmSource ? utmSource.trim().toLowerCase() : "direct",
         utm_campaign: utmCampaign ? utmCampaign.trim().toLowerCase() : null,
         utm_medium: utmMedium ? utmMedium.trim().toLowerCase() : null,
         utm_content: utmContent ? utmContent.trim() : null,
