@@ -236,8 +236,9 @@ const Seller = () => {
     // if (values?.isEdit == true) {
     //   delete data.businessEmail;
     // }
-    // data.id = id;
-    payload.append("id", id);
+    if (id) {
+      payload.append("id", id);
+    }
 
     PagesIndex.EcommerceService.post(
       PagesIndex.EcommerceApi.ADD_EDIT_SELLER,
@@ -249,10 +250,14 @@ const Seller = () => {
         getSellerList();
       })
       .catch((err) => {
-        if (err?.response?.data?.message[0].length) {
-          PagesIndex.toast.error("invalid pincode");
+        const msg = err?.response?.data?.message;
+        if (Array.isArray(msg) && msg.length > 0) {
+          PagesIndex.toast.error(msg[0]);
+        } else if (typeof msg === "string") {
+          PagesIndex.toast.error(msg);
+        } else {
+          PagesIndex.toast.error(err?.message || "Failed to save seller");
         }
-        PagesIndex.toast.error(err?.response?.data?.message);
       })
       .finally(() => setButtonLoading(false));
   };
@@ -287,6 +292,7 @@ const Seller = () => {
           handleChange,
           handleSubmit,
           setFieldValue,
+          submitCount,
         }) => (
           <>
             {console.log("eeeeee", errors)}
@@ -1191,6 +1197,15 @@ const Seller = () => {
                         </Index.Grid>
                       </Index.Box>
                     )} */}
+                    {submitCount > 0 && Object.keys(errors).length > 0 && (
+                      <Index.Typography
+                        color="error"
+                        variant="caption"
+                        sx={{ display: "block", textAlign: "center", mb: 1, fontWeight: 600 }}
+                      >
+                        Please fill in all required fields highlighted above.
+                      </Index.Typography>
+                    )}
                     <Index.Box className="modal-user-btn-flex">
                       <Index.Box className="discard-btn-main btn-main-primary">
                         <Index.Box className="common-button blue-button res-blue-button">
