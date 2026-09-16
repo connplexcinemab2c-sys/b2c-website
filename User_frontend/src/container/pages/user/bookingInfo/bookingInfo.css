@@ -232,6 +232,7 @@
 .gap-price-book .payment-summary-price {
   flex: 80px;
   text-align: end;
+  white-space: nowrap;
 }
 
 .coupon-book-code {

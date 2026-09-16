@@ -191,15 +191,23 @@ function BookingInfo() {
                     className="payment-summary-price"
                   >
                     ₹
-                    {finalBookingCalculation?.ticketCart?.basePrice
+                    {finalBookingCalculation?.ticketCart?.ticketTotal
+                      ? parseFloat(
+                          finalBookingCalculation?.ticketCart?.ticketTotal
+                        ).toFixed(2)
+                      : finalBookingCalculation?.ticketCart?.basePrice != null
                       ? parseFloat(
                           finalBookingCalculation?.ticketCart?.basePrice
                         ).toFixed(2)
-                      : parseFloat(
-                          bookingDetails?.finalBookingCalculation?.finalAmount
-                            ? bookingDetails.finalBookingCalculation.finalAmount
-                            : bookingDetails?.paymentResponse?.amount || 0
-                        ).toFixed(2)}
+                      : bookingDetails?.foodAndBvgResponse?.curTicketsTotal
+                      ? parseFloat(
+                          bookingDetails?.foodAndBvgResponse?.curTicketsTotal
+                        ).toFixed(2)
+                      : bookingDetails?.addSeatData?.curTicketsTotal
+                      ? parseFloat(
+                          bookingDetails?.addSeatData?.curTicketsTotal
+                        ).toFixed(2)
+                      : "0.00"}
                   </Index.Typography>
                 </Index.Box>
                 {finalBookingCalculation &&
@@ -689,6 +697,25 @@ function BookingInfo() {
                 </Index.Box>
               </Index.Box> */}
 
+              {Number(finalBookingCalculation?.rewardCoinsRedeemed) > 0 && (
+                <Index.Box className="payment-summary-row">
+                  <Index.Typography
+                    variant="p"
+                    component="p"
+                    className="payment-summary-label"
+                  >
+                    Reward Points Applied ({finalBookingCalculation?.rewardCoinsRedeemed} pts) :
+                  </Index.Typography>
+                  <Index.Typography
+                    variant="p"
+                    component="p"
+                    className="payment-summary-price"
+                  >
+                    - ₹{parseFloat(finalBookingCalculation?.rewardDiscountApplied || 0).toFixed(2)}
+                  </Index.Typography>
+                </Index.Box>
+              )}
+
               <Index.Box className="payment-summary-row">
                 <Index.Typography
                   variant="p"
@@ -702,14 +729,7 @@ function BookingInfo() {
                   component="p"
                   className="booking-detail-value"
                 >
-                  ₹
-                  {/* {parseFloat(
-                                    item?.cinemaId?.convenienceFees *
-                                      item?.setSeatData?.strSeatInfo
-                                        .split(" - ")[1]
-                                        .split(",").length
-                                  ).toFixed(2)} */}
-                  0
+                  ₹0
                 </Index.Typography>
               </Index.Box>
 
@@ -729,8 +749,7 @@ function BookingInfo() {
                         ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
                         : 0
                     }{" "}
-                    x ₹{bookingDetails?.cinemaId?.convenienceFees} - Including
-                    GST)
+                    x ₹{bookingDetails?.cinemaId?.convenienceFees || 0})
                   </Index.Typography>
                 </Index.Typography>
                 <Index.Typography
@@ -740,13 +759,49 @@ function BookingInfo() {
                 >
                   ₹
                   {parseFloat(
-                    bookingDetails?.cinemaId?.convenienceFees *
-                      (bookingDetails?.setSeatData?.strSeatInfo
-                        ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
-                        : 0)
+                    finalBookingCalculation?.convenienceFeesObject?.convenienceFees != null
+                      ? finalBookingCalculation.convenienceFeesObject.convenienceFees
+                      : (bookingDetails?.cinemaId?.convenienceFees || 0) *
+                        (bookingDetails?.setSeatData?.strSeatInfo
+                          ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                          : 0)
                   ).toFixed(2)}
                 </Index.Typography>
               </Index.Box>
+
+              {(parseFloat(
+                finalBookingCalculation?.convenienceFeesObject?.gst != null
+                  ? finalBookingCalculation.convenienceFeesObject.gst
+                  : (bookingDetails?.cinemaId?.convenienceFees || 0) *
+                    (bookingDetails?.setSeatData?.strSeatInfo
+                      ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                      : 0) * 0.18
+              ) > 0) && (
+                <Index.Box className="payment-summary-row">
+                  <Index.Typography
+                    variant="p"
+                    component="p"
+                    className="payment-summary-label"
+                  >
+                    GST (18%) :
+                  </Index.Typography>
+                  <Index.Typography
+                    variant="p"
+                    component="p"
+                    className="payment-summary-price"
+                  >
+                    ₹
+                    {parseFloat(
+                      finalBookingCalculation?.convenienceFeesObject?.gst != null
+                        ? finalBookingCalculation.convenienceFeesObject.gst
+                        : (bookingDetails?.cinemaId?.convenienceFees || 0) *
+                          (bookingDetails?.setSeatData?.strSeatInfo
+                            ? bookingDetails.setSeatData.strSeatInfo.split(" - ")[1]?.split(",").length
+                            : 0) * 0.18
+                    ).toFixed(2)}
+                  </Index.Typography>
+                </Index.Box>
+              )}
             </Index.Box>
             <Index.Box className="total-payment-row">
               <Index.Typography
