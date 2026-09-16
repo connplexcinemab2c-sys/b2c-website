@@ -20,20 +20,21 @@ export const addEditCategorySchema = Yup.object().shape({
       "FILE_FORMAT",
       "Only .jpg, .jpeg, and .png files are allowed",
       function (value) {
-        const { isEdit } = this.options.context;
+        const isEdit = this.parent?.isEdit || this.options?.context?.isEdit;
         if (isEdit && typeof value === "string") {
           return true;
         }
-        if (!value?.name) {
-          let ext = value?.split(".")[1];
-          return ["jpg", "jpeg", "png"].includes(ext);
-        } else {
-          return ["image/jpg", "image/jpeg", "image/png"].includes(value?.type);
-        }
+        if (!value) return false;
+        const fileName = value?.name || (typeof value === "string" ? value : "");
+        const ext = fileName?.split(".")?.pop()?.toLowerCase();
+        const mimeType = value?.type?.toLowerCase();
+        const validExtensions = ["jpg", "jpeg", "png"];
+        const validMimeTypes = ["image/jpg", "image/jpeg", "image/png"];
+        return validExtensions.includes(ext) || validMimeTypes.includes(mimeType);
       }
     )
     .test("fileSize", "The file size must not exceed 2 MB.", function (value) {
-      const { isEdit } = this.options.context;
+      const isEdit = this.parent?.isEdit || this.options?.context?.isEdit;
       if (isEdit && typeof value === "string") {
         return true;
       }
