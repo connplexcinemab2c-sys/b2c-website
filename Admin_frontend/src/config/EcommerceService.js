@@ -1,14 +1,16 @@
 import axios from "axios";
 
-// Local
-// const API_ENDPOINT = "http://localhost:3067/api";
-// export const ECOMMERCE_IMAGES_API_ENDPOINT = "http://localhost:3067/api/uploads";
+const API_ENDPOINT =
+  import.meta.env.VITE_ECOMMERCE_BASE_URL ||
+  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:3067/api"
+    : "https://shop-api.theconnplex.com/api/");
 
-// Live
-const API_ENDPOINT = "https://shop-api.theconnplex.com/api/";
-// export const ECOMMERCE_IMAGES_API_ENDPOINT = "http://localhost:3067/api/uploads";
 export const ECOMMERCE_IMAGES_API_ENDPOINT =
-  "https://shop-api.theconnplex.com/api/uploads";
+  import.meta.env.VITE_ECOMMERCE_IMAGE_URL ||
+  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:3067/api/uploads"
+    : "https://shop-api.theconnplex.com/api/uploads");
 
 const EcommerceService = axios.create({
   baseURL: API_ENDPOINT,

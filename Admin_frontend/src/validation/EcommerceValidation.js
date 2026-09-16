@@ -3,8 +3,8 @@ const nameRegex = /^(.+)$/gm;
 const MAX_MB_SIZE = 2097152; //2mb
 const IMAGE_MAX_MB_SIZE = 2 * 1024 * 1024;
 const VIDEO_MAX_MB_SIZE = 10 * 1024 * 1024;
-const IMAGE_MAX_WIDTH = 480;
-const IMAGE_MAX_HEIGHT = 720;
+const IMAGE_MAX_WIDTH = 3840;
+const IMAGE_MAX_HEIGHT = 3840;
 const gstRegex =
   /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/;
 const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
@@ -149,7 +149,7 @@ export const productValidationSchema = Yup.object().shape({
   productName: Yup.string()
     .required("Product Name is required")
     .min(3, "Product Name must be at least 3 characters")
-    .max(50, "Product Name cannot exceed 50 characters"),
+    .max(100, "Product Name cannot exceed 100 characters"),
 
   category: Yup.string().required("Category is required"),
 
@@ -157,73 +157,11 @@ export const productValidationSchema = Yup.object().shape({
 
   description: Yup.string()
     .required("Description is required")
-    .max(250, "Description cannot exceed 250 characters"),
-
-  colors: Yup.array()
-    .of(
-      Yup.object().shape({
-        colorName: Yup.string().required("Color name is required"),
-        colorImages: Yup.array()
-          .of(
-            Yup.mixed()
-              .required("Please select a color image")
-              .test(
-                "FILE_FORMAT",
-                "Only .jpg, .jpeg, and .png files are allowed",
-                function (value) {
-                  if (!value?.name) {
-                    const ext = value?.split(".")[1];
-                    return ["jpg", "jpeg", "png", "mp4", "webm"].includes(ext);
-                  } else {
-                    return [
-                      "image/jpg",
-                      "image/jpeg",
-                      "image/png",
-                      "video/mp4",
-                      "video/webm",
-                    ].includes(value?.type);
-                  }
-                }
-              )
-              .test(
-                "fileSize",
-                "The file size must not exceed 2 MB.",
-                function (value) {
-                  if (value?.size) {
-                    return value.size <= MAX_MB_SIZE;
-                  } else {
-                    return true;
-                  }
-                }
-              )
-          )
-          .min(1, "At least one image is required"),
-      })
-    )
-    .min(1, "At least one color is required"),
+    .max(5000, "Description cannot exceed 5000 characters"),
 
   attributes: Yup.array()
     .of(
       Yup.object().shape({
-        // attribute: Yup.string().required("Attribute is required"),
-        Color: Yup.string().required("Color is required"),
-        Size: Yup.array().min(1, "Please select size"),
-        // variants: Yup.array()
-        //   .of(
-        //     Yup.string()
-        //       .required("Variant is required")
-        //       .max(20, "Variant cannot exceed 20 characters")
-        //   )
-        //   .test(
-        //     "conditional-required",
-        //     "If there are multiple variants, all must be filled",
-        //     (variants) => {
-        //       if (variants?.length > 1) {
-        //         return variants.every((variant) => variant && variant.trim() !== "");
-        //       }
-        //       return true; // Pass validation if no variants or just one
-        //     }
-        //   ),
         price: Yup.number()
           .test("price-required", "Price is required", (value) => {
             const parseValue = parseFloat(value);

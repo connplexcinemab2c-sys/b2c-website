@@ -100,7 +100,13 @@ export const getCategoriesService = createAsyncThunk(
       if (response?.data?.status === 200) {
         return response?.data?.data;
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      toast.error(
+        error?.response?.data?.message ||
+          "Unable to load categories. Please check ecommerce service configuration."
+      );
+    }
   }
 );
 
@@ -130,7 +136,9 @@ export const getAttributesByCategoryService = createAsyncThunk(
       if (response?.data?.status === 200) {
         return response?.data?.data;
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error fetching attributes:", error);
+    }
   }
 );
 
@@ -149,9 +157,8 @@ export const addEditProductService = createAsyncThunk(
         return response?.data;
       }
     } catch (error) {
-      const err = customError(error);
       showToast(
-        err?.response?.data?.message || "Something went wrong",
+        error?.response?.data?.message || "Something went wrong while saving product",
         "error"
       );
     }

@@ -34,6 +34,8 @@ export default function AddProduct() {
 
   const [categoryList, setCategoryList] = React.useState([]);
   const [attributeList, setAttributeList] = React.useState([]);
+  const [categoryLoading, setCategoryLoading] = React.useState(false);
+  const [sellerLoading, setSellerLoading] = React.useState(false);
   const [editData, setEditData] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [openFileUpload, setOpenFileUpload] = React.useState(false);
@@ -152,16 +154,27 @@ export default function AddProduct() {
   };
 
   const getCategories = () => {
-    dispatch(getCategoriesService()).then((response) => {
-      if (response?.payload) {
-        setCategoryList(response?.payload);
-      } else {
+    setCategoryLoading(true);
+    dispatch(getCategoriesService())
+      .then((response) => {
+        setCategoryLoading(false);
+        if (response?.payload) {
+          setCategoryList(response?.payload);
+        } else {
+          setCategoryList([]);
+        }
+      })
+      .catch(() => {
+        setCategoryLoading(false);
         setCategoryList([]);
-      }
-    });
+      });
   };
 
   const getAttributesByCategory = (id) => {
+    if (!id) {
+      setAttributeList([]);
+      return;
+    }
     dispatch(getAttributesByCategoryService(id)).then((response) => {
       if (response?.payload) {
         setAttributeList(response?.payload);
@@ -172,14 +185,17 @@ export default function AddProduct() {
   };
 
   const getAllActiveSellerList = async () => {
+    setSellerLoading(true);
     try {
       let response = await EcommerceService.get(
         EcommerceApi.GET_ALL_ACTIVE_SELLER
       );
-      setSellerList(response?.data?.data);
+      setSellerList(response?.data?.data || []);
     } catch (error) {
-      console.log("getting error while fetching seller list");
+      console.log("getting error while fetching seller list", error);
       setSellerList([]);
+    } finally {
+      setSellerLoading(false);
     }
   };
 
@@ -296,23 +312,35 @@ export default function AddProduct() {
                                     ? undefined
                                     : () => (
                                         <span className="placeholder-text">
-                                          Select product category
+                                          {categoryLoading
+                                            ? "Loading categories..."
+                                            : "Select product category"}
                                         </span>
                                       )
                                 }
                                 // inputprops={{ 'aria-label': 'Without label' }}
                               >
-                                {categoryList?.map((category) => {
-                                  return (
-                                    <Index.MenuItem
-                                      value={category?._id}
-                                      className="drop-menuitem"
-                                      key={category?._id}
-                                    >
-                                      {category?.name}
-                                    </Index.MenuItem>
-                                  );
-                                })}
+                                {categoryList?.length > 0 ? (
+                                  categoryList?.map((category) => {
+                                    return (
+                                      <Index.MenuItem
+                                        value={category?._id}
+                                        className="drop-menuitem"
+                                        key={category?._id}
+                                      >
+                                        {category?.name}
+                                      </Index.MenuItem>
+                                    );
+                                  })
+                                ) : (
+                                  <Index.MenuItem disabled value="">
+                                    <em>
+                                      {categoryLoading
+                                        ? "Loading categories..."
+                                        : "No categories available"}
+                                    </em>
+                                  </Index.MenuItem>
+                                )}
                               </Index.Select>
 
                               <Index.FormHelperText error>
@@ -475,19 +503,31 @@ export default function AddProduct() {
                                   ? undefined
                                   : () => (
                                       <span className="placeholder-text">
-                                        Select seller
+                                        {sellerLoading
+                                          ? "Loading sellers..."
+                                          : "Select seller"}
                                       </span>
                                     )
                               }
                             >
-                              {sellerList?.map((sellerItem) => (
-                                <Index.MenuItem
-                                  value={sellerItem?._id}
-                                  key={sellerItem?._id}
-                                >
-                                  {sellerItem?.businessName}
+                              {sellerList?.length > 0 ? (
+                                sellerList?.map((sellerItem) => (
+                                  <Index.MenuItem
+                                    value={sellerItem?._id}
+                                    key={sellerItem?._id}
+                                  >
+                                    {sellerItem?.businessName}
+                                  </Index.MenuItem>
+                                ))
+                              ) : (
+                                <Index.MenuItem disabled value="">
+                                  <em>
+                                    {sellerLoading
+                                      ? "Loading sellers..."
+                                      : "No active sellers available"}
+                                  </em>
                                 </Index.MenuItem>
-                              ))}
+                              )}
                             </Index.Select>
                             <Index.FormHelperText error>
                               {errors?.seller && touched?.seller
@@ -588,7 +628,6 @@ export default function AddProduct() {
                   </Index.Grid>
                 </Index.Box>
               </Index.Box>
-              {attributeList?.length > 0 && (
                 <Index.Box className="common-card barge-common-box">
                   {/* <Index.Box className="grid-main add-more-row add-lable-row"> */}
                   <Index.Box className="grid-mains add-more-row add-lable-row">
@@ -597,40 +636,29 @@ export default function AddProduct() {
                       gridTemplateColumns="repeat(12, 1fr)"
                       gap={{ xs: 2, sm: 2, md: 2, lg: 2 }}
                     >
-                      <Index.Box
-                        gridColumn={{
-                          xs: "span 12",
-                          sm: "span 6",
-                          md: "span 2",
-                          lg: "span 2",
-                        }}
-                        className="grid-column"
-                      >
-                        <Index.Box className="input-box add-more-product-input-box">
-                          <Index.FormHelperText className="form-lable">
-                            Select Attribute
-                          </Index.FormHelperText>
+                      {attributeList?.length > 0 && (
+                        <Index.Box
+                          gridColumn={{
+                            xs: "span 12",
+                            sm: "span 6",
+                            md: "span 2",
+                            lg: "span 2",
+                          }}
+                          className="grid-column"
+                        >
+                          <Index.Box className="input-box add-more-product-input-box">
+                            <Index.FormHelperText className="form-lable">
+                              Select Attribute
+                            </Index.FormHelperText>
+                          </Index.Box>
                         </Index.Box>
-                      </Index.Box>
+                      )}
                       <Index.Box
                         gridColumn={{
                           xs: "span 12",
                           sm: "span 6",
-                          md: "span 2",
-                          lg: "span 2",
-                        }}
-                        className="grid-column"
-                      >
-                        <Index.Box className="input-box add-more-product-input-box">
-                          <Index.FormHelperText className="form-lable"></Index.FormHelperText>
-                        </Index.Box>
-                      </Index.Box>
-                      <Index.Box
-                        gridColumn={{
-                          xs: "span 12",
-                          sm: "span 6",
-                          md: "span 3",
-                          lg: "span 2",
+                          md: attributeList?.length > 0 ? "span 2" : "span 3",
+                          lg: attributeList?.length > 0 ? "span 2" : "span 3",
                         }}
                         className="grid-column"
                       >
@@ -644,8 +672,8 @@ export default function AddProduct() {
                         gridColumn={{
                           xs: "span 12",
                           sm: "span 6",
-                          md: "span 3",
-                          lg: "span 2",
+                          md: attributeList?.length > 0 ? "span 2" : "span 3",
+                          lg: attributeList?.length > 0 ? "span 2" : "span 3",
                         }}
                         className="grid-column"
                       >
@@ -659,8 +687,8 @@ export default function AddProduct() {
                         gridColumn={{
                           xs: "span 12",
                           sm: "span 6",
-                          md: "span 2",
-                          lg: "span 2",
+                          md: attributeList?.length > 0 ? "span 2" : "span 3",
+                          lg: attributeList?.length > 0 ? "span 2" : "span 3",
                         }}
                         className="grid-column"
                       >
@@ -674,8 +702,8 @@ export default function AddProduct() {
                         gridColumn={{
                           xs: "span 12",
                           sm: "span 6",
-                          md: "span 2",
-                          lg: "span 2",
+                          md: attributeList?.length > 0 ? "span 2" : "span 3",
+                          lg: attributeList?.length > 0 ? "span 2" : "span 3",
                         }}
                         className="grid-column"
                       >
@@ -685,6 +713,23 @@ export default function AddProduct() {
                           </Index.FormHelperText>
                         </Index.Box>
                       </Index.Box>
+                      {attributeList?.length > 0 && (
+                        <Index.Box
+                          gridColumn={{
+                            xs: "span 12",
+                            sm: "span 6",
+                            md: "span 2",
+                            lg: "span 2",
+                          }}
+                          className="grid-column"
+                        >
+                          <Index.Box className="input-box add-more-product-input-box">
+                            <Index.FormHelperText className="form-lable">
+                              Action
+                            </Index.FormHelperText>
+                          </Index.Box>
+                        </Index.Box>
+                      )}
                     </Index.Box>
                   </Index.Box>
                   <Index.FieldArray
@@ -701,15 +746,16 @@ export default function AddProduct() {
                             gridTemplateColumns="repeat(12, 1fr)"
                             gap={{ xs: 2, sm: 2, md: 2, lg: 2 }}
                           >
-                            <Index.Box
-                              gridColumn={{
-                                xs: "span 12",
-                                sm: "span 6",
-                                md: "span 2",
-                                lg: "span 2",
-                              }}
-                              className="grid-column"
-                            >
+                            {attributeList?.length > 0 && (
+                              <Index.Box
+                                gridColumn={{
+                                  xs: "span 12",
+                                  sm: "span 6",
+                                  md: "span 2",
+                                  lg: "span 2",
+                                }}
+                                className="grid-column"
+                              >
                               {attributeList?.map((attribute) => {
                                 const selectedValues =
                                   values?.attributes?.reduce((acc, attr, i) => {
@@ -874,6 +920,7 @@ export default function AddProduct() {
                               </Index.Box>
                             </Index.Box> */}
                             </Index.Box>
+                            )}
 
                             {/* <Index.Box
                             gridColumn={{
@@ -939,8 +986,8 @@ export default function AddProduct() {
                               gridColumn={{
                                 xs: "span 12",
                                 sm: "span 6",
-                                md: "span 2",
-                                lg: "span 2",
+                                md: attributeList?.length > 0 ? "span 2" : "span 3",
+                                lg: attributeList?.length > 0 ? "span 2" : "span 3",
                               }}
                               className="grid-column"
                             >
@@ -995,8 +1042,8 @@ export default function AddProduct() {
                               gridColumn={{
                                 xs: "span 12",
                                 sm: "span 6",
-                                md: "span 2",
-                                lg: "span 2",
+                                md: attributeList?.length > 0 ? "span 2" : "span 3",
+                                lg: attributeList?.length > 0 ? "span 2" : "span 3",
                               }}
                               className="grid-column"
                             >
@@ -1033,8 +1080,8 @@ export default function AddProduct() {
                               gridColumn={{
                                 xs: "span 12",
                                 sm: "span 6",
-                                md: "span 2",
-                                lg: "span 2",
+                                md: attributeList?.length > 0 ? "span 2" : "span 3",
+                                lg: attributeList?.length > 0 ? "span 2" : "span 3",
                               }}
                               className="grid-column"
                             >
@@ -1065,8 +1112,8 @@ export default function AddProduct() {
                               gridColumn={{
                                 xs: "span 12",
                                 sm: "span 6",
-                                md: "span 2",
-                                lg: "span 2",
+                                md: attributeList?.length > 0 ? "span 2" : "span 3",
+                                lg: attributeList?.length > 0 ? "span 2" : "span 3",
                               }}
                               className="grid-column"
                             >
@@ -1144,59 +1191,60 @@ export default function AddProduct() {
                                 setOpenFileUpload={setOpenFileUpload}
                               />
                             )}
-                            <Index.Box
-                              gridColumn={{
-                                xs: "span 12",
-                                sm: "span 6",
-                                md: "span 2",
-                                lg: "span 2",
-                              }}
-                              className="grid-column"
-                            >
-                              <Index.Box className="add-more-btn-main">
-                                {index == values?.attributes?.length - 1 && (
-                                  <Index.Button
-                                    className="add-more-btn"
-                                    variant="contained"
-                                    onClick={() =>
-                                      arrayHelpers.push({
-                                        color: "",
-                                        size: [],
-                                        price: "",
-                                        stock: "",
-                                        images: [],
-                                      })
-                                    }
-                                  >
-                                    <img
-                                      src={PagesIndex.Svg.addIcon}
-                                      alt="add"
-                                      className="add-minus-icon icon"
-                                    />
-                                  </Index.Button>
-                                )}
-                                {values?.attributes.length > 1 && (
-                                  <Index.Button
-                                    className="add-more-btn"
-                                    variant="contained"
-                                    onClick={() => arrayHelpers.remove(index)}
-                                  >
-                                    <img
-                                      src={PagesIndex.Svg.minusIcon}
-                                      alt="add"
-                                      className="add-minus-icon icon"
-                                    />
-                                  </Index.Button>
-                                )}
+                            {attributeList?.length > 0 && (
+                              <Index.Box
+                                gridColumn={{
+                                  xs: "span 12",
+                                  sm: "span 6",
+                                  md: "span 2",
+                                  lg: "span 2",
+                                }}
+                                className="grid-column"
+                              >
+                                <Index.Box className="add-more-btn-main">
+                                  {index == values?.attributes?.length - 1 && (
+                                    <Index.Button
+                                      className="add-more-btn"
+                                      variant="contained"
+                                      onClick={() =>
+                                        arrayHelpers.push({
+                                          color: "",
+                                          size: [],
+                                          price: "",
+                                          stock: "",
+                                          images: [],
+                                        })
+                                      }
+                                    >
+                                      <img
+                                        src={PagesIndex.Svg.addIcon}
+                                        alt="add"
+                                        className="add-minus-icon icon"
+                                      />
+                                    </Index.Button>
+                                  )}
+                                  {values?.attributes.length > 1 && (
+                                    <Index.Button
+                                      className="add-more-btn"
+                                      variant="contained"
+                                      onClick={() => arrayHelpers.remove(index)}
+                                    >
+                                      <img
+                                        src={PagesIndex.Svg.minusIcon}
+                                        alt="add"
+                                        className="add-minus-icon icon"
+                                      />
+                                    </Index.Button>
+                                  )}
+                                </Index.Box>
                               </Index.Box>
-                            </Index.Box>
+                            )}
                           </Index.Box>
                         </Index.Box>
                       ))
                     }
                   />
                 </Index.Box>
-              )}
               <Index.Box className="seller-btn-flex custom-seller-btn-flex">
                 <Index.Box className="border-btn-main">
                   <button className="btn" onClick={handleDiscard}>
@@ -1207,7 +1255,7 @@ export default function AddProduct() {
                   <button
                     className="btn"
                     type="submit"
-                    disabled={loading || !attributeList?.length}
+                    disabled={loading}
                   >
                     {param?.id ? "Update" : "Save"}
                   </button>
