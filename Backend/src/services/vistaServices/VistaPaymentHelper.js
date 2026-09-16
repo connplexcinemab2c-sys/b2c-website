@@ -45,12 +45,13 @@ export const buildMultiPaymentDetails = ({
     0;
   const fnbPaise = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
 
-  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE || "DISC";
+  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
+  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
 
   let payIndex = 1;
   let multipayment = "";
 
-  if (discountPaise > 0) {
+  if (enableDiscountTender && discountPaytype && discountPaise > 0) {
     if (paidTicketPaise > 0) {
       multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
       payIndex++;
@@ -62,6 +63,8 @@ export const buildMultiPaymentDetails = ({
       payIndex++;
     }
   } else {
+    // Vista holds seats at gross ticket total (in paise).
+    // udsCommitBook requires the gross ticket reservation amount under valid tender CW.
     multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${ticketGrossPaise}|`;
     payIndex++;
   }
@@ -114,7 +117,7 @@ export const formatCommitBookingData = (vistaData, tx) => {
       ...commitData,
       grossTicketsTotal: grossTotal,
       discountAmount: ticketCart.discountAmount,
-      discountPaytype: process.env.VISTA_DISCOUNT_PAYTYPE || "DISC",
+      discountPaytype: process.env.VISTA_DISCOUNT_PAYTYPE || "CW",
       curTicketsTotal: discountedTotal,
       curTicketsTax1: cgst,
       curTicketsTax2: sgst,

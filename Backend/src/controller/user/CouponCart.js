@@ -327,7 +327,15 @@ export const couponCart = async (req, res) => {
               console.warn(`Vista updateOrder failed for transId ${transId}:`, updateErr.message);
             }
 
-            const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE || "DISC";
+            const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
+            const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
+            const settlementMode = updateSuccess
+              ? "DIRECT_ORDER_UPDATE"
+              : enableDiscountTender && discountPaytype
+              ? "COMMIT_MULTICARRIER_TENDER"
+              : "COMMIT_CW_TENDER";
+            const tenderLabel = enableDiscountTender && discountPaytype ? discountPaytype : "CW";
+
             createLog({
               transaction_id: transId,
               type: "Booking",
@@ -335,14 +343,14 @@ export const couponCart = async (req, res) => {
                 logType: "updateVistaOrderPrice",
                 success: true,
                 directVistaUpdateApplied: updateSuccess,
-                settlementMode: updateSuccess ? "DIRECT_ORDER_UPDATE" : "COMMIT_MULTICARRIER_TENDER",
+                settlementMode,
                 newTicketTotal: cart.ticketCart.total,
                 discountAmount: cart.ticketCart.discountAmount,
                 cgst: cart.ticketCart.cgst,
                 sgst: cart.ticketCart.sgst,
                 message: updateSuccess
                   ? `Vista order updated to ₹${cart.ticketCart.total} (CGST: ₹${cart.ticketCart.cgst}, SGST: ₹${cart.ticketCart.sgst})`
-                  : `Discount of ₹${cart.ticketCart.discountAmount} registered; direct cinema update bypassed (${failureReason}), settled via MultiPayment (${discountPaytype}) during Vista commit`,
+                  : `Discount of ₹${cart.ticketCart.discountAmount} registered; direct cinema update bypassed (${failureReason}), settled via ${tenderLabel} during Vista commit`,
                 timestamp: new Date().toISOString(),
               },
             });
