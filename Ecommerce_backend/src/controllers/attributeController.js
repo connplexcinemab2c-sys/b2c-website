@@ -4,6 +4,10 @@ function formatVariants(variants, isColor) {
   let res = [];
   if (!variants) return res;
 
+  if (variants && typeof variants === "object" && !Array.isArray(variants)) {
+    variants = Object.values(variants);
+  }
+
   if (typeof variants === "string") {
     try {
       variants = JSON.parse(variants);
