@@ -4,6 +4,7 @@ import PagesIndex from "../../../PagesIndex";
 import PropTypes from "prop-types";
 import useAddSnacksHook from "./useAddSnacksHook";
 import BookingCart from "./BookingCart";
+import { appendUtmToParams } from "../../../../utils/utmTracker";
 
 function AddSnacksTab(props) {
   const { children, value, index, ...other } = props;
@@ -153,11 +154,13 @@ function AddSnacks() {
       navigate(
         {
           pathname: `/add-snacks`,
-          search: PagesIndex?.createSearchParams({
-            mId: movieId,
-            rId: regionId,
-            sId: bookingSessionId,
-          }).toString(),
+          search: PagesIndex?.createSearchParams(
+            appendUtmToParams({
+              mId: movieId,
+              rId: regionId,
+              sId: bookingSessionId,
+            })
+          ).toString(),
         },
         { state: location.state }
       );
@@ -177,10 +180,12 @@ function AddSnacks() {
         navigate(
           {
             pathname: "/seat-management",
-            search: PagesIndex.createSearchParams({
-              mId: stateData?.cinemaData?.mId,
-              rId: stateData?.cinemaData?.rId,
-            }).toString(),
+            search: PagesIndex.createSearchParams(
+              appendUtmToParams({
+                mId: stateData?.cinemaData?.mId,
+                rId: stateData?.cinemaData?.rId,
+              })
+            ).toString(),
           },
           {
             state: {

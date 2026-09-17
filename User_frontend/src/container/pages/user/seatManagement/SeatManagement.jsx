@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Index from "../../../Index";
 import PagesIndex from "../../../PagesIndex";
+import { appendUtmToParams } from "../../../../utils/utmTracker";
 
 let isCoupleSeats = false;
 
@@ -697,11 +698,13 @@ function SeatManagement() {
           navigate(
             {
               pathname: "/add-snacks",
-              search: PagesIndex?.createSearchParams({
-                mId: movieId,
-                rId: regionId,
-                sId: bookingSessionId,
-              }).toString(),
+              search: PagesIndex?.createSearchParams(
+                appendUtmToParams({
+                  mId: movieId,
+                  rId: regionId,
+                  sId: bookingSessionId,
+                })
+              ).toString(),
             },
             {
               state: {

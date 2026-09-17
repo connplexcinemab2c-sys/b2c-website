@@ -38,17 +38,86 @@ const getCookie = (name) => {
 };
 
 /**
- * Sets a cookie with Max-Age
+ * Sets a cookie with Max-Age and cross-subdomain support
  */
 const setCookie = (name, value, maxAgeSeconds) => {
   if (typeof document === "undefined") return;
   const encoded = encodeURIComponent(value);
-  document.cookie = `${name}=${encoded}; max-age=${maxAgeSeconds}; path=/; SameSite=Lax`;
+  let cookieStr = `${name}=${encoded}; max-age=${maxAgeSeconds}; path=/; SameSite=Lax`;
+  if (typeof window !== "undefined" && window.location) {
+    if (window.location.protocol === "https:") {
+      cookieStr += "; Secure";
+    }
+    const host = window.location.hostname;
+    if (host.includes("theconnplex.com")) {
+      cookieStr += "; domain=.theconnplex.com";
+    }
+  }
+  document.cookie = cookieStr;
 };
 
 /**
- * Scans the current window URL for UTM parameters.
- * If found, saves them in both a first-party cookie and localStorage for 30 days.
+ * Retrieves the currently active UTM attribution data.
+ * Checks live URL parameters first, then first-party cookie, then localStorage.
+ */
+export const getStoredUtm = () => {
+  try {
+    // 1. Check live URL parameters first
+    if (typeof window !== "undefined" && window.location && window.location.search) {
+      const params = new URLSearchParams(window.location.search);
+      const utmSource = params.get("utm_source");
+      const utmCampaign = params.get("utm_campaign");
+      if (utmSource || utmCampaign) {
+        return {
+          utm_source: utmSource ? utmSource.trim().toLowerCase() : "direct",
+          utm_campaign: utmCampaign ? utmCampaign.trim().toLowerCase() : null,
+          utm_medium: params.get("utm_medium") ? params.get("utm_medium").trim().toLowerCase() : null,
+          utm_content: params.get("utm_content") ? params.get("utm_content").trim() : null,
+          utm_term: params.get("utm_term") ? params.get("utm_term").trim() : null,
+        };
+      }
+    }
+
+    // 2. Check first-party cookie
+    const cookieVal = getCookie(UTM_COOKIE_KEY);
+    if (cookieVal) {
+      return JSON.parse(cookieVal);
+    }
+
+    // 3. Fallback to localStorage
+    if (typeof window !== "undefined" && window.localStorage) {
+      const stored = window.localStorage.getItem(UTM_STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    }
+  } catch (error) {
+    console.warn("[UTM Tracker] Error reading stored UTM attribution:", error);
+  }
+
+  return null;
+};
+
+/**
+ * Helper to append active UTM parameters to any params object for navigation
+ */
+export const appendUtmToParams = (params = {}) => {
+  const active = getStoredUtm();
+  if (active && active.utm_source && active.utm_source !== "direct") {
+    return {
+      ...params,
+      utm_source: active.utm_source,
+      ...(active.utm_campaign ? { utm_campaign: active.utm_campaign } : {}),
+    };
+  }
+  return params;
+};
+
+/**
+ * Scans current URL for UTM parameters.
+ * If found, saves them in both cookie and localStorage for 30 days.
+ * If not in URL, but active campaign UTM is stored (e.g. WhatsApp),
+ * automatically preserves it in the browser's address bar.
  */
 export const captureUtmFromUrl = () => {
   if (typeof window === "undefined" || !window.location) return null;
@@ -61,6 +130,7 @@ export const captureUtmFromUrl = () => {
     const utmContent = params.get("utm_content");
     const utmTerm = params.get("utm_term");
 
+    // 1. If UTM params are present in current URL, persist them
     if (utmSource || utmCampaign) {
       const utmData = {
         utm_source: utmSource ? utmSource.trim().toLowerCase() : "direct",
@@ -82,6 +152,30 @@ export const captureUtmFromUrl = () => {
       console.log("[UTM Tracker] Stored campaign attribution:", utmData);
       return utmData;
     }
+
+    // 2. If UTM params are missing from current URL, but an active campaign exists,
+    // preserve them in the address bar so they aren't lost across page navigation.
+    const stored = getStoredUtm();
+    if (stored && stored.utm_source && stored.utm_source !== "direct") {
+      const url = new URL(window.location.href);
+      let updated = false;
+      if (!url.searchParams.has("utm_source")) {
+        url.searchParams.set("utm_source", stored.utm_source);
+        updated = true;
+      }
+      if (stored.utm_campaign && !url.searchParams.has("utm_campaign")) {
+        url.searchParams.set("utm_campaign", stored.utm_campaign);
+        updated = true;
+      }
+      if (stored.utm_medium && !url.searchParams.has("utm_medium")) {
+        url.searchParams.set("utm_medium", stored.utm_medium);
+        updated = true;
+      }
+      if (updated) {
+        window.history.replaceState(window.history.state, "", url.toString());
+      }
+      return stored;
+    }
   } catch (error) {
     console.warn("[UTM Tracker] Error capturing UTM parameters:", error);
   }
@@ -90,36 +184,21 @@ export const captureUtmFromUrl = () => {
 };
 
 /**
- * Retrieves the currently active UTM attribution data.
- * Checks first-party cookie first, then falls back to localStorage.
- */
-export const getStoredUtm = () => {
-  try {
-    // 1. Check first-party cookie
-    const cookieVal = getCookie(UTM_COOKIE_KEY);
-    if (cookieVal) {
-      return JSON.parse(cookieVal);
-    }
-
-    // 2. Fallback to localStorage
-    if (typeof window !== "undefined" && window.localStorage) {
-      const stored = window.localStorage.getItem(UTM_STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    }
-  } catch (error) {
-    console.warn("[UTM Tracker] Error reading stored UTM attribution:", error);
-  }
-
-  return null;
-};
-
-/**
  * Clears stored UTM attribution (useful for debugging/reset)
  */
 export const clearStoredUtm = () => {
   if (typeof document !== "undefined") {
+    let cookieStr = `${UTM_COOKIE_KEY}=; max-age=0; path=/; SameSite=Lax`;
+    if (typeof window !== "undefined" && window.location) {
+      if (window.location.protocol === "https:") {
+        cookieStr += "; Secure";
+      }
+      const host = window.location.hostname;
+      if (host.includes("theconnplex.com")) {
+        cookieStr += "; domain=.theconnplex.com";
+      }
+    }
+    document.cookie = cookieStr;
     document.cookie = `${UTM_COOKIE_KEY}=; max-age=0; path=/; SameSite=Lax`;
   }
   if (typeof window !== "undefined" && window.localStorage) {
@@ -132,4 +211,5 @@ export default {
   getStoredUtm,
   normalizePhoneNumber,
   clearStoredUtm,
+  appendUtmToParams,
 };

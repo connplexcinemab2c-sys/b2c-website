@@ -3,6 +3,7 @@ import Index from "../../../../Index";
 import PagesIndex from "../../../../PagesIndex";
 import { FreeMode } from "swiper/modules";
 import AppTeatreSvgIcon from "../../../../../components/icons/AppTeatreSvgIcon";
+import { appendUtmToParams } from "../../../../../utils/utmTracker";
 
 export default function CinemaInner({ props }) {
   const showPriceItem = [
@@ -924,15 +925,15 @@ export default function CinemaInner({ props }) {
                                           } else {
                                             navigate(
                                               {
-                                                pathname: "/seat-management",
-                                                search:
-                                                  PagesIndex.createSearchParams(
-                                                    {
-                                                      mId: item?.movieDetails
-                                                        ?._id,
-                                                      rId: region?._id,
-                                                    }
-                                                  ).toString(),
+                                                 pathname: "/seat-management",
+                                                 search:
+                                                   PagesIndex.createSearchParams(
+                                                     appendUtmToParams({
+                                                       mId: item?.movieDetails
+                                                         ?._id,
+                                                       rId: region?._id,
+                                                     })
+                                                   ).toString(),
                                               },
                                               {
                                                 state: {

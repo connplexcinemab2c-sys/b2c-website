@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Index from "../../../Index";
 import PagesIndex from "../../../PagesIndex";
 import AppTeatreSvgIcon from "../../../../components/icons/AppTeatreSvgIcon";
+import { appendUtmToParams } from "../../../../utils/utmTracker";
 
 function DetailTabContent({
   props,
@@ -599,10 +600,12 @@ function DetailTabContent({
         navigate(
           {
             pathname: "/seat-management",
-            search: PagesIndex.createSearchParams({
-              mId: movieId,
-              rId: regionId,
-            }).toString(),
+            search: PagesIndex.createSearchParams(
+              appendUtmToParams({
+                mId: movieId,
+                rId: regionId,
+              })
+            ).toString(),
           },
           {
             state: {
@@ -945,10 +948,12 @@ function DetailTabContent({
                   navigate(
                     {
                       pathname: "/seat-management",
-                      search: PagesIndex.createSearchParams({
-                        mId: movieId,
-                        rId: regionId,
-                      }).toString(),
+                      search: PagesIndex.createSearchParams(
+                        appendUtmToParams({
+                          mId: movieId,
+                          rId: regionId,
+                        })
+                      ).toString(),
                     },
                     showData
                   );
