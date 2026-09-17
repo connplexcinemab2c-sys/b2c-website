@@ -1,4 +1,6 @@
 const Attribute = require("../models/Attribute");
+const Category = require("../models/Category");
+const xlsx = require("xlsx");
 
 function formatVariants(variants, isColor) {
   let res = [];
@@ -168,5 +170,182 @@ exports.activeDeactiveAttribute = async (req, res) => {
   } catch (error) {
     console.error("Error in activeDeactiveAttribute:", error);
     return res.status(500).json({ status: 500, message: error.message || "Internal server error" });
+  }
+};
+
+// Bulk Import Attributes from Excel (.xlsx, .xls)
+exports.bulkImportAttributes = async (req, res) => {
+  try {
+    const file = req.file || (req.files && req.files[0]);
+    if (!file || !file.buffer) {
+      return res.status(400).json({
+        status: 400,
+        message: "Please select and upload a valid Excel file (.xls or .xlsx)",
+      });
+    }
+
+    const workbook = xlsx.read(file.buffer, { type: "buffer" });
+    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "The uploaded Excel file contains no sheets.",
+      });
+    }
+
+    const sheetName = workbook.SheetNames[0];
+    const rawRows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+
+    if (!rawRows || rawRows.length === 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "The uploaded Excel sheet is empty.",
+      });
+    }
+
+    const getField = (row, fieldNames) => {
+      const rowKeys = Object.keys(row);
+      for (const fn of fieldNames) {
+        if (row[fn] !== undefined && row[fn] !== null && String(row[fn]).trim() !== "") {
+          return String(row[fn]).trim();
+        }
+        const targetClean = fn.toLowerCase().replace(/[\s_-]/g, "");
+        const matched = rowKeys.find(
+          (k) => k.toLowerCase().replace(/[\s_-]/g, "") === targetClean
+        );
+        if (matched && row[matched] !== undefined && row[matched] !== null) {
+          const val = String(row[matched]).trim();
+          if (val !== "") return val;
+        }
+      }
+      return "";
+    };
+
+    const skippedRows = [];
+    let importedCount = 0;
+
+    for (let i = 0; i < rawRows.length; i++) {
+      const row = rawRows[i];
+      const categoryName = getField(row, ["Category", "category", "Category Name", "category_name"]);
+      const attributeName = getField(row, ["Name", "name", "Attribute Name", "attribute_name"]);
+      const variantsStr = getField(row, ["Variants", "variants", "Variant", "variant"]);
+      const isColorStr = getField(row, ["IsColor", "isColor", "Is Color", "is_color"]);
+      const colorCodeStr = getField(row, ["colorCode", "ColorCode", "Color Code", "Color Codes", "color_code"]);
+      const multiselectStr = getField(row, ["multiselect", "multiSelect", "Multi select"]);
+
+      if (!categoryName) {
+        skippedRows.push({
+          Category: "-",
+          Name: attributeName || "-",
+          Variants: variantsStr || "-",
+          reason: "Category name is missing",
+        });
+        continue;
+      }
+
+      if (!attributeName) {
+        skippedRows.push({
+          Category: categoryName,
+          Name: "-",
+          Variants: variantsStr || "-",
+          reason: "Attribute name is missing",
+        });
+        continue;
+      }
+
+      const isColor = isColorStr.toLowerCase() === "true" || isColorStr === "1";
+      const multiselect = multiselectStr.toLowerCase() === "true" || multiselectStr === "1";
+
+      const variantTokens = variantsStr
+        ? variantsStr.split(",").map((v) => v.trim()).filter(Boolean)
+        : [];
+
+      if (variantTokens.length === 0) {
+        skippedRows.push({
+          Category: categoryName,
+          Name: attributeName,
+          Variants: "-",
+          reason: "No variants specified",
+        });
+        continue;
+      }
+
+      const colorCodeTokens = colorCodeStr
+        ? colorCodeStr.split(",").map((c) => c.trim())
+        : [];
+
+      const parsedVariants = variantTokens.map((name, idx) => ({
+        name: name,
+        value: name,
+        colorCode: isColor ? (colorCodeTokens[idx] || "") : "",
+      }));
+
+      // Find or create Category
+      const escapedCategoryName = categoryName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      let categoryDoc = await Category.findOne({
+        name: { $regex: new RegExp(`^${escapedCategoryName}$`, "i") },
+        deletedStatus: 0,
+      });
+
+      if (!categoryDoc) {
+        categoryDoc = await Category.create({
+          name: categoryName,
+          image: "",
+          isActive: true,
+          deletedStatus: 0,
+        });
+      }
+
+      // Find or create / update Attribute
+      const escapedAttributeName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      let attributeDoc = await Attribute.findOne({
+        category: categoryDoc._id,
+        name: { $regex: new RegExp(`^${escapedAttributeName}$`, "i") },
+        deletedStatus: 0,
+      });
+
+      if (attributeDoc) {
+        attributeDoc.variants = parsedVariants;
+        attributeDoc.isColor = isColor;
+        attributeDoc.multiselect = multiselect;
+        attributeDoc.isActive = true;
+        await attributeDoc.save();
+      } else {
+        await Attribute.create({
+          category: categoryDoc._id,
+          name: attributeName,
+          isColor,
+          multiselect,
+          variants: parsedVariants,
+          isActive: true,
+          deletedStatus: 0,
+        });
+      }
+
+      importedCount++;
+    }
+
+    if (importedCount === 0 && skippedRows.length > 0) {
+      return res.status(400).json({
+        status: 400,
+        message: "Import failed due to invalid rows.",
+        skippedRows,
+      });
+    }
+
+    return res.status(200).json({
+      status: 200,
+      message: `Bulk import processed successfully. ${importedCount} attribute(s) imported${skippedRows.length > 0 ? `, ${skippedRows.length} row(s) skipped.` : "."}`,
+      data: {
+        importedCount,
+        skippedCount: skippedRows.length,
+      },
+      skippedRows,
+    });
+  } catch (error) {
+    console.error("Error in bulkImportAttributes:", error);
+    return res.status(500).json({
+      status: 500,
+      message: error.message || "Internal server error during bulk import",
+    });
   }
 };

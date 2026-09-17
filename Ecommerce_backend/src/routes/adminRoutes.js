@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
 const upload = require("../config/multer");
+
+const uploadExcel = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
 
 const categoryController = require("../controllers/categoryController");
 const sellerController = require("../controllers/sellerController");
@@ -56,9 +62,16 @@ router.get("/get-all-attributes", attributeController.getAllAttributes);
 router.get("/get-all-attributes/:categoryId", attributeController.getAllAttributes);
 router.post("/delete-attribute", attributeController.deleteAttribute);
 router.post("/active-deactive-attribute", attributeController.activeDeactiveAttribute);
-router.post("/bulk-import-attributte", (req, res) => {
-  return res.status(200).json({ status: 200, message: "Bulk import processed successfully" });
-});
+router.post(
+  "/bulk-import-attributte",
+  uploadExcel.any(),
+  attributeController.bulkImportAttributes
+);
+router.post(
+  "/bulk-import-attribute",
+  uploadExcel.any(),
+  attributeController.bulkImportAttributes
+);
 
 // ==========================================
 // Banner Routes
