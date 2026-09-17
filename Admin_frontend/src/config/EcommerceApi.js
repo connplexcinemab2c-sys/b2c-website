@@ -18,6 +18,7 @@ export const EcommerceApi = {
   GET_ALL_ACTIVE_SELLER: "/admin/get-all-active-seller",
   ADD_EDIT_SELLER: "/admin/add-edit-seller",
   ACTIVE_DEACTIVE_SELLER: "/admin/active-deactive-seller",
+  DELETE_SELLER: "/admin/delete-seller",
   GET_ALL_ORDERS: "/admin/get-all-order",
   GET_RETURN_ORDER: `/admin/return-orders`,
   GET_ALL_ECOMMERCE_BANNER: "/admin/get-all-banner",

@@ -75,6 +75,29 @@ const Seller = () => {
     setDeleteOpen(true);
   };
 
+  const handleDeleteClose = () => {
+    setId("");
+    setDeleteOpen(false);
+  };
+
+  const handleSellerRemove = () => {
+    setIsLoading(true);
+    PagesIndex.EcommerceService.post(PagesIndex.EcommerceApi.DELETE_SELLER, {
+      id: id,
+    })
+      .then((res) => {
+        PagesIndex.toast.success(res?.data?.message);
+        handleDeleteClose();
+        setRemoveData(true);
+        getSellerList();
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        PagesIndex.toast.error(err?.response?.data?.message);
+        setIsLoading(false);
+      });
+  };
+
   // pagination
   const handleChangePage = (event, newPage) => {
     setCurrentPage(newPage);
@@ -561,7 +584,7 @@ const Seller = () => {
                                           <Index.EditIcon />
                                         </Index.IconButton>
                                       </Index.Box>
-                                      {/* <Index.Box className="icon-width-action">
+                                      <Index.Box className="icon-width-action">
                                         <Index.IconButton
                                           onClick={() =>
                                             handleDeleteOpen(item?._id)
@@ -569,7 +592,7 @@ const Seller = () => {
                                         >
                                           <Index.DeleteIcon />
                                         </Index.IconButton>
-                                      </Index.Box> */}
+                                      </Index.Box>
                                     </Index.Box>
                                   </Index.TableCell>
                                 </Index.TableRow>
@@ -1246,6 +1269,12 @@ const Seller = () => {
                 </Index.Box>
               </Index.Box>
             </Index.Modal>
+            {/* delete modal */}
+            <PagesIndex.DeleteModal
+              deleteOpen={deleteOpen}
+              handleDeleteClose={handleDeleteClose}
+              handleDeleteRecord={!isLoading && handleSellerRemove}
+            />
           </>
         )}
       </PagesIndex.Formik>

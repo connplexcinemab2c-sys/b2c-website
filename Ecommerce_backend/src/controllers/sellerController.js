@@ -160,3 +160,26 @@ exports.activeDeactiveSeller = async (req, res) => {
     return res.status(500).json({ status: 500, message: error.message || "Internal server error" });
   }
 };
+
+// Delete Seller (soft delete)
+exports.deleteSeller = async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ status: 400, message: "Seller ID is required" });
+    }
+
+    const seller = await Seller.findByIdAndUpdate(id, { deletedStatus: 1 }, { new: true });
+    if (!seller) {
+      return res.status(404).json({ status: 404, message: "Seller not found" });
+    }
+
+    return res.status(200).json({
+      status: 200,
+      message: "Seller deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error in deleteSeller:", error);
+    return res.status(500).json({ status: 500, message: error.message || "Internal server error" });
+  }
+};

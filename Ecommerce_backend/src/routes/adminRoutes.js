@@ -31,6 +31,7 @@ router.post("/get-all-seller", sellerController.getAllSellers);
 router.get("/get-all-seller", sellerController.getAllSellers);
 router.get("/get-all-active-seller", sellerController.getAllActiveSellers);
 router.post("/active-deactive-seller", sellerController.activeDeactiveSeller);
+router.post("/delete-seller", sellerController.deleteSeller);
 
 // ==========================================
 // Product Routes
