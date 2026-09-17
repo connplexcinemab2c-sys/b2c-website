@@ -54,6 +54,11 @@ router.post("/delete-product", productController.deleteProduct);
 router.post("/active-deactive-product", productController.activeDeactiveProduct);
 router.post("/approve-reject-product", productController.approveRejectProduct);
 
+// Public Storefront Routes
+router.get("/products", productController.getStorefrontProducts);
+router.get("/storefront-categories", productController.getStorefrontCategories);
+router.get("/categories", productController.getStorefrontCategories);
+
 // ==========================================
 // Attribute Routes
 // ==========================================

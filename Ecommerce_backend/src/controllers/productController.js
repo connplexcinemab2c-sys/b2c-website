@@ -76,7 +76,8 @@ exports.addEditProduct = async (req, res) => {
         weight: Number(weight) || 0,
         attributes: parsedAttributes,
         images: uploadedImages,
-        status: "Approved",
+        status: "Pending",
+        productStatus: "Pending",
         isActive: true,
         deletedStatus: 0,
       });
@@ -197,23 +198,187 @@ exports.activeDeactiveProduct = async (req, res) => {
 // Approve or Reject Product
 exports.approveRejectProduct = async (req, res) => {
   try {
-    const { id, status } = req.body;
+    const { id, status, remark } = req.body;
     if (!id || !status) {
       return res.status(400).json({ status: 400, message: "Product ID and status are required" });
     }
 
-    const product = await Product.findByIdAndUpdate(id, { status }, { new: true });
+    const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ status: 404, message: "Product not found" });
     }
 
+    product.status = status;
+    product.productStatus = status;
+    if (remark !== undefined) {
+      product.remark = remark;
+    }
+    await product.save();
+
     return res.status(200).json({
       status: 200,
-      message: `Product ${status.toLowerCase()} successfully`,
+      message: `Product ${product.status.toLowerCase()} successfully`,
       data: product,
     });
   } catch (error) {
     console.error("Error in approveRejectProduct:", error);
     return res.status(500).json({ status: 500, message: error.message || "Internal server error" });
+  }
+};
+
+// Get Storefront Products (Public endpoint for ticketing storefront)
+exports.getStorefrontProducts = async (req, res) => {
+  try {
+    const { category, sortBy, search, minPrice, maxPrice } = req.query;
+
+    const query = {
+      deletedStatus: 0,
+      isActive: true,
+      status: { $in: ["Approved", "Approve"] },
+    };
+
+    if (category) {
+      if (category.match(/^[0-9a-fA-F]{24}$/)) {
+        query.category = category;
+      } else {
+        const Category = require("../models/Category");
+        const cat = await Category.findOne({
+          name: { $regex: new RegExp(`^${category.trim()}$`, "i") },
+          deletedStatus: 0,
+        });
+        if (cat) {
+          query.category = cat._id;
+        }
+      }
+    }
+
+    if (search) {
+      query.productName = { $regex: new RegExp(search.trim(), "i") };
+    }
+
+    let products = await Product.find(query)
+      .populate("category", "name image")
+      .populate("seller", "businessName")
+      .sort({ createdAt: -1 });
+
+    let formatted = products.map((p) => {
+      let minP = 0;
+      let maxP = 0;
+      let oldP = null;
+      let primaryImg = "";
+
+      if (Array.isArray(p.images) && p.images.length > 0 && p.images[0]) {
+        primaryImg = p.images[0];
+      }
+
+      if (Array.isArray(p.attributes) && p.attributes.length > 0) {
+        const prices = [];
+        const oldPrices = [];
+        for (const attr of p.attributes) {
+          if (attr.discountedPrice && Number(attr.discountedPrice) > 0) {
+            prices.push(Number(attr.discountedPrice));
+            if (attr.price && Number(attr.price) > Number(attr.discountedPrice)) {
+              oldPrices.push(Number(attr.price));
+            }
+          } else if (attr.price && Number(attr.price) > 0) {
+            prices.push(Number(attr.price));
+          }
+
+          if (!primaryImg && Array.isArray(attr.images) && attr.images.length > 0 && attr.images[0]) {
+            primaryImg = attr.images[0];
+          }
+        }
+
+        if (prices.length > 0) {
+          minP = Math.min(...prices);
+          maxP = Math.max(...prices);
+        }
+        if (oldPrices.length > 0) {
+          oldP = Math.max(...oldPrices);
+        }
+      }
+
+      return {
+        _id: p._id,
+        productName: p.productName,
+        description: p.description || "",
+        category: p.category,
+        seller: p.seller,
+        price: minP,
+        oldPrice: oldP && oldP > minP ? oldP : null,
+        minPrice: minP,
+        maxPrice: maxP,
+        image: primaryImg,
+        images: p.images || [],
+        attributes: p.attributes || [],
+        status: p.status,
+        productStatus: p.productStatus,
+        createdAt: p.createdAt,
+      };
+    });
+
+    if (minPrice !== undefined && !isNaN(Number(minPrice))) {
+      formatted = formatted.filter((p) => p.price >= Number(minPrice));
+    }
+    if (maxPrice !== undefined && !isNaN(Number(maxPrice))) {
+      formatted = formatted.filter((p) => p.price <= Number(maxPrice));
+    }
+
+    if (sortBy === "10" || sortBy === "lowToHigh") {
+      formatted.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "20" || sortBy === "highToLow") {
+      formatted.sort((a, b) => b.price - a.price);
+    } else if (sortBy === "30" || sortBy === "newest") {
+      formatted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    return res.status(200).json({
+      status: 200,
+      message: "Storefront products fetched successfully",
+      data: formatted,
+    });
+  } catch (error) {
+    console.error("Error in getStorefrontProducts:", error);
+    return res.status(500).json({
+      status: 500,
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+// Get Storefront Categories with active approved product counts
+exports.getStorefrontCategories = async (req, res) => {
+  try {
+    const Category = require("../models/Category");
+    const categories = await Category.find({ deletedStatus: 0, isActive: true }).sort({ name: 1 });
+
+    const categoriesWithCount = await Promise.all(
+      categories.map(async (cat) => {
+        const count = await Product.countDocuments({
+          category: cat._id,
+          deletedStatus: 0,
+          isActive: true,
+          status: { $in: ["Approved", "Approve"] },
+        });
+        return {
+          _id: cat._id,
+          name: cat.name,
+          image: cat.image,
+          productCount: count,
+        };
+      })
+    );
+
+    return res.status(200).json({
+      status: 200,
+      message: "Storefront categories fetched successfully",
+      data: categoriesWithCount,
+    });
+  } catch (error) {
+    console.error("Error in getStorefrontCategories:", error);
+    return res.status(500).json({
+      status: 500,
+      message: error.message || "Internal server error",
+    });
   }
 };

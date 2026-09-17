@@ -47,8 +47,16 @@ const productSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Approved", "Rejected"],
-      default: "Approved",
+      enum: ["Pending", "Approved", "Rejected", "Approve", "Reject"],
+      default: "Pending",
+    },
+    productStatus: {
+      type: String,
+      default: "Pending",
+    },
+    remark: {
+      type: String,
+      default: "",
     },
     isActive: {
       type: Boolean,
@@ -63,5 +71,19 @@ const productSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+productSchema.pre("save", function (next) {
+  if (this.status === "Approve" || this.status === "Approved") {
+    this.status = "Approved";
+    this.productStatus = "Approved";
+  } else if (this.status === "Reject" || this.status === "Rejected") {
+    this.status = "Rejected";
+    this.productStatus = "Rejected";
+  } else {
+    this.status = "Pending";
+    this.productStatus = "Pending";
+  }
+  next();
+});
 
 module.exports = mongoose.model("EcommerceProduct", productSchema, "ecommerce_products");

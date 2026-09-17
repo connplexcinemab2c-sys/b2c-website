@@ -38,9 +38,11 @@ app.get("/api/health", (req, res) => {
   res.json({ status: 200, message: "Ecommerce API is healthy" });
 });
 
-// Mount admin routes on BOTH /api/admin and /admin for seamless reverse-proxy compatibility
+// Mount admin and storefront routes on multiple prefixes for reverse-proxy compatibility
 app.use("/api/admin", adminRoutes);
 app.use("/admin", adminRoutes);
+app.use("/api", adminRoutes);
+app.use("/", adminRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

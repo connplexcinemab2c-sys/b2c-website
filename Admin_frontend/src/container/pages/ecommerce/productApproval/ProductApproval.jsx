@@ -194,20 +194,26 @@ const ProductApproval = () => {
                         currentPage * rowsPerPage + rowsPerPage
                       )
                       ?.map((item, index) => {
-                        const isApproved = item?.productStatus === "Approve";
-                        const isRejected = item?.productStatus === "Reject";
-                        const productStatus = item?.productStatus
-                          ? `${item?.productStatus}${
-                              isApproved ? "d" : isRejected ? "ed" : ""
-                            }`
-                          : "-";
+                        const isApproved =
+                          item?.productStatus === "Approve" ||
+                          item?.productStatus === "Approved" ||
+                          item?.status === "Approved";
+                        const isRejected =
+                          item?.productStatus === "Reject" ||
+                          item?.productStatus === "Rejected" ||
+                          item?.status === "Rejected";
+                        const productStatus = isApproved
+                          ? "Approved"
+                          : isRejected
+                          ? "Rejected"
+                          : item?.productStatus || item?.status || "Pending";
                         const isApproveDisabled =
                           isApproveReject == item?._id ||
-                          item?.productStatus === "Approve" ||
-                          item?.productStatus === "Reject";
+                          isApproved ||
+                          isRejected;
                         const isRejectDisabled =
                           isApproveReject == item?._id ||
-                          item?.productStatus === "Reject";
+                          isRejected;
                         return (
                           <Index.TableRow key={item?._id}>
                             <Index.TableCell>
