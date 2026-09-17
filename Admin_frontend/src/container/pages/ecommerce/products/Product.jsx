@@ -136,16 +136,17 @@ const Product = () => {
   };
 
   const getProductStatus = (status) => {
-    switch (status) {
-      case "Pending":
-        return "Pending";
-      case "Approve":
-        return "Approved";
-      case "Reject":
-        return "Rejected";
-      default:
-        return "-";
+    const s = String(status || "").trim().toLowerCase();
+    if (s === "approve" || s === "approved") {
+      return "Approved";
     }
+    if (s === "reject" || s === "rejected") {
+      return "Rejected";
+    }
+    if (s === "pending") {
+      return "Pending";
+    }
+    return "-";
   };
 
   return (
@@ -272,7 +273,7 @@ const Product = () => {
                             {item?.attributes?.length}
                           </Index.TableCell>
                           <Index.TableCell>
-                            {getProductStatus(item?.productStatus)}
+                            {getProductStatus(item?.productStatus || item?.status)}
                           </Index.TableCell>
                           <Index.TableCell>
                             <CustomToggleButton

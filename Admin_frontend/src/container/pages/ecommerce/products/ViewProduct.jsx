@@ -32,16 +32,17 @@ export default function ViewProduct() {
   };
 
   const getProductStatus = (status) => {
-    switch (status) {
-      case "Pending":
-        return "Pending";
-      case "Approve":
-        return "Approved";
-      case "Reject":
-        return "Rejected";
-      default:
-        return "-";
+    const s = String(status || "").trim().toLowerCase();
+    if (s === "approve" || s === "approved") {
+      return "Approved";
     }
+    if (s === "reject" || s === "rejected") {
+      return "Rejected";
+    }
+    if (s === "pending") {
+      return "Pending";
+    }
+    return "-";
   };
 
   const getSingleProduct = () => {
@@ -201,7 +202,7 @@ export default function ViewProduct() {
                     </Index.FormHelperText>
                     <Index.Box className="form-group">
                       <Index.Typography className="view-product-value">
-                        {getProductStatus(viewData?.productStatus)}
+                        {getProductStatus(viewData?.productStatus || viewData?.status)}
                       </Index.Typography>
                     </Index.Box>
                   </Index.Box>

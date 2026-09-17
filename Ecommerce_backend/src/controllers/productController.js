@@ -103,10 +103,26 @@ exports.getAllProducts = async (req, res) => {
       .populate("seller", "businessName businessEmail")
       .sort({ createdAt: -1 });
 
+    const formatted = products.map((p) => {
+      const obj = p.toObject ? p.toObject() : { ...p };
+      const rawStatus = obj.status || obj.productStatus;
+      if (rawStatus === "Approved" || rawStatus === "Approve") {
+        obj.status = "Approved";
+        obj.productStatus = "Approve";
+      } else if (rawStatus === "Rejected" || rawStatus === "Reject") {
+        obj.status = "Rejected";
+        obj.productStatus = "Reject";
+      } else {
+        obj.status = "Pending";
+        obj.productStatus = "Pending";
+      }
+      return obj;
+    });
+
     return res.status(200).json({
       status: 200,
       message: "Products fetched successfully",
-      data: products,
+      data: formatted,
     });
   } catch (error) {
     console.error("Error in getAllProducts:", error);
