@@ -1,19 +1,49 @@
 const Attribute = require("../models/Attribute");
 
+function formatVariants(variants, isColor) {
+  let res = [];
+  if (!variants) return res;
+
+  if (typeof variants === "string") {
+    try {
+      variants = JSON.parse(variants);
+    } catch (e) {
+      variants = variants.split(",").map((s) => s.trim());
+    }
+  }
+
+  if (Array.isArray(variants)) {
+    if (variants.length > 0 && typeof variants[0] === "object" && variants[0] !== null) {
+      return variants.map((v) => ({
+        name: v.name || v.value || "",
+        value: v.value || v.name || "",
+        colorCode: v.colorCode || "",
+      }));
+    }
+
+    const isCol = isColor === "true" || isColor === true;
+    if (isCol) {
+      for (let i = 0; i < variants.length; i += 2) {
+        const name = variants[i] || "";
+        const colorCode = variants[i + 1] || "";
+        res.push({ name, value: name, colorCode });
+      }
+    } else {
+      for (let i = 0; i < variants.length; i++) {
+        const val = String(variants[i]).trim();
+        res.push({ name: val, value: val, colorCode: "" });
+      }
+    }
+  }
+  return res;
+}
+
 // Add or Edit Attribute
 exports.addEditAttribute = async (req, res) => {
   try {
-    const { id, _id, category, name, variants } = req.body;
+    const { id, _id, category, name, variants, isColor, multiselect } = req.body;
     const attributeId = id || _id;
-
-    let parsedVariants = variants;
-    if (typeof variants === "string") {
-      try {
-        parsedVariants = JSON.parse(variants);
-      } catch (e) {
-        parsedVariants = variants.split(",").map((v) => ({ value: v.trim(), name: v.trim() }));
-      }
-    }
+    const parsedVariants = formatVariants(variants, isColor);
 
     if (attributeId) {
       const attribute = await Attribute.findById(attributeId);
@@ -23,7 +53,9 @@ exports.addEditAttribute = async (req, res) => {
 
       if (category) attribute.category = category;
       if (name) attribute.name = name.trim();
-      if (parsedVariants) attribute.variants = parsedVariants;
+      if (isColor !== undefined) attribute.isColor = isColor === "true" || isColor === true;
+      if (multiselect !== undefined) attribute.multiselect = multiselect === "true" || multiselect === true;
+      if (parsedVariants.length > 0) attribute.variants = parsedVariants;
 
       await attribute.save();
       return res.status(200).json({
@@ -39,7 +71,9 @@ exports.addEditAttribute = async (req, res) => {
       const newAttribute = new Attribute({
         category,
         name: name.trim(),
-        variants: parsedVariants || [],
+        isColor: isColor === "true" || isColor === true,
+        multiselect: multiselect === "true" || multiselect === true,
+        variants: parsedVariants,
         isActive: true,
         deletedStatus: 0,
       });

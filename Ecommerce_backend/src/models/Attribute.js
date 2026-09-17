@@ -12,10 +12,19 @@ const attributeSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    isColor: {
+      type: Boolean,
+      default: false,
+    },
+    multiselect: {
+      type: Boolean,
+      default: false,
+    },
     variants: [
       {
         value: { type: String, default: "" },
         name: { type: String, default: "" },
+        colorCode: { type: String, default: "" },
       },
     ],
     isActive: {
