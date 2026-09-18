@@ -430,10 +430,7 @@ export const getCinemasLicence = async (req, res) => {
                 if (licenseNo) {
                   list[idx].License_strCode = licenseNo;
                 }
-                if (
-                  c.cinemaId.toUpperCase().startsWith("CN9") ||
-                  c.cinemaId.toUpperCase().startsWith("CN1")
-                ) {
+                if (c.displayName || c.cinemaName) {
                   list[idx].Cinema_strName = c.displayName || c.cinemaName;
                 }
               } else {
