@@ -45,8 +45,8 @@ export const buildMultiPaymentDetails = ({
     0;
   const fnbPaise = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
 
-  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
-  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
+  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE || "DISC";
+  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER !== "false";
 
   let payIndex = 1;
   let multipayment = "";
@@ -115,9 +115,10 @@ export const formatCommitBookingData = (vistaData, tx) => {
 
     commitData = {
       ...commitData,
+      vistaRawTicketsTotal: commitData.curTicketsTotal,
       grossTicketsTotal: grossTotal,
       discountAmount: ticketCart.discountAmount,
-      discountPaytype: process.env.VISTA_DISCOUNT_PAYTYPE || "CW",
+      discountPaytype: process.env.VISTA_DISCOUNT_PAYTYPE || "DISC",
       curTicketsTotal: discountedTotal,
       curTicketsTax1: cgst,
       curTicketsTax2: sgst,
