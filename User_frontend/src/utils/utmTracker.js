@@ -1,12 +1,13 @@
 /**
  * WhatsApp UTM Attribution & Conversion Tracker
- * Captures UTM parameters from landing pages and stores them in a 30-day first-party cookie
- * and localStorage fallback so attribution survives normal customer browsing.
+ * Captures UTM parameters, WhatsApp referrers, and In-App browser signatures.
+ * Stores attribution with cross-subdomain cookie (.theconnplex.com), sessionStorage,
+ * and localStorage fallbacks with a 24-hour window, cleared upon booking completion.
  */
 
 const UTM_COOKIE_KEY = "connplex_utm";
 const UTM_STORAGE_KEY = "connplex_utm_attribution";
-const COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 30 days
+const COOKIE_MAX_AGE_SECONDS = 24 * 60 * 60; // 24 hours attribution window
 
 /**
  * Normalizes phone numbers to standard 91XXXXXXXXXX format
@@ -26,6 +27,35 @@ export const normalizePhoneNumber = (phone) => {
     return cleaned;
   }
   return cleaned;
+};
+
+/**
+ * Checks if referrer or user-agent is definitely WhatsApp
+ */
+const detectWhatsAppSource = () => {
+  try {
+    if (typeof window === "undefined") return false;
+
+    // 1. In-App browser User-Agent signature (WA4A = WhatsApp Android, WAiOS = WhatsApp iOS)
+    if (navigator && navigator.userAgent && /WA4A|WAiOS|WhatsApp/i.test(navigator.userAgent)) {
+      return true;
+    }
+
+    // 2. Document Referrer from WhatsApp
+    if (document && document.referrer) {
+      const ref = document.referrer.toLowerCase();
+      if (
+        ref.includes("whatsapp") ||
+        ref.includes("com.whatsapp") ||
+        ref.includes("l.wl.co")
+      ) {
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn("[UTM Tracker] Error detecting WhatsApp source:", err);
+  }
+  return false;
 };
 
 /**
@@ -58,37 +88,58 @@ const setCookie = (name, value, maxAgeSeconds) => {
 
 /**
  * Retrieves the currently active UTM attribution data.
- * Checks live URL parameters first, then first-party cookie, then localStorage.
+ * Checks live URL parameters first, then sessionStorage, then first-party cookie, then localStorage.
  */
 export const getStoredUtm = () => {
   try {
     // 1. Check live URL parameters first
     if (typeof window !== "undefined" && window.location && window.location.search) {
       const params = new URLSearchParams(window.location.search);
-      const utmSource = params.get("utm_source");
-      const utmCampaign = params.get("utm_campaign");
-      if (utmSource || utmCampaign) {
+      const rawSource = params.get("utm_source") || params.get("source") || params.get("ref");
+      const utmCampaign = params.get("utm_campaign") || params.get("campaign");
+      const utmMedium = params.get("utm_medium");
+
+      let resolvedSource = rawSource ? rawSource.trim().toLowerCase() : null;
+      if (resolvedSource === "wa" || resolvedSource === "wp") {
+        resolvedSource = "whatsapp";
+      }
+      if (!resolvedSource && utmMedium && utmMedium.trim().toLowerCase() === "whatsapp") {
+        resolvedSource = "whatsapp";
+      }
+
+      if (resolvedSource || utmCampaign) {
         return {
-          utm_source: utmSource ? utmSource.trim().toLowerCase() : "direct",
+          utm_source: resolvedSource || "direct",
           utm_campaign: utmCampaign ? utmCampaign.trim().toLowerCase() : null,
-          utm_medium: params.get("utm_medium") ? params.get("utm_medium").trim().toLowerCase() : null,
+          utm_medium: utmMedium ? utmMedium.trim().toLowerCase() : null,
           utm_content: params.get("utm_content") ? params.get("utm_content").trim() : null,
           utm_term: params.get("utm_term") ? params.get("utm_term").trim() : null,
         };
       }
     }
 
-    // 2. Check first-party cookie
-    const cookieVal = getCookie(UTM_COOKIE_KEY);
-    if (cookieVal) {
-      return JSON.parse(cookieVal);
+    // 2. Check sessionStorage
+    if (typeof window !== "undefined" && window.sessionStorage) {
+      const sessionStored = window.sessionStorage.getItem(UTM_STORAGE_KEY);
+      if (sessionStored) {
+        const parsed = JSON.parse(sessionStored);
+        if (parsed && parsed.utm_source) return parsed;
+      }
     }
 
-    // 3. Fallback to localStorage
+    // 3. Check first-party cookie
+    const cookieVal = getCookie(UTM_COOKIE_KEY);
+    if (cookieVal) {
+      const parsed = JSON.parse(cookieVal);
+      if (parsed && parsed.utm_source) return parsed;
+    }
+
+    // 4. Fallback to localStorage
     if (typeof window !== "undefined" && window.localStorage) {
       const stored = window.localStorage.getItem(UTM_STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.utm_source) return parsed;
       }
     }
   } catch (error) {
@@ -114,26 +165,37 @@ export const appendUtmToParams = (params = {}) => {
 };
 
 /**
- * Scans current URL for UTM parameters.
- * If found, saves them in both cookie and localStorage for 30 days.
- * If not in URL, but active campaign UTM is stored (e.g. WhatsApp),
- * automatically preserves it in the browser's address bar.
+ * Scans current URL, referrer, and user-agent for UTM parameters.
+ * If found, saves them in cookie, sessionStorage, and localStorage for 24 hours.
  */
 export const captureUtmFromUrl = () => {
   if (typeof window === "undefined" || !window.location) return null;
 
   try {
     const params = new URLSearchParams(window.location.search);
-    const utmSource = params.get("utm_source");
-    const utmCampaign = params.get("utm_campaign");
+    const rawSource = params.get("utm_source") || params.get("source") || params.get("ref");
+    const utmCampaign = params.get("utm_campaign") || params.get("campaign");
     const utmMedium = params.get("utm_medium");
     const utmContent = params.get("utm_content");
     const utmTerm = params.get("utm_term");
 
-    // 1. If UTM params are present in current URL, persist them
-    if (utmSource || utmCampaign) {
+    let resolvedSource = rawSource ? rawSource.trim().toLowerCase() : null;
+    if (resolvedSource === "wa" || resolvedSource === "wp") {
+      resolvedSource = "whatsapp";
+    }
+    if (!resolvedSource && utmMedium && utmMedium.trim().toLowerCase() === "whatsapp") {
+      resolvedSource = "whatsapp";
+    }
+
+    // Auto-detect WhatsApp referrer or in-app browser if not specified
+    if (!resolvedSource && detectWhatsAppSource()) {
+      resolvedSource = "whatsapp";
+    }
+
+    // 1. If UTM params or WhatsApp referral are detected, persist them
+    if (resolvedSource || utmCampaign) {
       const utmData = {
-        utm_source: utmSource ? utmSource.trim().toLowerCase() : "direct",
+        utm_source: resolvedSource || "direct",
         utm_campaign: utmCampaign ? utmCampaign.trim().toLowerCase() : null,
         utm_medium: utmMedium ? utmMedium.trim().toLowerCase() : null,
         utm_content: utmContent ? utmContent.trim() : null,
@@ -145,6 +207,9 @@ export const captureUtmFromUrl = () => {
       const payload = JSON.stringify(utmData);
       setCookie(UTM_COOKIE_KEY, payload, COOKIE_MAX_AGE_SECONDS);
 
+      if (window.sessionStorage) {
+        window.sessionStorage.setItem(UTM_STORAGE_KEY, payload);
+      }
       if (window.localStorage) {
         window.localStorage.setItem(UTM_STORAGE_KEY, payload);
       }
@@ -184,7 +249,7 @@ export const captureUtmFromUrl = () => {
 };
 
 /**
- * Clears stored UTM attribution (useful for debugging/reset)
+ * Clears stored UTM attribution upon successful booking checkout
  */
 export const clearStoredUtm = () => {
   if (typeof document !== "undefined") {
@@ -201,8 +266,13 @@ export const clearStoredUtm = () => {
     document.cookie = cookieStr;
     document.cookie = `${UTM_COOKIE_KEY}=; max-age=0; path=/; SameSite=Lax`;
   }
-  if (typeof window !== "undefined" && window.localStorage) {
-    window.localStorage.removeItem(UTM_STORAGE_KEY);
+  if (typeof window !== "undefined") {
+    if (window.sessionStorage) {
+      window.sessionStorage.removeItem(UTM_STORAGE_KEY);
+    }
+    if (window.localStorage) {
+      window.localStorage.removeItem(UTM_STORAGE_KEY);
+    }
   }
 };
 

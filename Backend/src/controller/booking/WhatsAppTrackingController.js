@@ -186,7 +186,7 @@ export const addRecipients = async (req, res) => {
  */
 export const getConversions = async (req, res) => {
   try {
-    const { campaign_id, phone, is_conversion, startDate, endDate, page = 1, limit = 50 } = req.query;
+    const { campaign_id, phone, is_conversion, utm_source, startDate, endDate, page = 1, limit = 50 } = req.query;
 
     const filter = {};
 
@@ -196,8 +196,16 @@ export const getConversions = async (req, res) => {
     if (phone) {
       filter.phone = normalizePhoneNumber(phone);
     }
+    if (utm_source) {
+      if (utm_source !== "all" && utm_source !== "*") {
+        filter.utm_source = String(utm_source).trim().toLowerCase();
+      }
+    }
     if (is_conversion !== undefined) {
       filter.is_conversion = is_conversion === "true" || is_conversion === true;
+    } else if (!utm_source) {
+      // Default to returning only genuine WhatsApp conversions / WhatsApp-sourced bookings
+      filter.$or = [{ utm_source: "whatsapp" }, { is_conversion: true }];
     }
     if (startDate || endDate) {
       filter.date = {};

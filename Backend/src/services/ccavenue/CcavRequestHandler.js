@@ -56,12 +56,21 @@ export const paymentRequest = async (req, res) => {
     ] = parts;
 
     // Attach UTM and normalized phone to Transaction for conversion attribution
-    if (transId && (utm_source || utm_campaign || phone)) {
+    const reqUserAgent = req.headers["user-agent"] || "";
+    const reqReferer = req.headers["referer"] || req.headers["referrer"] || "";
+    const isWhatsAppClient = /WA4A|WAiOS|WhatsApp/i.test(reqUserAgent) || /whatsapp|com\.whatsapp|l\.wl\.co/i.test(reqReferer);
+
+    let resolvedSource = utm_source ? String(utm_source).toLowerCase().trim() : null;
+    if ((!resolvedSource || resolvedSource === "direct") && isWhatsAppClient) {
+      resolvedSource = "whatsapp";
+    }
+
+    if (transId && (resolvedSource || utm_campaign || phone)) {
       await Transaction.updateOne(
         { initTransId: transId },
         {
           $set: {
-            ...(utm_source ? { utm_source: String(utm_source).toLowerCase().trim() } : {}),
+            ...(resolvedSource ? { utm_source: resolvedSource } : {}),
             ...(utm_campaign ? { utm_campaign: String(utm_campaign).toLowerCase().trim() } : {}),
             ...(phone ? { normalized_phone: normalizePhoneNumber(phone) } : {}),
           },

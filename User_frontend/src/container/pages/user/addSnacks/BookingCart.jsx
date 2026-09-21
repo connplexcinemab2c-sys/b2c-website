@@ -3,7 +3,7 @@ import PagesIndex from "../../../PagesIndex";
 import Index from "../../../Index";
 import { encryptAndSignData } from "../../../../components/common/EncryptData";
 import { trackBeginCheckout } from "../../../../utils/Analytics";
-import { getStoredUtm, normalizePhoneNumber } from "../../../../utils/utmTracker";
+import { getStoredUtm, normalizePhoneNumber, clearStoredUtm } from "../../../../utils/utmTracker";
 
 const crypt = (salt, text) => {
   const textToChars = (text) => text.split("").map((c) => c.charCodeAt(0));
@@ -627,6 +627,7 @@ console.log({selectedFood});
 
         console.log(verifyRes, ":verifyRes")
         if (verifyRes?.redirectUrl) {
+          clearStoredUtm();
           navigate(verifyRes.redirectUrl);
         } else {
           navigate(`/transaction-failed?transId=${transId}`);

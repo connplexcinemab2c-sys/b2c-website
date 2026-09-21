@@ -4,6 +4,7 @@ import PagesIndex from "../../../PagesIndex";
 import { getUserToken, userLogOut } from "../../../../redux/user/action";
 import ShowTicketCalculation from "../../../../components/common/ShowTicketCalculation";
 import { trackPurchase } from "../../../../utils/Analytics";
+import { clearStoredUtm } from "../../../../utils/utmTracker";
 
 function ConfirmationScreen() {
   const dispatch = PagesIndex.useDispatch();
@@ -43,6 +44,7 @@ function ConfirmationScreen() {
         // Track GA4 e-commerce purchase event
         const isFreshConfirmation = location.pathname === "/confirmation-screen" || location.pathname === "/app-confirmation-screen";
         if (isFreshConfirmation && res.data?.commitStatus === true && transId) {
+          clearStoredUtm();
           const trackedKey = `tracked_booking_${transId}`;
           if (!sessionStorage.getItem(trackedKey)) {
             trackPurchase(res.data);

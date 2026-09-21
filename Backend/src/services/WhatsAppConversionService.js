@@ -50,7 +50,10 @@ export const processOrderAttribution = async (initTransId, utmData = {}) => {
     const normalizedPhone = normalizePhoneNumber(rawPhone);
 
     // 2. Resolve UTM parameters
-    const utm_source = (utmData?.utm_source || bookingDetails.utm_source || "direct").toLowerCase();
+    let utm_source = (utmData?.utm_source || bookingDetails.utm_source || "direct").toLowerCase().trim();
+    if (bookingDetails.utm_source === "whatsapp" && utm_source !== "whatsapp") {
+      utm_source = "whatsapp";
+    }
     const utm_campaign = (utmData?.utm_campaign || bookingDetails.utm_campaign || null)?.toLowerCase()?.trim() || null;
 
     // 3. Resolve Order ID

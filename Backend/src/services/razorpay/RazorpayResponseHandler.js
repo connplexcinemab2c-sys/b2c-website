@@ -76,18 +76,33 @@ export const paymentResponse = async (req, res) => {
       phone,
     } = req.body;
 
-    // Persist UTM and phone if provided at verification
-    if (transId && (utm_source || utm_campaign || phone)) {
-      await Transaction.updateOne(
-        { initTransId: transId },
-        {
-          $set: {
-            ...(utm_source ? { utm_source: String(utm_source).toLowerCase().trim() } : {}),
-            ...(utm_campaign ? { utm_campaign: String(utm_campaign).toLowerCase().trim() } : {}),
-            ...(phone ? { normalized_phone: normalizePhoneNumber(phone) } : {}),
-          },
-        }
-      ).catch(() => {});
+    // Persist UTM and phone if provided at verification (protect existing whatsapp attribution)
+    const reqUserAgent = req.headers["user-agent"] || "";
+    const reqReferer = req.headers["referer"] || req.headers["referrer"] || "";
+    const isWhatsAppClient = /WA4A|WAiOS|WhatsApp/i.test(reqUserAgent) || /whatsapp|com\.whatsapp|l\.wl\.co/i.test(reqReferer);
+
+    let resolvedSource = utm_source ? String(utm_source).toLowerCase().trim() : null;
+    if ((!resolvedSource || resolvedSource === "direct") && isWhatsAppClient) {
+      resolvedSource = "whatsapp";
+    }
+
+    if (transId) {
+      const currentTx = await Transaction.findOne({ initTransId: transId }, { utm_source: 1 }).lean();
+      const existingSource = currentTx?.utm_source;
+      const shouldUpdateSource = resolvedSource && (existingSource !== "whatsapp" || resolvedSource === "whatsapp");
+
+      if (shouldUpdateSource || utm_campaign || phone) {
+        await Transaction.updateOne(
+          { initTransId: transId },
+          {
+            $set: {
+              ...(shouldUpdateSource ? { utm_source: resolvedSource } : {}),
+              ...(utm_campaign ? { utm_campaign: String(utm_campaign).toLowerCase().trim() } : {}),
+              ...(phone ? { normalized_phone: normalizePhoneNumber(phone) } : {}),
+            },
+          }
+        ).catch(() => {});
+      }
     }
 
     // ── 1. Load user ──────────────────────────────────────────────────────────
