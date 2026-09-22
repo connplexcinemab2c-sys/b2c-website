@@ -22,6 +22,7 @@ import { parseStringPromise } from "xml2js";
 import { updateOrderService } from "../../services/vistaServices/AddSeatsExService.js";
 import Cinema from "../../models/Cinema.js";
 import { createLog } from "../../services/LogsServices.js";
+import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 
 const stripPrefix = (name) => {
   const i = name.indexOf(":");
@@ -164,11 +165,28 @@ export const couponCart = async (req, res) => {
         };
       });
 
+    const rawCartSource = payload.utm_source || payload.utm_Source;
+    const rawCartCampaign = payload.utm_campaign || payload.utm_Campaign;
+    let resolvedCartSource;
+    if (rawCartSource) {
+      const s = String(rawCartSource).toLowerCase().trim();
+      if (s === "whatsapp" || s === "wp" || s === "wa" || s.startsWith("wp_")) {
+        resolvedCartSource = "wp";
+      } else {
+        resolvedCartSource = s;
+      }
+    }
+    const resolvedCartCampaign = rawCartCampaign ? String(rawCartCampaign).toLowerCase().trim() : undefined;
+    const rawCartPhone = payload.phone || payload.mobile;
+
     await Transaction.findOneAndUpdate(
       { initTransId: transId },
       {
         $set: {
           fAndBDetails: selectedFood,
+          ...(resolvedCartSource ? { utm_source: resolvedCartSource } : {}),
+          ...(resolvedCartCampaign ? { utm_campaign: resolvedCartCampaign } : {}),
+          ...(rawCartPhone ? { normalized_phone: normalizePhoneNumber(rawCartPhone) } : {}),
         },
       }
     );

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Index from "../../../Index";
 import PagesIndex from "../../../PagesIndex";
-import { appendUtmToParams } from "../../../../utils/utmTracker";
+import { appendUtmToParams, getStoredUtm } from "../../../../utils/utmTracker";
 
 let isCoupleSeats = false;
 
@@ -130,10 +130,12 @@ function SeatManagement() {
       navigate(
         {
           pathname: `/movie-details`,
-          search: PagesIndex?.createSearchParams({
-            mId: movieId,
-            rId: regionId,
-          }).toString(),
+          search: PagesIndex?.createSearchParams(
+            appendUtmToParams({
+              mId: movieId,
+              rId: regionId,
+            })
+          ).toString(),
         },
         { replace: true }
       );
@@ -162,10 +164,12 @@ function SeatManagement() {
     } else {
       navigate({
         pathname: `/movie-details`,
-        search: PagesIndex?.createSearchParams({
-          mId: movieId,
-          rId: regionId,
-        }).toString(),
+        search: PagesIndex?.createSearchParams(
+          appendUtmToParams({
+            mId: movieId,
+            rId: regionId,
+          })
+        ).toString(),
       });
     }
   }, [selectedSessionId]);
@@ -603,9 +607,17 @@ function SeatManagement() {
   const handleInitBooking = async () => {
     dispatch(PagesIndex.showLoader());
     handleTermsClose();
+    const activeUtm = getStoredUtm();
+    let utmQuery = "";
+    if (activeUtm?.utm_source && activeUtm.utm_source !== "direct") {
+      utmQuery += `&utm_source=${encodeURIComponent(activeUtm.utm_source)}`;
+    }
+    if (activeUtm?.utm_campaign) {
+      utmQuery += `&utm_campaign=${encodeURIComponent(activeUtm.utm_campaign)}`;
+    }
     await PagesIndex.apiGetHandler(
       PagesIndex.Api.INIT_SEAT_BOOKING,
-      location.state.cId + "/" + movieId + "?" + new Date().getTime()
+      location.state.cId + "/" + movieId + "?" + new Date().getTime() + utmQuery
     ).then(async (res) => {
       if (res?.status === 200) {
         await addSeats(res.data.initTransId, res?.data?.bookingSessionId);

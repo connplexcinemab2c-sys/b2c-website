@@ -38,6 +38,20 @@ export const initBooking = async (req, res) => {
 
     const deviceType = req.headers["x-device-type"] || "";
 
+    const rawUtmSource = req.query.utm_source || req.query.utm_Source || req.headers["x-utm-source"];
+    const rawUtmCampaign = req.query.utm_campaign || req.query.utm_Campaign || req.headers["x-utm-campaign"];
+
+    let resolvedSource = undefined;
+    if (rawUtmSource) {
+      const s = String(rawUtmSource).toLowerCase().trim();
+      if (s === "whatsapp" || s === "wp" || s === "wa" || s.startsWith("wp_")) {
+        resolvedSource = "wp";
+      } else {
+        resolvedSource = s;
+      }
+    }
+    const resolvedCampaign = rawUtmCampaign ? String(rawUtmCampaign).toLowerCase().trim() : undefined;
+
     let config = {
       method: "get",
       maxBodyLength: Infinity,
@@ -95,6 +109,8 @@ export const initBooking = async (req, res) => {
           await new Transaction({
             initTransId: transId,
             ...(deviceType ? { bookedFrom: deviceType } : {}),
+            ...(resolvedSource ? { utm_source: resolvedSource } : {}),
+            ...(resolvedCampaign ? { utm_campaign: resolvedCampaign } : {}),
             logs: [{ initBooking: new Date() }],
           }).save();
           const newBookingSession = await new BookingSession({
@@ -169,6 +185,9 @@ const handleBookingReinitiation = async (cinemaId, strTransId, deviceType) => {
       setSeatData: 1,
       initTransId: 1,
       logs: 1,
+      utm_source: 1,
+      utm_campaign: 1,
+      normalized_phone: 1,
     }
   );
 
@@ -232,6 +251,9 @@ const handleBookingReinitiation = async (cinemaId, strTransId, deviceType) => {
       await new Transaction({
         initTransId: newTransId,
         ...(deviceType ? { bookedFrom: deviceType } : {}),
+        ...(existingTransaction?.utm_source ? { utm_source: existingTransaction.utm_source } : {}),
+        ...(existingTransaction?.utm_campaign ? { utm_campaign: existingTransaction.utm_campaign } : {}),
+        ...(existingTransaction?.normalized_phone ? { normalized_phone: existingTransaction.normalized_phone } : {}),
         logs: [{ ReInitBooking: new Date() }],
       }).save();
 

@@ -198,14 +198,19 @@ export const getConversions = async (req, res) => {
     }
     if (utm_source) {
       if (utm_source !== "all" && utm_source !== "*") {
-        filter.utm_source = String(utm_source).trim().toLowerCase();
+        const src = String(utm_source).trim().toLowerCase();
+        if (src === "wp" || src === "whatsapp") {
+          filter.utm_source = { $in: ["wp", "whatsapp"] };
+        } else {
+          filter.utm_source = src;
+        }
       }
     }
     if (is_conversion !== undefined) {
       filter.is_conversion = is_conversion === "true" || is_conversion === true;
     } else if (!utm_source) {
       // Default to returning only genuine WhatsApp conversions / WhatsApp-sourced bookings
-      filter.$or = [{ utm_source: "whatsapp" }, { is_conversion: true }];
+      filter.$or = [{ utm_source: { $in: ["wp", "whatsapp"] } }, { is_conversion: true }];
     }
     if (startDate || endDate) {
       filter.date = {};

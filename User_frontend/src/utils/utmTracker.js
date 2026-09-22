@@ -94,17 +94,28 @@ export const getStoredUtm = () => {
   try {
     // 1. Check live URL parameters first
     if (typeof window !== "undefined" && window.location && window.location.search) {
-      const params = new URLSearchParams(window.location.search);
-      const rawSource = params.get("utm_source") || params.get("source") || params.get("ref");
-      const utmCampaign = params.get("utm_campaign") || params.get("campaign");
-      const utmMedium = params.get("utm_medium");
+      const rawSource =
+        params.get("utm_source") ||
+        params.get("utm_Source") ||
+        params.get("source") ||
+        params.get("ref");
+      const utmCampaign =
+        params.get("utm_campaign") ||
+        params.get("utm_Campaign") ||
+        params.get("campaign");
+      const utmMedium =
+        params.get("utm_medium") ||
+        params.get("utm_Medium");
 
       let resolvedSource = rawSource ? rawSource.trim().toLowerCase() : null;
-      if (resolvedSource === "wa" || resolvedSource === "wp") {
-        resolvedSource = "whatsapp";
+      if (resolvedSource === "wa" || resolvedSource === "whatsapp" || resolvedSource === "wp") {
+        resolvedSource = "wp";
       }
-      if (!resolvedSource && utmMedium && utmMedium.trim().toLowerCase() === "whatsapp") {
-        resolvedSource = "whatsapp";
+      if (!resolvedSource && utmMedium && (utmMedium.trim().toLowerCase() === "whatsapp" || utmMedium.trim().toLowerCase() === "wp")) {
+        resolvedSource = "wp";
+      }
+      if (!resolvedSource && detectWhatsAppSource()) {
+        resolvedSource = "wp";
       }
 
       if (resolvedSource || utmCampaign) {
@@ -118,28 +129,38 @@ export const getStoredUtm = () => {
       }
     }
 
+    const normalizeStoredAttribution = (parsed) => {
+      if (parsed && parsed.utm_source) {
+        if (parsed.utm_source === "whatsapp" || parsed.utm_source === "wa") {
+          parsed.utm_source = "wp";
+        }
+        return parsed;
+      }
+      return null;
+    };
+
     // 2. Check sessionStorage
     if (typeof window !== "undefined" && window.sessionStorage) {
       const sessionStored = window.sessionStorage.getItem(UTM_STORAGE_KEY);
       if (sessionStored) {
-        const parsed = JSON.parse(sessionStored);
-        if (parsed && parsed.utm_source) return parsed;
+        const parsed = normalizeStoredAttribution(JSON.parse(sessionStored));
+        if (parsed) return parsed;
       }
     }
 
     // 3. Check first-party cookie
     const cookieVal = getCookie(UTM_COOKIE_KEY);
     if (cookieVal) {
-      const parsed = JSON.parse(cookieVal);
-      if (parsed && parsed.utm_source) return parsed;
+      const parsed = normalizeStoredAttribution(JSON.parse(cookieVal));
+      if (parsed) return parsed;
     }
 
     // 4. Fallback to localStorage
     if (typeof window !== "undefined" && window.localStorage) {
       const stored = window.localStorage.getItem(UTM_STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed.utm_source) return parsed;
+        const parsed = normalizeStoredAttribution(JSON.parse(stored));
+        if (parsed) return parsed;
       }
     }
   } catch (error) {
@@ -172,24 +193,32 @@ export const captureUtmFromUrl = () => {
   if (typeof window === "undefined" || !window.location) return null;
 
   try {
-    const params = new URLSearchParams(window.location.search);
-    const rawSource = params.get("utm_source") || params.get("source") || params.get("ref");
-    const utmCampaign = params.get("utm_campaign") || params.get("campaign");
-    const utmMedium = params.get("utm_medium");
+    const rawSource =
+      params.get("utm_source") ||
+      params.get("utm_Source") ||
+      params.get("source") ||
+      params.get("ref");
+    const utmCampaign =
+      params.get("utm_campaign") ||
+      params.get("utm_Campaign") ||
+      params.get("campaign");
+    const utmMedium =
+      params.get("utm_medium") ||
+      params.get("utm_Medium");
     const utmContent = params.get("utm_content");
     const utmTerm = params.get("utm_term");
 
     let resolvedSource = rawSource ? rawSource.trim().toLowerCase() : null;
-    if (resolvedSource === "wa" || resolvedSource === "wp") {
-      resolvedSource = "whatsapp";
+    if (resolvedSource === "wa" || resolvedSource === "whatsapp" || resolvedSource === "wp") {
+      resolvedSource = "wp";
     }
-    if (!resolvedSource && utmMedium && utmMedium.trim().toLowerCase() === "whatsapp") {
-      resolvedSource = "whatsapp";
+    if (!resolvedSource && utmMedium && (utmMedium.trim().toLowerCase() === "whatsapp" || utmMedium.trim().toLowerCase() === "wp")) {
+      resolvedSource = "wp";
     }
 
     // Auto-detect WhatsApp referrer or in-app browser if not specified
     if (!resolvedSource && detectWhatsAppSource()) {
-      resolvedSource = "whatsapp";
+      resolvedSource = "wp";
     }
 
     // 1. If UTM params or WhatsApp referral are detected, persist them

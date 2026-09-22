@@ -7,6 +7,7 @@ import ReviewTabContent from "./ReviewTabContent";
 import { Button } from "@mui/material";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import { useSearchParams } from 'react-router-dom';
+import { appendUtmToParams } from '../../../../utils/utmTracker';
 
 function MovieDetailTab(props) {
   const { children, value, index, ...other } = props;
@@ -501,12 +502,14 @@ function MovieDetail() {
                                const target = movieVersions.find(v => v.movieType === type && v.languages === movieDetail?.languages) || movieVersions.find(v => v.movieType === type);
                                if (target) {
                                  navigate({
-                                   pathname: `/movie-details`,
-                                   search: PagesIndex?.createSearchParams({
-                                     mId: target._id,
-                                     rId: regionId || target?.cinemaObjectId?.regionId || region?._id,
-                                   }).toString(),
-                                 });
+                                  pathname: `/movie-details`,
+                                  search: PagesIndex?.createSearchParams(
+                                    appendUtmToParams({
+                                      mId: target._id,
+                                      rId: regionId || target?.cinemaObjectId?.regionId || region?._id,
+                                    })
+                                  ).toString(),
+                                });
                                }
                              }}
                              className={`detail-version-pill ${isActive ? "active" : ""}`}
@@ -536,12 +539,14 @@ function MovieDetail() {
                                const target = movieVersions.find(v => v.languages === lang && v.movieType === movieDetail?.movieType) || movieVersions.find(v => v.languages === lang);
                                if (target) {
                                  navigate({
-                                   pathname: `/movie-details`,
-                                   search: PagesIndex?.createSearchParams({
-                                     mId: target._id,
-                                     rId: regionId || target?.cinemaObjectId?.regionId || region?._id,
-                                   }).toString(),
-                                 });
+                                  pathname: `/movie-details`,
+                                  search: PagesIndex?.createSearchParams(
+                                    appendUtmToParams({
+                                      mId: target._id,
+                                      rId: regionId || target?.cinemaObjectId?.regionId || region?._id,
+                                    })
+                                  ).toString(),
+                                });
                                }
                              }}
                              className={`detail-version-pill ${isActive ? "active" : ""}`}

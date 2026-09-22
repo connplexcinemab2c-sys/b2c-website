@@ -3,6 +3,7 @@ import Index from "../Index";
 import PagesIndex from "../PagesIndex";
 import { DataService } from "../../config/DataService";
 import { groupMoviesByBaseName } from "../../utils/movieHelpers";
+import { appendUtmToParams } from "../../utils/utmTracker";
 
 function debounce(func, delay) {
   let timeoutId;
@@ -170,7 +171,7 @@ export default function SearchModal({
                                 handleClose();
                                 navigate({
                                   pathname: `/movie-details`,
-                                  search: PagesIndex?.createSearchParams({
+                                  search: appendUtmToParams({
                                     mId: data?._id,
                                     ...(data?.cinemaObjectId?.regionId
                                       ? { rId: data?.cinemaObjectId?.regionId }
@@ -229,7 +230,7 @@ export default function SearchModal({
                             handleClose();
                             navigate({
                               pathname: "/cinema-detail",
-                              search: PagesIndex?.createSearchParams({
+                              search: appendUtmToParams({
                                 cId: data?._id,
                                 ...(data?.regionId
                                   ? { rId: data?.regionId }

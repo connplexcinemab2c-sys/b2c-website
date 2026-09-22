@@ -8,6 +8,7 @@ import {
   openLocationModel,
 } from "../../../redux/user/action";
 import LogoNew from "../../../assets/images/png/logoNew.png";
+import { getStoredUtm } from "../../../utils/utmTracker";
 
 function CustomHeader() {
   const dispatch = PagesIndex.useDispatch();
@@ -47,6 +48,16 @@ function CustomHeader() {
       currentParams.set("rId", data._id);
     } else {
       currentParams.delete("rId");
+    }
+
+    const activeUtm = getStoredUtm();
+    if (activeUtm && activeUtm.utm_source && activeUtm.utm_source !== "direct") {
+      if (!currentParams.has("utm_source")) {
+        currentParams.set("utm_source", activeUtm.utm_source);
+      }
+      if (activeUtm.utm_campaign && !currentParams.has("utm_campaign")) {
+        currentParams.set("utm_campaign", activeUtm.utm_campaign);
+      }
     }
 
     navigate({

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Index from "../Index";
 import PagesIndex from "../PagesIndex";
+import { appendUtmToParams } from "../../utils/utmTracker";
 
 function MovieCard({ title, isNowPlaying, item, setInterested }) {
   const { region } = PagesIndex.useSelector((state) => state.UserReducer);
@@ -79,10 +80,12 @@ function MovieCard({ title, isNowPlaying, item, setInterested }) {
                     setShowLanguagesOverlay(false);
                     navigate({
                       pathname: `/movie-details`,
-                      search: PagesIndex?.createSearchParams({
-                        mId: v._id,
-                        rId: region?._id ? region?._id : v?.cinemaObjectId?.regionId || item?.cinemaObjectId?.regionId,
-                      }).toString(),
+                      search: PagesIndex?.createSearchParams(
+                        appendUtmToParams({
+                          mId: v._id,
+                          rId: region?._id ? region?._id : v?.cinemaObjectId?.regionId || item?.cinemaObjectId?.regionId,
+                        })
+                      ).toString(),
                     });
                   }}
                   style={{ 
@@ -234,10 +237,12 @@ function MovieCard({ title, isNowPlaying, item, setInterested }) {
                     } else {
                       navigate({
                         pathname: `/movie-details`,
-                        search: PagesIndex?.createSearchParams({
-                          mId: item?._id,
-                          rId: item?.cinemaObjectId?.regionId,
-                        }).toString(),
+                        search: PagesIndex?.createSearchParams(
+                          appendUtmToParams({
+                            mId: item?._id,
+                            rId: item?.cinemaObjectId?.regionId,
+                          })
+                        ).toString(),
                       });
                     }
                   }}
@@ -254,10 +259,12 @@ function MovieCard({ title, isNowPlaying, item, setInterested }) {
                     } else {
                       navigate({
                         pathname: `/movie-details`,
-                        search: PagesIndex?.createSearchParams({
-                          mId: item?._id,
-                          rId: item?.cinemaObjectId?.regionId,
-                        }).toString(),
+                        search: PagesIndex?.createSearchParams(
+                          appendUtmToParams({
+                            mId: item?._id,
+                            rId: item?.cinemaObjectId?.regionId,
+                          })
+                        ).toString(),
                       });
                     }
                   }}

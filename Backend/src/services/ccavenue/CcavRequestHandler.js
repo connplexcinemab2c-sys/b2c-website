@@ -61,8 +61,11 @@ export const paymentRequest = async (req, res) => {
     const isWhatsAppClient = /WA4A|WAiOS|WhatsApp/i.test(reqUserAgent) || /whatsapp|com\.whatsapp|l\.wl\.co/i.test(reqReferer);
 
     let resolvedSource = utm_source ? String(utm_source).toLowerCase().trim() : null;
+    if (resolvedSource === "whatsapp" || resolvedSource === "wa" || resolvedSource === "wp" || resolvedSource?.startsWith("wp_")) {
+      resolvedSource = "wp";
+    }
     if ((!resolvedSource || resolvedSource === "direct") && isWhatsAppClient) {
-      resolvedSource = "whatsapp";
+      resolvedSource = "wp";
     }
 
     if (transId && (resolvedSource || utm_campaign || phone)) {
