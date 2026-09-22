@@ -94,6 +94,7 @@ export const getStoredUtm = () => {
   try {
     // 1. Check live URL parameters first
     if (typeof window !== "undefined" && window.location && window.location.search) {
+      const params = new URLSearchParams(window.location.search);
       const rawSource =
         params.get("utm_source") ||
         params.get("utm_Source") ||
@@ -193,6 +194,7 @@ export const captureUtmFromUrl = () => {
   if (typeof window === "undefined" || !window.location) return null;
 
   try {
+    const params = new URLSearchParams(window.location.search);
     const rawSource =
       params.get("utm_source") ||
       params.get("utm_Source") ||
