@@ -52,10 +52,10 @@ export const processOrderAttribution = async (initTransId, utmData = {}) => {
     // 2. Resolve UTM parameters
     let utm_source = (utmData?.utm_source || bookingDetails.utm_source || "direct").toLowerCase().trim();
     if (utm_source === "whatsapp" || utm_source === "wa" || utm_source === "wp" || utm_source.startsWith("wp_")) {
-      utm_source = "wp";
+      utm_source = "whatsapp";
     }
     if (bookingDetails.utm_source === "whatsapp" || bookingDetails.utm_source === "wp") {
-      utm_source = "wp";
+      utm_source = "whatsapp";
     }
     const utm_campaign = (utmData?.utm_campaign || bookingDetails.utm_campaign || null)?.toLowerCase()?.trim() || null;
 

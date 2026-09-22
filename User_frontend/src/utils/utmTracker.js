@@ -109,13 +109,13 @@ export const getStoredUtm = () => {
 
       let resolvedSource = rawSource ? rawSource.trim().toLowerCase() : null;
       if (resolvedSource === "wa" || resolvedSource === "whatsapp" || resolvedSource === "wp") {
-        resolvedSource = "wp";
+        resolvedSource = "whatsapp";
       }
       if (!resolvedSource && utmMedium && (utmMedium.trim().toLowerCase() === "whatsapp" || utmMedium.trim().toLowerCase() === "wp")) {
-        resolvedSource = "wp";
+        resolvedSource = "whatsapp";
       }
       if (!resolvedSource && detectWhatsAppSource()) {
-        resolvedSource = "wp";
+        resolvedSource = "whatsapp";
       }
 
       if (resolvedSource || utmCampaign) {
@@ -132,7 +132,7 @@ export const getStoredUtm = () => {
     const normalizeStoredAttribution = (parsed) => {
       if (parsed && parsed.utm_source) {
         if (parsed.utm_source === "whatsapp" || parsed.utm_source === "wa") {
-          parsed.utm_source = "wp";
+          parsed.utm_source = "whatsapp";
         }
         return parsed;
       }
@@ -210,15 +210,15 @@ export const captureUtmFromUrl = () => {
 
     let resolvedSource = rawSource ? rawSource.trim().toLowerCase() : null;
     if (resolvedSource === "wa" || resolvedSource === "whatsapp" || resolvedSource === "wp") {
-      resolvedSource = "wp";
+      resolvedSource = "whatsapp";
     }
     if (!resolvedSource && utmMedium && (utmMedium.trim().toLowerCase() === "whatsapp" || utmMedium.trim().toLowerCase() === "wp")) {
-      resolvedSource = "wp";
+      resolvedSource = "whatsapp";
     }
 
     // Auto-detect WhatsApp referrer or in-app browser if not specified
     if (!resolvedSource && detectWhatsAppSource()) {
-      resolvedSource = "wp";
+      resolvedSource = "whatsapp";
     }
 
     // 1. If UTM params or WhatsApp referral are detected, persist them

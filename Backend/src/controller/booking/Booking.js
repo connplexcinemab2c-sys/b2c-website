@@ -45,7 +45,7 @@ export const initBooking = async (req, res) => {
     if (rawUtmSource) {
       const s = String(rawUtmSource).toLowerCase().trim();
       if (s === "whatsapp" || s === "wp" || s === "wa" || s.startsWith("wp_")) {
-        resolvedSource = "wp";
+        resolvedSource = "whatsapp";
       } else {
         resolvedSource = s;
       }

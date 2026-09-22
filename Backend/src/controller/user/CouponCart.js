@@ -171,7 +171,7 @@ export const couponCart = async (req, res) => {
     if (rawCartSource) {
       const s = String(rawCartSource).toLowerCase().trim();
       if (s === "whatsapp" || s === "wp" || s === "wa" || s.startsWith("wp_")) {
-        resolvedCartSource = "wp";
+        resolvedCartSource = "whatsapp";
       } else {
         resolvedCartSource = s;
       }

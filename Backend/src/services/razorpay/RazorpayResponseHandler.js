@@ -83,17 +83,17 @@ export const paymentResponse = async (req, res) => {
 
     let resolvedSource = utm_source ? String(utm_source).toLowerCase().trim() : null;
     if (resolvedSource === "whatsapp" || resolvedSource === "wa" || resolvedSource === "wp" || resolvedSource?.startsWith("wp_")) {
-      resolvedSource = "wp";
+      resolvedSource = "whatsapp";
     }
     if ((!resolvedSource || resolvedSource === "direct") && isWhatsAppClient) {
-      resolvedSource = "wp";
+      resolvedSource = "whatsapp";
     }
 
     if (transId) {
       const currentTx = await Transaction.findOne({ initTransId: transId }, { utm_source: 1 }).lean();
       const existingSource = currentTx?.utm_source;
       const isExistingWp = existingSource === "wp" || existingSource === "whatsapp";
-      const isNewWp = resolvedSource === "wp";
+      const isNewWp = resolvedSource === "whatsapp" || resolvedSource === "wp";
       const shouldUpdateSource = resolvedSource && (!isExistingWp || isNewWp);
 
       if (shouldUpdateSource || utm_campaign || phone) {

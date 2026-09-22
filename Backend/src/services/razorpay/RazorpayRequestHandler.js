@@ -73,10 +73,10 @@ export const paymentRequest = async (req, res) => {
 
     let resolvedSource = utm_source ? String(utm_source).toLowerCase().trim() : null;
     if (resolvedSource === "whatsapp" || resolvedSource === "wa" || resolvedSource === "wp" || resolvedSource?.startsWith("wp_")) {
-      resolvedSource = "wp";
+      resolvedSource = "whatsapp";
     }
     if ((!resolvedSource || resolvedSource === "direct") && isWhatsAppClient) {
-      resolvedSource = "wp";
+      resolvedSource = "whatsapp";
     }
 
     if (transId && (resolvedSource || utm_campaign || phone)) {
