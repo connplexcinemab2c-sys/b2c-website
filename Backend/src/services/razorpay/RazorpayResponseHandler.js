@@ -26,6 +26,7 @@ import { createLog } from "../LogsServices.js";
 import calculateAndSaveCoins, { processCoinRedemption } from "../../controller/user/RewardsController.js";
 import { processOrderAttribution } from "../WhatsAppConversionService.js";
 import { buildMultiPaymentDetails, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
+import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 
 // ---------------------------------------------------------------------------
 // Ticket booking — verify Razorpay payment & commit Vista booking
@@ -90,6 +91,7 @@ export const paymentResponse = async (req, res) => {
     }
 
     if (transId) {
+      try {
       const currentTx = await Transaction.findOne({ initTransId: transId }, { utm_source: 1 }).lean();
       const existingSource = currentTx?.utm_source;
       const isExistingWp = existingSource === "wp" || existingSource === "whatsapp";
@@ -107,6 +109,9 @@ export const paymentResponse = async (req, res) => {
             },
           }
         ).catch(() => {});
+      }
+      } catch (utmErr) {
+        console.warn("Non-fatal error updating UTM/phone in paymentResponse:", utmErr?.message);
       }
     }
 
