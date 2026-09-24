@@ -54,7 +54,10 @@ function AddSnacks() {
   const bookingSessionId = new URLSearchParams(location.search).get("sId");
   if (!bookingSessionId) {
     // PagesIndex.toast.error("Something went wrong!");
-    return navigate(`/seat-management?mId=${movieId}&rId=${regionId}`, {
+    return navigate({
+      pathname: "/seat-management",
+      search: PagesIndex.createSearchParams(appendUtmToParams({ mId: movieId, rId: regionId })).toString(),
+    }, {
       state: {
         cId: stateData?.cinemaData?.cinemaData?.cinemaId,
         c_Id: stateData?.cinemaData?.cinemaData?._id,
@@ -838,7 +841,10 @@ function AddSnacks() {
   // Handle session expires
   const handleBookingSessionExpire = () => {
     PagesIndex.toast.error("Booking session expired!");
-    navigate(`/seat-management?mId=${movieId}&rId=${regionId}`, {
+    navigate({
+      pathname: "/seat-management",
+      search: PagesIndex.createSearchParams(appendUtmToParams({ mId: movieId, rId: regionId })).toString(),
+    }, {
       state: {
         cId: stateData?.cinemaData?.cinemaData?.cinemaId,
         c_Id: stateData?.cinemaData?.cinemaData?._id,

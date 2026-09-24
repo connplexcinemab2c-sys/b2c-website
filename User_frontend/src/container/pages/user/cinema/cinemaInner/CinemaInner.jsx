@@ -906,10 +906,12 @@ export default function CinemaInner({ props }) {
                                               "A++"
                                           ) {
                                             handleWarning(
-                                              PagesIndex.createSearchParams({
-                                                mId: item?.movieDetails?._id,
-                                                rId: region?._id,
-                                              }).toString(),
+                                              PagesIndex.createSearchParams(
+                                                appendUtmToParams({
+                                                  mId: item?.movieDetails?._id,
+                                                  rId: region?._id,
+                                                })
+                                              ).toString(),
 
                                               {
                                                 state: {
