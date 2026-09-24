@@ -46,7 +46,7 @@ async function main() {
       cinemaWebServiceUrl: "http://43.251.74.110/VistaWebService/clsbook.asmx",
       cinemaWebServiceUrl2: "http://43.251.74.110/VistaWebService/clsbook.asmx",
       regionId: jamshedpurRegion._id,
-      cinemaBranchCode: "0001",
+      cinemaBranchCode: "0894",
       deletedStatus: 0,
       isActive: true,
       lat: "22.804600",
