@@ -106,14 +106,37 @@ const getTicketQty = (item) => {
   return 0;
 };
 
+const is3DMovie = (item) => {
+  const movieType = (
+    item?.movieData?.movieType ||
+    item?.movieId?.movieType ||
+    item?.movieType ||
+    ""
+  ).toString().toUpperCase().trim();
+
+  if (movieType.includes("3D")) {
+    return true;
+  }
+  if (movieType.includes("2D")) {
+    return false;
+  }
+
+  const movieName = (
+    item?.movieData?.name ||
+    item?.movieId?.name ||
+    item?.name ||
+    ""
+  ).toString().toUpperCase().trim();
+
+  if (/\b3D\b/i.test(movieName) && !/\b2D\b/i.test(movieName)) {
+    return true;
+  }
+
+  return false;
+};
+
 const getThreeDCharges = (item) => {
-  const has3D = item?.movieData?.movieType?.includes("3D") || 
-                item?.movieData?.name?.toUpperCase().includes("3D") ||
-                (item?.commitBookingData?.curTicketsTax3 > 0) || 
-                (item?.addSeatData?.curTicketsTax3 > 0) ||
-                item?.movieId?.movieType?.includes("3D") ||
-                item?.movieId?.name?.toUpperCase().includes("3D");
-  if (has3D) {
+  if (is3DMovie(item)) {
     const qty = getTicketQty(item);
     return qty * 30;
   }

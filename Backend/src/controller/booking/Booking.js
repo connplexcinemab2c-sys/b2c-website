@@ -1865,17 +1865,38 @@ export const transactionDateWiseReport = async (req, res) => {
     let totalCoinRedemption = 0;
 
     for (const item of successTransactions) {
-      const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
-                    (item?.addSeatData?.curTicketsTax3 > 0) || 
-                    item?.movieId?.movieType?.includes("3D") ||
-                    item?.movieId?.name?.toUpperCase().includes("3D");
+      const movieType = (
+        item?.movieId?.movieType ||
+        item?.movieData?.movieType ||
+        ""
+      ).toString().toUpperCase().trim();
+
+      let has3D = false;
+      if (movieType.includes("3D")) {
+        has3D = true;
+      } else if (movieType.includes("2D")) {
+        has3D = false;
+      } else {
+        const movieName = (
+          item?.movieId?.name ||
+          item?.movieData?.name ||
+          ""
+        ).toString().toUpperCase().trim();
+        if (/\b3D\b/i.test(movieName) && !/\b2D\b/i.test(movieName)) {
+          has3D = true;
+        }
+      }
       
-      const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || "";
+      const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || item?.setSeatData?.strSeatInfo || "";
       let ticketQty = 0;
-      if (seatInfo && seatInfo.includes("-")) {
-        const parts = seatInfo.split("-");
-        if (parts[1]) {
-          ticketQty = parts[1].trim().split(",").length;
+      if (seatInfo) {
+        if (seatInfo.includes("-")) {
+          const parts = seatInfo.split("-");
+          if (parts[1]) {
+            ticketQty = parts[1].trim().split(",").length;
+          }
+        } else {
+          ticketQty = seatInfo.split(",").length;
         }
       }
       const threeDCharges = has3D && ticketQty ? ticketQty * 30 : 0;

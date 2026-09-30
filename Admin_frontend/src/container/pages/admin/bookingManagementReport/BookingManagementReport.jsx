@@ -46,6 +46,50 @@ const StyledInputBase = Index.styled(Index.InputBase)(({ theme }) => ({
   },
 }));
 
+const getTicketQty = (item) => {
+  const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || item?.setSeatData?.strSeatInfo || "";
+  if (seatInfo) {
+    if (seatInfo.includes("-")) {
+      const parts = seatInfo.split("-");
+      if (parts[1]) {
+        return parts[1].trim().split(",").length;
+      }
+    } else {
+      return seatInfo.split(",").length;
+    }
+  }
+  return 0;
+};
+
+const is3DMovie = (item) => {
+  const movieType = (
+    item?.movieData?.movieType ||
+    item?.movieId?.movieType ||
+    item?.movieType ||
+    ""
+  ).toString().toUpperCase().trim();
+
+  if (movieType.includes("3D")) {
+    return true;
+  }
+  if (movieType.includes("2D")) {
+    return false;
+  }
+
+  const movieName = (
+    item?.movieData?.name ||
+    item?.movieId?.name ||
+    item?.name ||
+    ""
+  ).toString().toUpperCase().trim();
+
+  if (/\b3D\b/i.test(movieName) && !/\b2D\b/i.test(movieName)) {
+    return true;
+  }
+
+  return false;
+};
+
 const BookingManagementReport = () => {
   const { adminLoginData } = PagesIndex.useSelector(
     (state) => state?.admin?.AdminSlice
@@ -225,22 +269,8 @@ const BookingManagementReport = () => {
     )
       .then((res) => {
         const rows = res?.data?.data?.map((item) => {
-          const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || item?.setSeatData?.strSeatInfo || "";
-          let ticketQty = 0;
-          if (seatInfo) {
-            if (seatInfo.includes("-")) {
-              const parts = seatInfo.split("-");
-              if (parts[1]) {
-                ticketQty = parts[1].trim().split(",").length;
-              }
-            } else {
-              ticketQty = seatInfo.split(",").length;
-            }
-          }
-          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
-                        (item?.addSeatData?.curTicketsTax3 > 0) || 
-                        item?.movieId?.movieType?.includes("3D") ||
-                        item?.movieId?.name?.toUpperCase().includes("3D");
+          const ticketQty = getTicketQty(item);
+          const has3D = is3DMovie(item);
           const threeDCharges = has3D && ticketQty ? ticketQty * 30 : 0;
           const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
 
@@ -634,22 +664,8 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                     <Index.TableBody>
                       {filterDataList?.length ? (
                         filterDataList?.map((item, index) => {
-                          const seatInfo = item?.commitBookingData?.strSeatInfo || item?.addSeatData?.strSeatInfo || item?.setSeatData?.strSeatInfo || "";
-                          let ticketQty = 0;
-                          if (seatInfo) {
-                            if (seatInfo.includes("-")) {
-                              const parts = seatInfo.split("-");
-                              if (parts[1]) {
-                                ticketQty = parts[1].trim().split(",").length;
-                              }
-                            } else {
-                              ticketQty = seatInfo.split(",").length;
-                            }
-                          }
-                          const has3D = (item?.commitBookingData?.curTicketsTax3 > 0) || 
-                                        (item?.addSeatData?.curTicketsTax3 > 0) || 
-                                        item?.movieId?.movieType?.includes("3D") ||
-                                        item?.movieId?.name?.toUpperCase().includes("3D");
+                          const ticketQty = getTicketQty(item);
+                          const has3D = is3DMovie(item);
                           const threeDCharges = has3D && ticketQty ? ticketQty * 30 : 0;
                           const coinRedemption = item?.finalBookingCalculation?.rewardDiscountApplied || 0;
 
@@ -1407,12 +1423,8 @@ const isListEmpty = !bookingsList || bookingsList.length === 0;
                       {data?.bookedFrom || "-"}
                     </Index.Box>
                     {(() => {
-                      const modalHas3D = (data?.commitBookingData?.curTicketsTax3 > 0) || (data?.addSeatData?.curTicketsTax3 > 0) || data?.movieId?.movieType?.includes("3D");
-                      const modalTicketQty = data?.commitBookingData?.strSeatInfo
-                        ? data?.commitBookingData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
-                        : data?.addSeatData?.strSeatInfo
-                        ? data?.addSeatData?.strSeatInfo?.split("-")[1]?.trim()?.split(",").length
-                        : 0;
+                      const modalHas3D = is3DMovie(data);
+                      const modalTicketQty = getTicketQty(data);
                       const modalThreeDCharges = modalHas3D && modalTicketQty ? modalTicketQty * 30 : 0;
                       const modalCoinRedemption = data?.finalBookingCalculation?.rewardDiscountApplied || 0;
                       return (

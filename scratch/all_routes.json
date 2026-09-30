@@ -1,0 +1,1630 @@
+{
+  "user": [
+    {
+      "method": "POST",
+      "path": "/api/user/profile-update",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/login",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/user-info",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/verify-otp",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/verify-mobilenumber",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/verify-email",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/resend-otp",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/remove-account",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/social-login",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/logout",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/update-fcm",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/app-download-ticket",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-region",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-cinema-by-region/:regionId",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-movies-by-region/:regionId",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-user-subscription-membership",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/movie-shows-by-cinema",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/movies-details-by-id",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/similar-movies-details",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/write-rate-review",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/like-dis-like-movie",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/interested-uninterested-movie",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/interested-uninterested-movies-by-userId",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/apply-franchise",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/apply-twenty-min-franchise",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/active-partner",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/contact-us",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/site-setting",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/gallery",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/my-booking",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/my-food-bvg-order-list",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/sliders/:regionId/:sliderType",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/banners",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/banner-click-count",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/notification-status-change/:id",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/all-notification",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/add-edit-user-general-status",
+      "isAuth": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/user/update-user-general-status/:id",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-movi-status",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/add-group-booking",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/add-influencer",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/payment",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ccavRequestHandler",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ccavResponseHandler",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/status-of-order",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/ccavSuccessResponseHandler",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/subscription-ccavRequestHandler",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/subscription-ccavResponseHandler",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/razorpay-webhook",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/subscription-transaction-list",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/ccavCancelResponseHandler",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/list-partner",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/download-ticket-pdf/:initTransId/ticket.pdf",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/blogs",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-recent-releases-movie-by-region/:regionId",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/report-issue",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-membership-by-user",
+      "isAuth": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/user/delete-membership",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/apply-coupan-new",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-career-list",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-advertise-list",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/coupons/:cityId",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/validate-coupon",
+      "isAuth": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/user/delete-applied-coupon/:id",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-coupon-list",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/subscription/add",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-user-subscription-list",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-rewards",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/reward-balance",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/reward-by-transaction",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/redeem-coins",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-user-subscription",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/coupon-cart",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/get-coupons-by-city-cinema-language",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-cinema-show-count",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-user-data",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-all-cinema",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/get-user-welcome-gift",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/mark-gift-received",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/remove-cart-coupon",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/verify-membership-coupon",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/validate-ecommerce-coupon",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/booking-session/:id",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/franchise-payment-request",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/user/franchise-payment-response",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/user/franchise/:transId",
+      "isAuth": false
+    }
+  ],
+  "common": [
+    {
+      "method": "POST",
+      "path": "/api/whatsapp/booking",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/whatsapp/campaigns",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/whatsapp/campaigns",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/whatsapp/campaigns/recipients",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/whatsapp/conversions",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/whatsapp/check-conversion/:phone",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/google",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/google/callback",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/facebook",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/facebook/callback",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/get-cms",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/movie-detils-with-shows",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/show-time-by-cinema-movie",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/seat-layout/:strCinemaId/:strSessId",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/init-booking/:strCinemaId/:movieId",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/set-seats",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/add-seats",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/update-order",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/continue-trans",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/ticket-cancel/:CinemaId/:strTransId",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/temp-cancel/:CinemaId/:strTransId",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/booking-details-by-transid",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/price-details/:pGroupCode/:cinemaId",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/get-faqs",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/all-search",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/subscribe",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/submit-feedback",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/submit-advertisement",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/submit-career",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/check-voucher",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/create-order",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/refund-payment",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/redirect-as-per-response",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/item-details-by-cinema/:id",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/add-conssesion",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/upcoming-movies",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/seat-filter",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/near-by-region/:lat/:long",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/get-cinema",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/vista-direct/movies",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/vista-direct/shows",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/get-loyaity-memberShip",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/get-subscription-list",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/franchise-payment-status/:transactionId/:trackingId?",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/transaction-details/:transId",
+      "isAuth": false
+    }
+  ],
+  "admin": [
+    {
+      "method": "POST",
+      "path": "/api/admin/login",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/forgot-password",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/reset-password",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/verify-otp",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/resend-otp",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/upload-image",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/profile-change-password",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/edit-profile",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-role",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/edit-role",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/remove-role/:id",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/roles",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-role-permissions-by-id",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-person",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/persons",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-person",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-by-id",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/user-details",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/get-admin-login-activity",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-partner",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/list-partner",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/delete-partner",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/status-change-partner",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-region",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-region",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-region",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/active-in-active-region",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-cinema",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-cinema",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/get-cinema-by-region",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-cinema",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-cinema-licence",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/update-cinema-licence",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-cinema-licence",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-fee-activity-log",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/update-global-convenience-fee",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-movie-slider",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/delete-movie-slider",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-movie-slider",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/update-slider-status",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-movies",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/edit-movies",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-movies",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/movies",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/active-de-active-movie",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-movies-for-generate-code",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/generate-unique-code",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/interested-uninterested-movies-list",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/movies-list-for-filter",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-cms",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-faqs",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-faq",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/faqs",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/contact-us-details",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/feedback-details",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/advertisement-details",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/career-details",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-subadmin",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-subadmin",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/subadmins",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/subadmin-details",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/data-sync",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/item-sync",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/cinema-sync",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/vista-database-sync/:strCinemaId",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/sync-status",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/sync-history",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-cinema-gallary",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/cinema-gallary",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-images-cinema-gallary",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/update-status-gallery",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-gallery",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-gallery-background",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-genralseting",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/site-setting",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/all-bookings",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/all-failed-bookings",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/item-details-by-cinema/:id",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/edit-food-item",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/update-item-status",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-banner",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/delete-banner",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-banner",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/update-banner-status",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/twenty-min-franchise-lead-details",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/franchise-lead-details",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/subscribe-list",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/user-list",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/usercount",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-user",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/total-revenue",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/total-all-topdata",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/transaction-report",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/transaction-by-days-weeks-months",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/active-de-active-rate-review",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/list-rate-and-review",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/list-group-booking",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/influencer-list",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/active-deactive-cinema",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/cinema-sync-logs/:cinemaId",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-blogs",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/get-blogs",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-blogs-images",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-blog-background",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/update-blogs-status",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/remove-blogs",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/ck-editor-images",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-memberShip",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/delete-memberShip",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-advertiseWithUs",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-advertiseWithUs",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/delete-advertiseWithUs",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-careerWithUs",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-careerWithUs",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/delete-careerWithUs",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/report-issue-list",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-update-coupon",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-coupon-list",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-coupon-by-id",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/privates-coupon/:userId/:couponId",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/assign-private-coupon",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/delete-coupon",
+      "isAuth": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/active-deactive-coupon",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/coupon-use-history",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-subscription",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-subscription-by-id",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/delete-subscription",
+      "isAuth": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/active-deactive-subscription",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/cc-avenue",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-all-subscription-membership",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-details",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-all-rewards",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-rewards-summary",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/reward-metrics",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/save-reward-config",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-reward-config",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-all-admin",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-edit-global-notification",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/global-notification-status",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-all-global-notification",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-global-notification/:id",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-welcome-gift",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/add-subscription-request",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-subscription-request",
+      "isAuth": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/admin/update-subscription-request-status",
+      "isAuth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/get-dashboard-data",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/overview/counts",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/overview/regions",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/overview/cinemas",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/overview/movies",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/overview/now-playing",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/overview/upcoming",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/overview/cinema/:cinemaId",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/overview/movie/:movieId",
+      "isAuth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/get-all-region-movies-with-today-shows",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/generate-sales-report",
+      "isAuth": true
+    }
+  ],
+  "ecom": [
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/add-edit-category",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-categories",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-active-categories",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/delete-category",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/active-deactive-category",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/add-edit-seller",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/get-all-seller",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-seller",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-active-seller",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/active-deactive-seller",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/delete-seller",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/add-edit-products",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-products",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-product",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-product/:id",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/delete-product",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/active-deactive-product",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/approve-reject-product",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/products",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/storefront-categories",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/categories",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/add-edit-attribute",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-attributes",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-attributes/:categoryId",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/delete-attribute",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/active-deactive-attribute",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/bulk-import-attributte",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/bulk-import-attribute",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-banner",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/update-banner",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/delete-banner",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-all-order",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/return-orders",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/update-order-status",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/order-tracking-admin",
+      "isAuth": false
+    },
+    {
+      "method": "POST",
+      "path": "/ecommerce-api/get-ecommerce-dashboard",
+      "isAuth": false
+    },
+    {
+      "method": "GET",
+      "path": "/ecommerce-api/get-ecommerce-dashboard",
+      "isAuth": false
+    }
+  ]
+}
