@@ -44,23 +44,39 @@ export const updateVistaOrderPrice = async ({
 
   try {
     let tickets = [];
-    const strOrderData = addSeatData.strOrderData;
+    const strOrderData = addSeatData.strOrderData || addSeatData.orderData || addSeatData.tickets;
     if (strOrderData) {
-      try {
-        const orderDataParsed = await parseStringPromise(strOrderData, {
-          tagNameProcessors: [stripPrefix],
-        });
-
-        const rootKey = Object.keys(orderDataParsed)[0];
-        const root = orderDataParsed[rootKey];
-        if (root && root.Tickets && root.Tickets[0]) {
-          const ticketsObj = root.Tickets[0];
-          if (ticketsObj && ticketsObj.Ticket) {
-            tickets = Array.isArray(ticketsObj.Ticket) ? ticketsObj.Ticket : [ticketsObj.Ticket];
+      if (typeof strOrderData === "object") {
+        if (Array.isArray(strOrderData)) {
+          tickets = strOrderData;
+        } else {
+          const root = strOrderData.OrderData || strOrderData;
+          if (root && root.Tickets && root.Tickets[0]) {
+            const ticketsObj = root.Tickets[0];
+            if (ticketsObj && ticketsObj.Ticket) {
+              tickets = Array.isArray(ticketsObj.Ticket) ? ticketsObj.Ticket : [ticketsObj.Ticket];
+            }
+          } else if (root && root.tickets) {
+            tickets = Array.isArray(root.tickets) ? root.tickets : [root.tickets];
           }
         }
-      } catch (parseErr) {
-        console.warn("Failed to parse strOrderData XML, falling back to manual generation.", parseErr);
+      } else if (typeof strOrderData === "string") {
+        try {
+          const orderDataParsed = await parseStringPromise(strOrderData, {
+            tagNameProcessors: [stripPrefix],
+          });
+
+          const rootKey = Object.keys(orderDataParsed)[0];
+          const root = orderDataParsed[rootKey];
+          if (root && root.Tickets && root.Tickets[0]) {
+            const ticketsObj = root.Tickets[0];
+            if (ticketsObj && ticketsObj.Ticket) {
+              tickets = Array.isArray(ticketsObj.Ticket) ? ticketsObj.Ticket : [ticketsObj.Ticket];
+            }
+          }
+        } catch (parseErr) {
+          console.warn("Failed to parse strOrderData XML, falling back to manual generation.", parseErr);
+        }
       }
     }
 

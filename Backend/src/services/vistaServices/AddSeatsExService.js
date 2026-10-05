@@ -96,8 +96,10 @@ export const addSeatsExService = async ({
   }
 
   // Parse the serialized properties returned inside strData XML
-  const strData = objExecuteResult.strData[0];
-  const properties = {};
+  const strData = objExecuteResult.strData ? objExecuteResult.strData[0] : "";
+  const properties = {
+    strOrderData: strData,
+  };
 
   if (strData) {
     try {
@@ -106,6 +108,15 @@ export const addSeatsExService = async ({
       });
       const rootKey = Object.keys(dataParsed)[0];
       const root = dataParsed[rootKey];
+
+      if (rootKey === "OrderData" || rootKey === "orderData") {
+        properties.orderData = root;
+        if (root.Tickets && root.Tickets[0] && root.Tickets[0].Ticket) {
+          properties.tickets = Array.isArray(root.Tickets[0].Ticket)
+            ? root.Tickets[0].Ticket
+            : [root.Tickets[0].Ticket];
+        }
+      }
 
       for (const key in root) {
         const val = root[key];
@@ -130,6 +141,7 @@ export const addSeatsExService = async ({
     intException,
     strException,
     properties,
+    strOrderData: strData,
   };
 };
 

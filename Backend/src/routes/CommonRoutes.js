@@ -77,6 +77,8 @@ commonRouter.get("/seat-layout/:strCinemaId/:strSessId", booking.getSeatLayout);
 commonRouter.get("/init-booking/:strCinemaId/:movieId", booking.initBooking);
 commonRouter.post("/set-seats", booking.setSeats);
 commonRouter.post("/add-seats", booking.addSeats);
+commonRouter.post("/add-seats-ex", booking.addSeatsEx);
+commonRouter.post("/get-seats", booking.addSeatsEx);
 commonRouter.post("/update-order", booking.updateOrder);
 commonRouter.post("/continue-trans", booking.continueTrans);
 commonRouter.get(

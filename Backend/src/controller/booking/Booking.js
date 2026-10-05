@@ -424,6 +424,82 @@ export const addSeats = async (req, res) => {
 };
 //#endregion
 
+//#region addSeatsEx
+export const addSeatsEx = async (req, res) => {
+  let {
+    cinemaId,
+    strTransId,
+    lngSessionId,
+    strOrderXml,
+    ticketTypeCode,
+    quantity,
+    blnUserSelectedSeating = true,
+    strAdditionalParameters = "",
+  } = req.body;
+
+  try {
+    if (!strOrderXml && ticketTypeCode && quantity) {
+      strOrderXml = `<Order><Tickets><Ticket><TicketTypeCode>${ticketTypeCode}</TicketTypeCode><Quantity>${quantity}</Quantity><Price>-1</Price></Ticket></Tickets></Order>`;
+    }
+
+    if (!strOrderXml) {
+      return res.status(400).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: "strOrderXml or (ticketTypeCode and quantity) is required",
+        data: null,
+      });
+    }
+
+    const result = await addSeatsExService({
+      cinemaId,
+      strTransId,
+      lngSessionId,
+      strOrderXml,
+      blnUserSelectedSeating,
+      strAdditionalParameters,
+    });
+
+    if (result.success) {
+      if (strTransId) {
+        await Transaction.findOneAndUpdate(
+          { initTransId: strTransId },
+          {
+            $set: { addSeatData: result.properties },
+            $push: {
+              logs: {
+                addSeatsEx: new Date(),
+              },
+            },
+          }
+        );
+      }
+
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: ResponseMessage.ADD_SEAT_SUCCESS || "Seats added successfully",
+        data: {
+          success: true,
+          strOrderData: result.strOrderData,
+          properties: result.properties,
+        },
+      });
+    } else {
+      return res.status(400).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: result.strException || "Failed to add seats via blnAddSeatsEx",
+        data: result,
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      status: StatusCodes.BAD_REQUEST,
+      message: error.message,
+      data: null,
+    });
+  }
+};
+//#endregion
+
 //#region updateOrder
 export const updateOrder = async (req, res) => {
   const { cinemaId, strTransId, strOrderXml } = req.body;
