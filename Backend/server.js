@@ -49,7 +49,11 @@ app.use(function (req, res, next) {
 });
 app.get("/api/uploads/:file", async (req, res) => {
   try {
-    const fileName = path.basename(req.params.file);
+    const rawFile = req.params.file;
+    if (!rawFile || rawFile === "undefined" || rawFile === "null") {
+      return res.status(404).send("File not found");
+    }
+    const fileName = path.basename(rawFile);
     const localPath = path.join(__dirname, "public", "uploads", fileName);
 
     // 1. Try to serve from local disk first (for legacy files)

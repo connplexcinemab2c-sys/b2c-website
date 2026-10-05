@@ -921,6 +921,8 @@ export default function CinemaInner({ props }) {
                                                     res.sessionRealShow
                                                   ).format("hh:mm A"),
                                                   showDate: selectedDate,
+                                                  sessionId: res?.sessionId,
+                                                  showId: res?._id,
                                                 },
                                               }
                                             );
@@ -945,6 +947,8 @@ export default function CinemaInner({ props }) {
                                                     res.sessionRealShow
                                                   ).format("hh:mm A"),
                                                   showDate: selectedDate,
+                                                  sessionId: res?.sessionId,
+                                                  showId: res?._id,
                                                 },
                                               }
                                             );

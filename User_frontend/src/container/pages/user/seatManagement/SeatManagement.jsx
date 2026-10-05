@@ -210,19 +210,36 @@ function SeatManagement() {
         setShowTimingsData(shows);
         setMovieData(res.movie);
         setCinemaData(res.cinema);
-        const selectedShow = res.data.find(
-          (data) =>
-            PagesIndex.moment(data?.sessionRealShow).format("hh:mm A") ===
-            location.state?.show_Time
-        );
-        setSelectedSessionId(selectedShow?.sessionId);
-        setPGroupCode(selectedShow?.pGroupCode);
-        setShowId(selectedShow?._id);
+        const selectedShow =
+          (location.state?.sessionId &&
+            res.data.find(
+              (data) => String(data?.sessionId) === String(location.state.sessionId)
+            )) ||
+          res.data.find(
+            (data) =>
+              PagesIndex.moment(data?.sessionRealShow).format("hh:mm A") ===
+              location.state?.show_Time
+          ) ||
+          shows[0] ||
+          res.data[0];
+
+        const matchedSessionId = selectedShow?.sessionId || location.state?.sessionId;
+        const matchedPGroupCode = selectedShow?.pGroupCode;
+        const matchedShowId = selectedShow?._id || location.state?.showId;
+
+        setSelectedSessionId(matchedSessionId);
+        setPGroupCode(matchedPGroupCode);
+        setShowId(matchedShowId);
+        if (selectedShow?.sessionRealShow) {
+          setSelectedShowTiming(
+            PagesIndex.moment(selectedShow.sessionRealShow).format("hh:mm A")
+          );
+        }
       })
       .catch(() => {});
     dispatch(PagesIndex.hideLoader());
   };
-  const getSeatLayout = () => {
+  const getSeatLayout = (customPGroupCode) => {
     dispatch(PagesIndex.showLoader());
     PagesIndex.apiGetHandler(
       PagesIndex.Api.GET_SEAT_LAYOUT,
@@ -232,20 +249,25 @@ function SeatManagement() {
         const sortedArray = checkAndSortArray(res?.data?.data);
         console.log(sortedArray, ":sortedArray");
 
-        getAreaPriceList(sortedArray);
+        getAreaPriceList(sortedArray, customPGroupCode);
       }
 
       dispatch(PagesIndex.hideLoader());
 
       setIsLoading(false);
+    }).catch(() => {
+      dispatch(PagesIndex.hideLoader());
+      setIsLoading(false);
     });
   };
   console.log(seatLayout, ":seatLayout");
-  const getAreaPriceList = (seatLayout) => {
-    console.log(seatLayout, ":seatLayout173");
+  const getAreaPriceList = (seatLayout, customPGroupCode) => {
+    const activePGroupCode = customPGroupCode || pGroupCode;
+    console.log(seatLayout, ":seatLayout173", activePGroupCode);
+    if (!activePGroupCode) return;
     PagesIndex.apiGetHandler(
       PagesIndex.Api.GET_PRICE_DETAILS_LIST,
-      `${pGroupCode}/${location.state?.cId}`
+      `${activePGroupCode}/${location.state?.cId}`
     ).then((res) => {
       if (res?.status === 200) {
         console.log(res.data, ":res.data");
@@ -254,7 +276,7 @@ function SeatManagement() {
       } else {
         PagesIndex.toast.error("Something went wrong");
       }
-    });
+    }).catch(() => {});
   };
   const modifyData = (seatLayout, areaPriceData) => {
     let modifiedData = [];
@@ -629,19 +651,32 @@ function SeatManagement() {
         PagesIndex.toast.error(res?.data?.data);
         dispatch(PagesIndex.hideLoader());
       } else {
-        PagesIndex.toast.error("Something went wrong");
+        PagesIndex.toast.error(res?.message || "Failed to initialize booking session");
         dispatch(PagesIndex.hideLoader());
       }
+    }).catch((err) => {
+      console.error("Init booking error:", err);
+      PagesIndex.toast.error("Network error while starting booking. Please try again.");
+      dispatch(PagesIndex.hideLoader());
     });
   };
 
   const addSeats = async (transactionId, bookingSessionId) => {
+    const activeShowId =
+      showId ||
+      showTimingsData?.find((s) => s.sessionId === selectedSessionId)?._id ||
+      location.state?.showId;
+
+    const activeTTypeCode =
+      selectedAreaData?.tTypeCode ||
+      areaPriceDetailsList?.find((p) => p.areaCatCode === seatDetails[0]?.areaCode)?.tTypeCode ||
+      "0001";
+
     const urlEncoded = new URLSearchParams();
-    // urlEncoded.append("filmCode", location?.state?.filmCode);
-    urlEncoded.append("showId", showId);
+    urlEncoded.append("showId", activeShowId);
     urlEncoded.append(
       "id",
-      `${location.state.cId}|${transactionId}|${selectedSessionId}|${selectedAreaData?.tTypeCode}|${selectedSeats.length}`
+      `${location.state.cId}|${transactionId}|${selectedSessionId}|${activeTTypeCode}|${selectedSeats.length}`
     );
     await PagesIndex.apiPostHandler(PagesIndex.Api.ADD_SEATS, urlEncoded)
       .then(async (res) => {
@@ -650,18 +685,25 @@ function SeatManagement() {
           let newStrTransId = res.data.data.strTransId;
           await setSeats(newStrTransId, bookingSessionId);
         } else {
-          PagesIndex.toast.error("Something went wrong");
+          PagesIndex.toast.error(res?.message || res?.data || "Seat reservation failed. Please retry.");
           dispatch(PagesIndex.hideLoader());
         }
       })
       .catch((error) => {
         console.log(error, ":Error");
+        PagesIndex.toast.error("Network error while reserving seats. Please try again.");
+        dispatch(PagesIndex.hideLoader());
       });
   };
 
   console.log(seatDetails, ":seatDetails");
 
   const setSeats = async (transactionId, bookingSessionId) => {
+    const activeShowId =
+      showId ||
+      showTimingsData?.find((s) => s.sessionId === selectedSessionId)?._id ||
+      location.state?.showId;
+
     const seatString = `|${seatDetails?.length}${seatDetails
       ?.map((detail) => {
         return `|${detail.areaCode}|${detail.areaNumber}|${detail.SeatRowId}|${detail.seatNumber}`;
@@ -671,7 +713,7 @@ function SeatManagement() {
     urlEncoded.append("cinemaId", location.state.cId);
     urlEncoded.append("cinemaObjId", location.state.c_Id);
     urlEncoded.append("movieObjId", movieData?._id);
-    urlEncoded.append("showObjId", showId);
+    urlEncoded.append("showObjId", activeShowId);
     urlEncoded.append("strTransId", transactionId);
     urlEncoded.append("lngSessionId", selectedSessionId);
     urlEncoded.append("strSelectedSeats", seatString);
@@ -751,7 +793,9 @@ function SeatManagement() {
           PagesIndex.toast.error("Something went wrong");
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("setSeats error:", err);
+        PagesIndex.toast.error("Network error while locking seats. Please try again.");
         dispatch(PagesIndex.hideLoader());
       });
   };

@@ -57,6 +57,7 @@ export const initBooking = async (req, res) => {
       maxBodyLength: Infinity,
       url: `${process.env.VISTA_URL}/api.asmx/InitBooking?strCinemaId=${strCinemaId}`,
       headers: {},
+      timeout: 15000,
     };
 
     // const vistaLogRequest = {
@@ -164,7 +165,7 @@ export const initBooking = async (req, res) => {
         //   );
         return res.status(400).json({
           status: StatusCodes.BAD_REQUEST,
-          message: ResponseMessage.BAD_REQUEST,
+          message: error.code === "ECONNABORTED" ? "Cinema ticketing server timed out. Please try again." : (error.message || ResponseMessage.BAD_REQUEST),
           data: error.message,
         });
       });
@@ -213,6 +214,7 @@ const handleBookingReinitiation = async (cinemaId, strTransId, deviceType) => {
       maxBodyLength: Infinity,
       url: `${process.env.VISTA_URL}/api.asmx/InitBooking?strCinemaId=${cinemaId}`,
       headers: {},
+      timeout: 15000,
     };
 
     const response = await axios.request(config);
@@ -328,6 +330,7 @@ export const addSeats = async (req, res) => {
         method: "get",
         maxBodyLength: Infinity,
         url: `${process.env.VISTA_URL}/api.asmx/AddSeats?CinemaId=${cinemaId}&strTransId=${strTransId}&strSessId=${strSessId}&strType=${strType}&intQty=${intQty}`,
+        timeout: 15000,
       };
 
       const response = await axios.request(config);
@@ -404,7 +407,7 @@ export const addSeats = async (req, res) => {
       });
       return res.status(400).json({
         status: StatusCodes.BAD_REQUEST,
-        message: ResponseMessage.BAD_REQUEST,
+        message: error.code === "ECONNABORTED" ? "Cinema ticketing server timed out while blocking seats. Please try again." : ResponseMessage.BAD_REQUEST,
         data: error.message,
       });
     }
@@ -583,6 +586,7 @@ export const setSeats = async (req, res) => {
       method: "get",
       maxBodyLength: Infinity,
       url: `${process.env.VISTA_URL}/api.asmx/SetSeats?strCinemaId=${cinemaId}&strTransId=${strTransId}&lngSessionId=${lngSessionId}&strSelectedSeats=${strSelectedSeats}`,
+      timeout: 15000,
     };
 
     // const vistaLogRequest = {
@@ -693,7 +697,7 @@ export const setSeats = async (req, res) => {
         });
         return res.status(400).json({
           status: StatusCodes.BAD_REQUEST,
-          message: ResponseMessage.BAD_REQUEST,
+          message: error.code === "ECONNABORTED" ? "Cinema ticketing server timed out while reserving seats. Please try again." : ResponseMessage.BAD_REQUEST,
           data: error.message,
         });
       });
@@ -1027,6 +1031,7 @@ export const getSeatLayout = async (req, res) => {
       maxBodyLength: Infinity,
       url: `${process.env.VISTA_URL}/api.asmx/GetSeatLayout?strCinemaId=${strCinemaId}&strTransId=&strSessId=${strSessId}`,
       headers: {},
+      timeout: 15000,
     };
 
     // const vistaLogRequest = {
@@ -1079,7 +1084,7 @@ export const getSeatLayout = async (req, res) => {
         // );
         return res.status(400).json({
           status: StatusCodes.BAD_REQUEST,
-          message: ResponseMessage.BAD_REQUEST,
+          message: error.code === "ECONNABORTED" ? "Cinema ticketing server timed out while loading seat layout. Please try again." : (error.message || ResponseMessage.BAD_REQUEST),
           data: error.message,
         });
       });
@@ -1400,6 +1405,7 @@ export const tempCancel = async (req, res) => {
       maxBodyLength: Infinity,
       url: `${process.env.VISTA_URL}/api.asmx/CancelTrans?strCinemaId=${CinemaId}&strTransId=${strTransId}`,
       headers: {},
+      timeout: 10000,
     };
 
     const vistaLogRequest = {

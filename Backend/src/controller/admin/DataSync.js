@@ -376,9 +376,6 @@ export const cinemaSync = async (skip, batchSize, triggerSource = "auto") => {
 
 
 export const syncAllCinema = async (skip, batchSize, triggerSource = "auto") => {
-
-
-
   let findCinema = await Cinema.find(
     {
       cinemaId: { $ne: null },
@@ -391,9 +388,59 @@ export const syncAllCinema = async (skip, batchSize, triggerSource = "auto") => 
       cinemaWebServiceUrl: 1,
       cinemaWebServiceUrl2: 1,
     }
-  ) .skip(skip)
-  .limit(batchSize);;
+  ).skip(skip)
+  .limit(batchSize);
 
+  // Pre-fetch global Vista data once to avoid repeated calls per cinema (prevents Vista server saturation)
+  let preFetchedData = null;
+  let globalSessions = null;
+  let preFetchedItems = null;
+  let cinemaMap = null;
+
+  try {
+    const prefetchTimeout = 30000;
+    const [detailsRes, sessionRes, itemsRes, allCinemas] = await Promise.allSettled([
+      axios.request({
+        method: "get",
+        maxBodyLength: Infinity,
+        url: `${process.env.VISTA_URL}/api.asmx/GetAllDetails?test=string`,
+        timeout: prefetchTimeout,
+      }),
+      axios.request({
+        method: "get",
+        maxBodyLength: Infinity,
+        url: `${process.env.VISTA_URL}/api.asmx/GetAllSession?test=string`,
+        timeout: prefetchTimeout,
+      }),
+      axios.request({
+        method: "get",
+        maxBodyLength: Infinity,
+        url: `${process.env.VISTA_URL}/api.asmx/GetAllItems?test=string`,
+        timeout: prefetchTimeout,
+      }),
+      Cinema.find({ deletedStatus: 0 }),
+    ]);
+
+    if (detailsRes.status === "fulfilled" && detailsRes.value?.data?.Status == 1) {
+      preFetchedData = detailsRes.value;
+    }
+    if (sessionRes.status === "fulfilled" && sessionRes.value?.data?.Status == 1) {
+      globalSessions = sessionRes.value;
+    }
+    if (itemsRes.status === "fulfilled" && itemsRes.value?.data?.Status == 1) {
+      preFetchedItems = itemsRes.value;
+    }
+    if (allCinemas.status === "fulfilled") {
+      cinemaMap = new Map(allCinemas.value.map((c) => [c.cinemaId, c]));
+    }
+    console.log("Global sync prefetch completed:", {
+      details: !!preFetchedData,
+      sessions: !!globalSessions,
+      items: !!preFetchedItems,
+    });
+  } catch (prefetchErr) {
+    console.warn("Global sync prefetch error:", prefetchErr.message);
+  }
 
   for (const cinema of findCinema) {
     var strCinemaId = cinema.cinemaId;
@@ -402,6 +449,7 @@ export const syncAllCinema = async (skip, batchSize, triggerSource = "auto") => 
       maxBodyLength: Infinity,
       url: `${process.env.VISTA_URL}/api.asmx/DatabaseSync?strCinemaId=${strCinemaId}`,
       headers: {},
+      timeout: 8000,
     };
     if (strCinemaId) {
       console.log("Cinema sync with vista service2", strCinemaId)
@@ -456,6 +504,7 @@ export const syncAllCinema = async (skip, batchSize, triggerSource = "auto") => 
               maxBodyLength: Infinity,
               url: `${process.env.VISTA_URL}/api.asmx/UpdateCinemawebservicesURL?strCinemaId=${strCinemaId}&strWebServiceURL=${newActiveUrl}`,
               headers: {},
+              timeout: 8000,
             };
             const updateResponse = await axios.request(updateUrlConfig);
             const vistaLogStatus = updateResponse.data.Status == 1 ? "Success" : "Failed";
@@ -493,18 +542,18 @@ export const syncAllCinema = async (skip, batchSize, triggerSource = "auto") => 
         // console.log(d.data);
         //  if (strCinemaId == "CN01") {
         console.log("Movie sync started", strCinemaId)
-        await movieSync(strCinemaId);
+        await movieSync(strCinemaId, preFetchedData, cinemaMap);
         console.log("Movie sync ender", strCinemaId)
-        await priceDataSyncCinemaWise(strCinemaId);
+        await priceDataSyncCinemaWise(strCinemaId, preFetchedData, cinemaMap);
         // console.log("priceDataSyncCinemaWise","done");
-        await pricePackageDataSyncCinemaWise(strCinemaId);
+        await pricePackageDataSyncCinemaWise(strCinemaId, preFetchedData, cinemaMap);
         // console.log("pricePackageDataSyncCinemaWise","done");
-        await showSync(strCinemaId);
+        await showSync(strCinemaId, globalSessions, cinemaMap);
         console.log("showSync", "done");
 
         // await todayShowSync(strCinemaId);
         // console.log("todayShowSync", "done");
-        await itemDataSyncCinemaWise(strCinemaId);
+        await itemDataSyncCinemaWise(strCinemaId, preFetchedItems, cinemaMap);
         // console.log("itemDataSync","done");
         console.log("Sync all done for selected cinema", strCinemaId, new Date().toLocaleString());
 

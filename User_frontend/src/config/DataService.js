@@ -17,6 +17,7 @@ export const DataService = axios.create({
   headers: {
     "X-Device-Type": "web",
   },
+  timeout: 30000,
 });
 
 const apiGetHandler = (url, payload, auth) => {

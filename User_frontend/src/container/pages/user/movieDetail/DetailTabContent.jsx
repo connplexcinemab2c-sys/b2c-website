@@ -593,6 +593,8 @@ function DetailTabContent({
             show_Time: PagesIndex.moment(res.startTime).format("hh:mm A"),
             showDate: selectedDate,
             priceDetails: res?.priceDetails,
+            sessionId: res?.sid,
+            showId: res?.showId,
           },
         });
       } else {
@@ -614,7 +616,9 @@ function DetailTabContent({
               show_Time: PagesIndex.moment(res.startTime).format("hh:mm A"),
               showDate: selectedDate,
               priceDetails: res?.priceDetails,
-              filmCode:movieDetail?.filmCode
+              filmCode: movieDetail?.filmCode,
+              sessionId: res?.sid,
+              showId: res?.showId,
             },
           }
         );
