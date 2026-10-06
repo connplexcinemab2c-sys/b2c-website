@@ -683,7 +683,8 @@ function SeatManagement() {
         if (res?.status === 200) {
           // take transactionId from add seat Response
           let newStrTransId = res.data.data.strTransId;
-          await setSeats(newStrTransId, bookingSessionId);
+          const vistaTotal = Number(res.data?.data?.curTicketsTotal) || Number(res.data?.data?.curTotal) || 0;
+          await setSeats(newStrTransId, bookingSessionId, vistaTotal);
         } else {
           PagesIndex.toast.error(res?.message || res?.data || "Seat reservation failed. Please retry.");
           dispatch(PagesIndex.hideLoader());
@@ -698,7 +699,7 @@ function SeatManagement() {
 
   console.log(seatDetails, ":seatDetails");
 
-  const setSeats = async (transactionId, bookingSessionId) => {
+  const setSeats = async (transactionId, bookingSessionId, vistaTotal = 0) => {
     const activeShowId =
       showId ||
       showTimingsData?.find((s) => s.sessionId === selectedSessionId)?._id ||
@@ -723,6 +724,7 @@ function SeatManagement() {
         if (res?.status === 200) handleTermsClose();
         dispatch(PagesIndex.hideLoader());
         if (res?.status === 200) {
+          const finalTicketTotal = vistaTotal > 0 ? vistaTotal : selectedPrice;
           dispatch(
             PagesIndex.getCinemaData({
               mId: movieId,
@@ -738,7 +740,7 @@ function SeatManagement() {
               convenienceFees: convenienceFees,
               isCoupleSeats: isCoupleSeats,
               ticketPriceDetails: {
-                total: selectedPrice,
+                total: finalTicketTotal,
                 tax1: tax1,
                 tax2: tax2,
                 tax3: tax3,
@@ -773,7 +775,7 @@ function SeatManagement() {
                 convenienceFees: convenienceFees,
                 isCoupleSeats: isCoupleSeats,
                 ticketPriceDetails: {
-                  total: selectedPrice,
+                  total: finalTicketTotal,
                   tax1: tax1,
                   tax2: tax2,
                   tax3: tax3,

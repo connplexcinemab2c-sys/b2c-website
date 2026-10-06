@@ -216,9 +216,16 @@ export const couponCart = async (req, res) => {
         : 0;
 
 
+    const existingTx = await Transaction.findOne({ initTransId: transId });
+    const vistaGross =
+      Number(existingTx?.addSeatData?.curTicketsTotal) ||
+      Number(existingTx?.addSeatData?.curTotal) ||
+      0;
+    const resolvedTicketTotal = vistaGross > 0 ? vistaGross : ticketTotal;
+
     const cart = await getCouponCart(
       coupons,
-      ticketTotal,
+      resolvedTicketTotal,
       fnbprice,
       cityId,
       cinemaObjectId,

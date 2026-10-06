@@ -12,31 +12,29 @@ export const buildMultiPaymentDetails = ({
   addSeatData,
   foodAndBvgResponse,
 }) => {
-  const grossTicket =
-    Number(finalBooking?.ticketCart?.ticketTotal) ||
+  // 1. Gross ticket reservation amount held in Vista
+  // Vista requires udsCommitBook tender amounts to sum exactly to the gross seat reservation.
+  const vistaGross =
     Number(addSeatData?.curTicketsTotal) ||
-    Number(finalBooking?.ticketCart?.total) ||
+    Number(addSeatData?.curTotal) ||
     0;
+
+  const grossTicket =
+    vistaGross > 0
+      ? vistaGross
+      : Number(finalBooking?.ticketCart?.ticketTotal) ||
+        Number(finalBooking?.ticketCart?.total) ||
+        0;
   const ticketGrossPaise = Math.round(grossTicket * 100);
 
-  const hasPaidTicket =
-    finalBooking?.ticketCart?.total !== undefined &&
-    finalBooking?.ticketCart?.total !== null &&
-    !isNaN(Number(finalBooking?.ticketCart?.total));
-
-  const paidTicket = hasPaidTicket
-    ? Math.max(0, Number(finalBooking.ticketCart.total))
-    : grossTicket;
-  let paidTicketPaise = Math.round(paidTicket * 100);
-
-  let discountPaise = 0;
-  const rawDiscount =
-    Number(finalBooking?.ticketCart?.discountAmount) ||
-    (grossTicket > paidTicket ? grossTicket - paidTicket : 0);
-
-  if (rawDiscount > 0 && paidTicketPaise < ticketGrossPaise) {
-    discountPaise = ticketGrossPaise - paidTicketPaise;
+  const rawDiscount = Number(finalBooking?.ticketCart?.discountAmount) || 0;
+  let discountPaise = rawDiscount > 0 ? Math.round(rawDiscount * 100) : 0;
+  if (discountPaise > ticketGrossPaise) {
+    discountPaise = ticketGrossPaise;
   }
+
+  const paidTicketPaise = Math.max(0, ticketGrossPaise - discountPaise);
+  const paidTicket = paidTicketPaise / 100;
 
   const foodAmount =
     Number(foodAndBvgResponse?.curFoodTotal) ||
