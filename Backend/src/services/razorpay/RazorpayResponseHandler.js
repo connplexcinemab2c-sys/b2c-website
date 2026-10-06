@@ -131,6 +131,17 @@ export const paymentResponse = async (req, res) => {
     //   Log → Transaction.logs  { paymentFailed: Date }
     // ─────────────────────────────────────────────────────────────────────────
     if (paymentStatus !== "success") {
+      // ── CRITICAL GUARD: Never overwrite an already confirmed/booked transaction
+      const existingTx = await Transaction.findOne({ initTransId: transId });
+      if (existingTx && (existingTx.status === 1 || existingTx.commitStatus === true)) {
+        console.log(`[paymentResponse] Transaction ${transId} is already confirmed (status: 1). Ignoring subsequent '${paymentStatus}' event.`);
+        return res.status(StatusCodes.OK).json({
+          status: StatusCodes.OK,
+          message: "Booking already confirmed",
+          redirectUrl: `/confirmation-screen?transId=${transId}`,
+        });
+      }
+
       // Build full payment response — capture every field Razorpay sends so the
       // record is useful for debugging and manual refund lookups.
       const failedPaymentData = {
@@ -259,11 +270,11 @@ export const paymentResponse = async (req, res) => {
       couponIds.push(c._id)
     );
 
-    // ── 7. Calculate booking session window (10 minutes from Transaction.createdAt)
-    const isSessionExpired =
-      moment().diff(moment(bookingData?.createdAt), "minutes", true) > 10;
+    // ── 7. Calculate booking session window (15 minutes from Transaction.createdAt)
+    const sessionAgeMinutes = moment().diff(moment(bookingData?.createdAt), "minutes", true);
+    const isSessionExpired = sessionAgeMinutes > 15;
 
-    console.log("booking session expiry check - expired:", isSessionExpired);
+    console.log("booking session expiry check - expired:", isSessionExpired, `(${sessionAgeMinutes.toFixed(1)} mins)`);
 
     // ── 8. Build Razorpay payment data object (stored in paymentResponse field)
     let fetchedPaymentTicket = {};
@@ -305,7 +316,7 @@ export const paymentResponse = async (req, res) => {
     // ── 12. Session window check Booking must be completed within 10 minutes of Transaction.createdAt ──────────────────────────────────────────────
 
     if (isSessionExpired) {
-      console.log("Booking time exceeded 10 minutes");
+      console.log(`Booking time exceeded 15 minutes (${sessionAgeMinutes.toFixed(1)} mins) — initiating auto-refund`);
 
       createLog({
         transaction_id: transId,
@@ -313,11 +324,21 @@ export const paymentResponse = async (req, res) => {
         step: {
           success: false,
           logType: "vistaBookingResponse",
-          message: "Ticket Booking Failed",
-          error: "Booking time exceeded 10 minutes",
+          message: "Ticket Booking Failed - Session Expired",
+          error: "Booking time exceeded session limit (15 mins)",
           timestamp: new Date().toISOString(),
         },
       });
+
+      // Auto-refund user immediately if payment was captured
+      const shouldRefund = process.env.VISTA_TICKET_REFUND !== "false";
+      if (shouldRefund && razorpay_payment_id) {
+        const refundAmt = Number(razorpayPaymentData.amount) || Number(bookingData?.finalBookingCalculation?.finalAmount) || 0;
+        if (refundAmt > 0) {
+          console.log(`[AutoRefund] Refunding expired session booking ${transId} for ₹${refundAmt}`);
+          await refundRazorpay(razorpay_payment_id, refundAmt, transId).catch(console.error);
+        }
+      }
 
       // DB → Transaction / SubscriptionTransaction  status: 5 
       // Log → Transaction.logs  { paymentFailed: Date }
@@ -325,7 +346,7 @@ export const paymentResponse = async (req, res) => {
 
       return res.status(StatusCodes.OK).json({
         status: StatusCodes.OK,
-        message: "Booking session expired",
+        message: "Booking session expired. Refund initiated.",
         redirectUrl: `/transaction-failed?transId=${transId}`,
       });
     }
@@ -613,12 +634,20 @@ export const _handleTicketFailed = async (
   userId,
   vistaErrorResponse
 ) => {
-  if (process.env.VISTA_TICKET_REFUND === "true") {
-    await refundRazorpay(
-      razorpayPaymentData.razorpay_payment_id,
-      razorpayPaymentData.amount,
-      strTransId
-    ).catch(console.error);
+  const shouldRefund = process.env.VISTA_TICKET_REFUND !== "false";
+  if (shouldRefund && razorpayPaymentData?.razorpay_payment_id) {
+    const refundAmount =
+      Number(razorpayPaymentData.amount) ||
+      Number(razorpayPaymentData.finalAmount) ||
+      0;
+    if (refundAmount > 0) {
+      console.log(`[AutoRefund] Initiating auto-refund of ₹${refundAmount} for failed booking ${strTransId}`);
+      await refundRazorpay(
+        razorpayPaymentData.razorpay_payment_id,
+        refundAmount,
+        strTransId
+      ).catch((err) => console.error("Auto-refund failed in _handleTicketFailed:", err?.message));
+    }
   }
 
   const updated = await Transaction.findOneAndUpdate(
@@ -649,6 +678,19 @@ export const _handleTicketFailed = async (
 
 // Private — payment-failure side-effects
 export const _handlePaymentFailedDb = async (strTransId, paymentData, userId) => {
+  // CRITICAL GUARD: Never overwrite an already booked transaction!
+  const existingTx = await Transaction.findOne({ initTransId: strTransId });
+  if (existingTx && (existingTx.status === 1 || existingTx.commitStatus === true)) {
+    console.warn(`[Guard] Blocked attempt to mark successfully booked transaction ${strTransId} as failed.`);
+    return existingTx;
+  }
+
+  const existingSub = await SubscriptionTransaction.findOne({ initTransId: strTransId });
+  if (existingSub && (existingSub.status === 1 || existingSub.paymentsStatus === true)) {
+    console.warn(`[Guard] Blocked attempt to mark successfully activated subscription ${strTransId} as failed.`);
+    return existingSub;
+  }
+
   const update = {
     $set: {
       paymentResponse: paymentData,
@@ -660,14 +702,14 @@ export const _handlePaymentFailedDb = async (strTransId, paymentData, userId) =>
   };
 
   let updated = await SubscriptionTransaction.findOneAndUpdate(
-    { initTransId: strTransId },
+    { initTransId: strTransId, status: { $ne: 1 } },
     update,
     { new: true }
   ).sort({ createdAt: -1 });
 
   if (!updated) {
     updated = await Transaction.findOneAndUpdate(
-      { initTransId: strTransId },
+      { initTransId: strTransId, status: { $ne: 1 }, commitStatus: { $ne: true } },
       update,
       { new: true }
     ).sort({ createdAt: -1 });

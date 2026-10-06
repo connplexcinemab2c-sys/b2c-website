@@ -74,6 +74,7 @@ const _recoverTickets = async () => {
     paymentFrom: "razorpay",
     // paymentsStatus: { $ne: true },
     status: { $nin: [1, 3, 4, 5] },
+    commitStatus: { $ne: true },
     createdAt: { $gte: from, $lte: to },
   });
 
@@ -187,7 +188,7 @@ const _processStuckTicket = async (txn) => {
 
   } else if (order.status === "attempted") {
     const fresh = await Transaction.findOne({ initTransId: transId }).sort({ createdAt: -1 });
-    if (!fresh || [1, 3, 4, 5].includes(fresh.status)) return;
+    if (!fresh || [1, 3, 4, 5].includes(fresh.status) || fresh.commitStatus === true) return;
 
       const paymentResponse = {
     ...fresh.paymentResponse,
@@ -322,7 +323,7 @@ const _commitTicketBooking = async (txn, notes, payment) => {
         timestamp: new Date().toISOString(),
       },
     });
-    if (process.env.VISTA_TICKET_REFUND === "true") {
+    if (process.env.VISTA_TICKET_REFUND !== "false") {
       await refundRazorpay(
         payment.id,
         txn.finalBookingCalculation?.finalAmount,

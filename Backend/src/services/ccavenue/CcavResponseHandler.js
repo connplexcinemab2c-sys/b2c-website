@@ -449,6 +449,15 @@ export const paymentFailed = async (
   console.log("data for new check", user, userId);
   console.log("strTransId", strTransId);
 
+  // CRITICAL GUARD: Never overwrite an already confirmed transaction
+  const existingTx = await Transaction.findOne({ initTransId: strTransId });
+  if (existingTx && (existingTx.status === 1 || existingTx.commitStatus === true)) {
+    console.warn(`[CCAvenue Guard] Blocked attempt to mark successfully booked transaction ${strTransId} as failed.`);
+    return res.send(
+      `<script>window.location.replace('${process.env.FRONTEND_BASE_URL}/confirmation-screen?transId=${strTransId}')</script>`
+    );
+  }
+
   const id = user._id;
 
   // Try to update in SubscriptionTransaction

@@ -288,8 +288,24 @@ export const paymentRequest = async (req, res) => {
 
 export const refundRazorpay = async (paymentId, amount, initTransId) => {
   try {
+    let refundPaise = Math.round(Number(amount) * 100);
+    if (!refundPaise || isNaN(refundPaise) || refundPaise <= 0) {
+      const tx = await Transaction.findOne({ initTransId });
+      const fallbackAmount =
+        Number(tx?.finalBookingCalculation?.finalAmount) ||
+        Number(tx?.paymentResponse?.amount) ||
+        0;
+      refundPaise = Math.round(fallbackAmount * 100);
+    }
+    if (!refundPaise || refundPaise <= 0) {
+      console.error(
+        `[refundRazorpay] Cannot refund 0 or invalid amount for transId: ${initTransId}`
+      );
+      return false;
+    }
+
     const refund = await razorpayInstance.payments.refund(paymentId, {
-      amount: Math.round(amount * 100), // convert ₹ to paise
+      amount: refundPaise,
     });
 
     if (refund && refund.id) {
@@ -302,8 +318,21 @@ export const refundRazorpay = async (paymentId, amount, initTransId) => {
             refundStatus: true,
             autoRefund: true,
           },
+          $push: { logs: { ticketRefunded: new Date() } },
         }
       );
+      createLog({
+        transaction_id: initTransId,
+        type: "Booking",
+        step: {
+          success: true,
+          logType: "refundResponse",
+          message: "Razorpay refund successful",
+          refundId: refund.id,
+          timestamp: new Date().toISOString(),
+        },
+      });
+      console.log(`[refundRazorpay] Successfully refunded ${refundPaise / 100} INR for transId: ${initTransId}, refundId: ${refund.id}`);
       return true;
     }
     return false;
