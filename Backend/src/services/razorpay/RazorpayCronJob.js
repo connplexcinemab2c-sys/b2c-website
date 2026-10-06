@@ -9,6 +9,7 @@ import {
   activateSubscriptionMembership,
   checkAndGrantWelcomeGift,
   _handleBookingSuccess,
+  callVistaCommitWithRetry,
 } from "./RazorpayResponseHandler.js";
 import Transaction from "../../models/Transaction.js";
 import SubscriptionTransaction from "../../models/SubscriptionTransaction.js";
@@ -357,19 +358,23 @@ const _commitTicketBooking = async (txn, notes, payment) => {
   });
 
   try {
-    const response = await axios.request({
-      method: "get",
-      maxBodyLength: Infinity,
-      url:
-        `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
-        `?strCinemaId=${cinemaId}` +
-        `&strTransId=${transId}` +
-        `&lngSessId=${sessionId}` +
-        `&Name=${name}` +
-        `&MobileNo=${user.mobileNumber}` +
-        `&MultiPaymentDetails=${multipayment}`,
-      headers: {},
-    });
+    const response = await callVistaCommitWithRetry(
+      {
+        method: "get",
+        maxBodyLength: Infinity,
+        url:
+          `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
+          `?strCinemaId=${cinemaId}` +
+          `&strTransId=${transId}` +
+          `&lngSessId=${sessionId}` +
+          `&Name=${name}` +
+          `&MobileNo=${user.mobileNumber}` +
+          `&MultiPaymentDetails=${multipayment}`,
+        headers: {},
+      },
+      2,
+      1000
+    );
 
     if (response.data?.Status == 1) {
       createLog({

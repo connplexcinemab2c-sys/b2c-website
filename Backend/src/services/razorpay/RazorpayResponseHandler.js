@@ -59,6 +59,38 @@ import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 //   logType: "vistaBookingResponse" — Vista commit result
 // ---------------------------------------------------------------------------
 
+/**
+ * Helper to call Vista CommitBookingEx with automatic retry on transient failures.
+ */
+export const callVistaCommitWithRetry = async (vistaConfig, retries = 2, delayMs = 1000) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await axios.request({ ...vistaConfig, timeout: 20000 });
+      if (response?.data?.Status == 1) {
+        return response;
+      }
+      const dataStr = JSON.stringify(response?.data || "");
+      // Do not retry definitive business errors (e.g. seats already sold / contiguous error)
+      if (dataStr.includes("contiguous") || dataStr.includes("not available")) {
+        return response;
+      }
+      if (attempt < retries) {
+        console.warn(`[VistaRetry] Attempt ${attempt} returned non-success, retrying in ${delayMs}ms...`);
+        await new Promise((r) => setTimeout(r, delayMs));
+        continue;
+      }
+      return response;
+    } catch (err) {
+      if (attempt < retries) {
+        console.warn(`[VistaRetry] Network error on attempt ${attempt} (${err.message}), retrying in ${delayMs}ms...`);
+        await new Promise((r) => setTimeout(r, delayMs));
+      } else {
+        throw err;
+      }
+    }
+  }
+};
+
 export const paymentResponse = async (req, res) => {
   try {
     const {
@@ -392,8 +424,7 @@ export const paymentResponse = async (req, res) => {
 
     // ── 16. Call Vista — use .then/.catch (same pattern as CCAvenue) ──────────
     try {
-      axios
-        .request(vistaConfig)
+      callVistaCommitWithRetry(vistaConfig, 2, 1000)
         .then(async (response) => {
           console.log("VISTA response:", response.data);
 
