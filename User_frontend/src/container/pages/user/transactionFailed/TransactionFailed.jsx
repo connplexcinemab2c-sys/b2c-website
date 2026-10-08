@@ -34,7 +34,14 @@ function TransactionFailed() {
               >
                 View Order Details
               </Index.Link>
-              <Index.Link className="btn btn-primary" to={`/`}>
+              <Index.Box
+                className="btn btn-primary"
+                onClick={() => window.history.back()}
+                style={{ cursor: "pointer" }}
+              >
+                Retry Booking
+              </Index.Box>
+              <Index.Link className="btn btn-secondary" to={`/`}>
                 Go home
               </Index.Link>
             </Index.Box>

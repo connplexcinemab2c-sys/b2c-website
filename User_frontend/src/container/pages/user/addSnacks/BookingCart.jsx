@@ -636,14 +636,17 @@ console.log({selectedFood});
 
       modal: {
         ondismiss: () => {
-          navigate(`/transaction-failed?transId=${transId}`);
+          PagesIndex.toast.warn("Payment was not completed. Your seats are still reserved! Click 'Pay Now' to retry.");
         },
       },
     };
 
     const rzp = new window.Razorpay(options);
-    rzp.on("payment.failed", () => {
-      navigate(`/transaction-failed?transId=${transId}`);
+    rzp.on("payment.failed", (response) => {
+      console.warn("Payment failed at gateway:", response?.error);
+      PagesIndex.toast.error(
+        response?.error?.description || "Payment was not completed. You can retry with UPI, Card, or Netbanking."
+      );
     });
     rzp.open();
   };

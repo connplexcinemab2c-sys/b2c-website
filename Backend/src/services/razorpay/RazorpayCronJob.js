@@ -50,7 +50,7 @@ const _recoverSubscriptions = async () => {
   const pending = await SubscriptionTransaction.find({
     paymentFrom: "razorpay",
     paymentsStatus: { $ne: true },
-    status: { $nin: [1, 5] },
+    status: { $nin: [1, 2, 5] },
     createdAt: { $gte: from, $lte: to },
   });
 
@@ -74,7 +74,7 @@ const _recoverTickets = async () => {
   const pending = await Transaction.find({
     paymentFrom: "razorpay",
     // paymentsStatus: { $ne: true },
-    status: { $nin: [1, 3, 4, 5] },
+    status: { $nin: [1, 2, 3, 4, 5] },
     commitStatus: { $ne: true },
     createdAt: { $gte: from, $lte: to },
   });
@@ -130,7 +130,7 @@ const _processStuckSubscription = async (txn) => {
 
   } else if (order.status === "attempted") {
     const fresh = await SubscriptionTransaction.findOne({ initTransId: transId });
-    if (!fresh || fresh.status === 5) return;
+    if (!fresh || [1, 2, 5].includes(fresh.status)) return;
 
     await SubscriptionTransaction.findOneAndUpdate(
       { initTransId: transId },
@@ -138,15 +138,15 @@ const _processStuckSubscription = async (txn) => {
         $set: {
           paymentResponse: {
             razorpay_order_id: order.id,
-            order_status: "Failed",
+            order_status: "Abandoned",
             cron_recovered: true,
           },
           paymentsStatus: false,
-          status: 5,
+          status: 2,
         },
       }
     );
-    console.log(`[RazorpayCron] Subscription ${transId} → marked failed`);
+    console.log(`[RazorpayCron] Subscription ${transId} → marked abandoned (status 2)`);
   }
   // "created" — user never opened Razorpay, nothing to do
 };
@@ -189,19 +189,20 @@ const _processStuckTicket = async (txn) => {
 
   } else if (order.status === "attempted") {
     const fresh = await Transaction.findOne({ initTransId: transId }).sort({ createdAt: -1 });
-    if (!fresh || [1, 3, 4, 5].includes(fresh.status) || fresh.commitStatus === true) return;
+    if (!fresh || [1, 2, 3, 4, 5].includes(fresh.status) || fresh.commitStatus === true) return;
 
-      const paymentResponse = {
-    ...fresh.paymentResponse,
-    order_status: "Failed"
-  };
+    const paymentResponse = {
+      ...fresh.paymentResponse,
+      order_status: "Abandoned",
+    };
 
     await _handlePaymentFailedDb(
       transId,
       { ...paymentResponse, cron_recovered: true },
-      txn.userId
+      txn.userId,
+      2 // status: 2 (Abandoned checkout, NOT a booking failure)
     );
-    console.log(`[RazorpayCron] Ticket ${transId} → marked failed`);
+    console.log(`[RazorpayCron] Ticket ${transId} → marked abandoned (status 2)`);
   }
 };
 

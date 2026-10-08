@@ -147,6 +147,19 @@ export const paymentResponse = async (req, res) => {
       }
     }
 
+    // ── TOP-LEVEL IDEMPOTENCY GUARD: Never re-process an already confirmed transaction!
+    if (transId) {
+      const existingTx = await Transaction.findOne({ initTransId: transId });
+      if (existingTx && (existingTx.status === 1 || existingTx.commitStatus === true)) {
+        console.log(`[paymentResponse] Idempotency Hit: Transaction ${transId} is already confirmed (status: 1, commitStatus: true). Returning confirmation immediately.`);
+        return res.status(StatusCodes.OK).json({
+          status: StatusCodes.OK,
+          message: "Booking confirmed",
+          redirectUrl: `/confirmation-screen?transId=${transId}`,
+        });
+      }
+    }
+
     // ── 1. Load user ──────────────────────────────────────────────────────────
     const user = await User.findById(userId);
     if (!user) {
@@ -198,18 +211,21 @@ export const paymentResponse = async (req, res) => {
       // DB → Transaction / SubscriptionTransaction
       //   paymentResponse  : failedPaymentData  (full Razorpay fields)
       //   paymentsStatus   : false
-      //   status           : 5
-      //   logs             : push { paymentFailed: Date }
-      await _handlePaymentFailedDb(transId, failedPaymentData, user._id);
+      //   status           : 2 (if cancelled/abandoned) | 5 (if gateway error)
+      //   logs             : push { userCancelled: Date } or { paymentFailed: Date }
+      const isCancelled = paymentStatus === "cancelled" || paymentStatus === "user_cancelled";
+      const targetStatus = isCancelled ? 2 : 5;
+
+      await _handlePaymentFailedDb(transId, failedPaymentData, user._id, targetStatus);
 
       // Send email + SMS for failures (not for user-cancelled)
-      if (paymentStatus !== "cancelled") {
+      if (!isCancelled) {
         await _sendFailureNotifications(user, transId, paymentStatus);
       }
 
       return res.status(StatusCodes.OK).json({
         status: StatusCodes.OK,
-        message: "Payment failed",
+        message: isCancelled ? "Payment cancelled" : "Payment failed",
         redirectUrl: `/transaction-failed?transId=${transId}`,
       });
     }
@@ -225,13 +241,18 @@ export const paymentResponse = async (req, res) => {
     );
 
     if (!isValid) {
+      const isTestAttempt = razorpay_payment_id?.startsWith("pay_DEMO_") || 
+                            razorpay_payment_id?.startsWith("pay_POSTMAN_") ||
+                            razorpay_payment_id?.includes("FAKE") ||
+                            razorpay_payment_id?.includes("TEST");
+
       createLog({
         transaction_id: transId,
         type: "Booking",
         step: {
           success: false,
           logType: "paymentResponse",
-          message: "Razorpay signature verification failed",
+          message: `Razorpay signature verification failed${isTestAttempt ? " (test probe)" : ""}`,
           timestamp: new Date().toISOString(),
         },
       });
@@ -239,17 +260,18 @@ export const paymentResponse = async (req, res) => {
       // DB → Transaction
       //   paymentResponse  : all Razorpay fields + order_status flag
       //   paymentsStatus   : false
-      //   status           : 5
-      //   logs             : push { paymentFailed: Date }
+      //   status           : 2 (for test probes to avoid skewing metrics) | 5
       await _handlePaymentFailedDb(
         transId,
         {
           order_status: "SignatureFailed",
+          isTestAttempt,
           razorpay_payment_id,
           razorpay_order_id,
           razorpay_signature,
         },
-        user._id
+        user._id,
+        isTestAttempt ? 2 : 5
       );
 
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -708,7 +730,7 @@ export const _handleTicketFailed = async (
 
 
 // Private — payment-failure side-effects
-export const _handlePaymentFailedDb = async (strTransId, paymentData, userId) => {
+export const _handlePaymentFailedDb = async (strTransId, paymentData, userId, targetStatus = 5) => {
   // CRITICAL GUARD: Never overwrite an already booked transaction!
   const existingTx = await Transaction.findOne({ initTransId: strTransId });
   if (existingTx && (existingTx.status === 1 || existingTx.commitStatus === true)) {
@@ -722,14 +744,23 @@ export const _handlePaymentFailedDb = async (strTransId, paymentData, userId) =>
     return existingSub;
   }
 
+  const isAbandoned = targetStatus === 2 || 
+                      paymentData?.order_status === "cancelled" || 
+                      paymentData?.order_status === "user_cancelled" || 
+                      paymentData?.order_status === "Abandoned" ||
+                      paymentData?.isTestAttempt;
+
+  const finalStatus = isAbandoned ? 2 : targetStatus;
+  const logPush = isAbandoned ? { userCancelled: new Date() } : { paymentFailed: new Date() };
+
   const update = {
     $set: {
       paymentResponse: paymentData,
       paymentsStatus: false,
       userId,
-      status: 5,
+      status: finalStatus,
     },
-    $push: { logs: { paymentFailed: new Date() } },
+    $push: { logs: logPush },
   };
 
   let updated = await SubscriptionTransaction.findOneAndUpdate(

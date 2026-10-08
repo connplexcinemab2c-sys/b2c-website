@@ -1687,7 +1687,8 @@ export const transactionByDaysWeeksOrMonths = async (req, res) => {
     const transactionsFailed = await getAggregatedTransactions(
       {
         deletedStatus: 0,
-        status: 5,
+        paymentsStatus: true,
+        $or: [{ commitStatus: false }, { commitStatus: { $exists: false } }, { status: 4 }],
         createdAt: { $gte: startDate, $lte: endDate },
       },
       groupBy,
