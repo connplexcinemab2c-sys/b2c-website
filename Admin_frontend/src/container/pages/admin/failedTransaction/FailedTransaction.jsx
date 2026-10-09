@@ -145,18 +145,12 @@ const getThreeDCharges = (item) => {
 
 const getTicketAmount = (item) => {
   let baseTicket = 0;
-  if (item?.commitBookingData?.curTicketsTotal !== undefined) {
-    baseTicket = item.commitBookingData.curTicketsTotal;
-  } else if (item?.addSeatData?.curTicketsTotal !== undefined) {
-    baseTicket = item.addSeatData.curTicketsTotal;
-  } else if (item?.finalBookingCalculation?.ticketCart?.total !== undefined) {
-    const combinedTotal = item.finalBookingCalculation.ticketCart.total;
-    const foodTotal = item?.addSeatData?.curFoodTotal || 0;
-    if (foodTotal > 0 && combinedTotal > foodTotal) {
-      baseTicket = combinedTotal - foodTotal;
-    } else {
-      baseTicket = combinedTotal;
-    }
+  if (item?.finalBookingCalculation?.ticketCart?.total !== undefined && item?.finalBookingCalculation?.ticketCart?.total !== null && !isNaN(parseFloat(item.finalBookingCalculation.ticketCart.total))) {
+    baseTicket = parseFloat(item.finalBookingCalculation.ticketCart.total);
+  } else if (item?.commitBookingData?.curTicketsTotal !== undefined && !isNaN(parseFloat(item.commitBookingData.curTicketsTotal))) {
+    baseTicket = parseFloat(item.commitBookingData.curTicketsTotal);
+  } else if (item?.addSeatData?.curTicketsTotal !== undefined && !isNaN(parseFloat(item.addSeatData.curTicketsTotal))) {
+    baseTicket = parseFloat(item.addSeatData.curTicketsTotal);
   }
   
   const threeD = getThreeDCharges(item) || 0;

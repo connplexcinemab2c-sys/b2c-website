@@ -319,13 +319,18 @@ const BookingManagementReport = () => {
             //       .length
             //   : "-",
             ticketPrice: (() => {
-              const totalTicketAmt = item?.commitBookingData?.curTicketsTotal !== undefined
-                ? item.commitBookingData.curTicketsTotal
-                : item?.addSeatData?.curTicketsTotal !== undefined
-                ? item.addSeatData.curTicketsTotal
+              const finalCartTicket = item?.finalBookingCalculation?.ticketCart?.total !== undefined && item?.finalBookingCalculation?.ticketCart?.total !== null && !isNaN(parseFloat(item?.finalBookingCalculation?.ticketCart?.total))
+                ? parseFloat(item.finalBookingCalculation.ticketCart.total)
+                : undefined;
+              const totalTicketAmt = finalCartTicket !== undefined
+                ? finalCartTicket
+                : item?.commitBookingData?.curTicketsTotal !== undefined && !isNaN(parseFloat(item?.commitBookingData?.curTicketsTotal))
+                ? parseFloat(item.commitBookingData.curTicketsTotal)
+                : item?.addSeatData?.curTicketsTotal !== undefined && !isNaN(parseFloat(item?.addSeatData?.curTicketsTotal))
+                ? parseFloat(item.addSeatData.curTicketsTotal)
                 : 0;
               const pureTicketAmt = totalTicketAmt - threeDCharges;
-              return pureTicketAmt > 0 ? pureTicketAmt : 0;
+              return pureTicketAmt > 0 ? pureTicketAmt : (totalTicketAmt > 0 ? totalTicketAmt : 0);
             })(),
             Item_Desc: "-",
             ItemWise_Qty: "-",

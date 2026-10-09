@@ -611,15 +611,29 @@ export const ticketBooked = async (res, strTransId, response, user) => {
   );
   const commitData = formatCommitBookingData(response?.data?.data, tx);
 
+  const updateSet = {
+    commitBookingData: commitData,
+    status: 1,
+    commitStatus: true,
+    discountCouponStatus: true,
+  };
+
+  const ticketCart = tx?.finalBookingCalculation?.ticketCart;
+  if (ticketCart && Number(ticketCart.discountAmount) > 0 && ticketCart.total !== undefined) {
+    updateSet["addSeatData.curTicketsTotal"] = String(ticketCart.total);
+    updateSet["addSeatData.curTicketsTax1"] = String(ticketCart.cgst);
+    updateSet["addSeatData.curTicketsTax2"] = String(ticketCart.sgst);
+    updateSet["addSeatData.grossTicketsTotal"] = String(commitData.grossTicketsTotal || ticketCart.ticketTotal || "");
+    updateSet["addSeatData.discountAmount"] = ticketCart.discountAmount;
+    if (commitData.curTotal !== undefined) {
+      updateSet["addSeatData.curTotal"] = String(commitData.curTotal);
+    }
+  }
+
   await Transaction.findOneAndUpdate(
     { initTransId: strTransId },
     {
-      $set: {
-        commitBookingData: commitData,
-        status: 1,
-        commitStatus: true,
-        discountCouponStatus: true,
-      },
+      $set: updateSet,
       $push: {
         logs: {
           ticketBooked: new Date(),

@@ -14,17 +14,12 @@ export const buildMultiPaymentDetails = ({
 }) => {
   // 1. Gross ticket reservation amount held in Vista
   // Vista requires udsCommitBook tender amounts to sum exactly to the gross seat reservation.
-  const vistaGross =
+  const grossTicket =
+    Number(addSeatData?.grossTicketsTotal) ||
+    Number(finalBooking?.ticketCart?.ticketTotal) ||
     Number(addSeatData?.curTicketsTotal) ||
     Number(addSeatData?.curTotal) ||
     0;
-
-  const grossTicket =
-    vistaGross > 0
-      ? vistaGross
-      : Number(finalBooking?.ticketCart?.ticketTotal) ||
-        Number(finalBooking?.ticketCart?.total) ||
-        0;
   const ticketGrossPaise = Math.round(grossTicket * 100);
 
   const rawDiscount = Number(finalBooking?.ticketCart?.discountAmount) || 0;
@@ -43,8 +38,8 @@ export const buildMultiPaymentDetails = ({
     0;
   const fnbPaise = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
 
-  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
-  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
+  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE || "CW";
+  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER !== "false";
 
   let payIndex = 1;
   let multipayment = "";

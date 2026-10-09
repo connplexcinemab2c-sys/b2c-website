@@ -58,19 +58,14 @@ const StyledInputBase = Index.styled(Index.InputBase)(({ theme }) => ({
 }));
 
 const getTicketAmount = (item) => {
-  if (item?.commitBookingData?.curTicketsTotal !== undefined) {
-    return item.commitBookingData.curTicketsTotal;
+  if (item?.finalBookingCalculation?.ticketCart?.total !== undefined && item?.finalBookingCalculation?.ticketCart?.total !== null && !isNaN(parseFloat(item.finalBookingCalculation.ticketCart.total))) {
+    return parseFloat(item.finalBookingCalculation.ticketCart.total);
   }
-  if (item?.addSeatData?.curTicketsTotal !== undefined) {
-    return item.addSeatData.curTicketsTotal;
+  if (item?.commitBookingData?.curTicketsTotal !== undefined && !isNaN(parseFloat(item.commitBookingData.curTicketsTotal))) {
+    return parseFloat(item.commitBookingData.curTicketsTotal);
   }
-  if (item?.finalBookingCalculation?.ticketCart?.total !== undefined) {
-    const combinedTotal = item.finalBookingCalculation.ticketCart.total;
-    const foodTotal = item?.addSeatData?.curFoodTotal || 0;
-    if (foodTotal > 0 && combinedTotal > foodTotal) {
-      return combinedTotal - foodTotal;
-    }
-    return combinedTotal;
+  if (item?.addSeatData?.curTicketsTotal !== undefined && !isNaN(parseFloat(item.addSeatData.curTicketsTotal))) {
+    return parseFloat(item.addSeatData.curTicketsTotal);
   }
   return 0;
 };

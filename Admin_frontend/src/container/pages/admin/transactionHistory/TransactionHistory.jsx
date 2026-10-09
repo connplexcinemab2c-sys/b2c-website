@@ -71,6 +71,10 @@ const getTicketAmount = (item) => {
   
   if (item?.finalBookingCalculation?.ticketCart?.ticketTotal !== undefined && Number(item.finalBookingCalculation.ticketCart.ticketTotal) > 0) {
     grossTicket = Number(item.finalBookingCalculation.ticketCart.ticketTotal);
+  } else if (item?.commitBookingData?.grossTicketsTotal !== undefined && Number(item.commitBookingData.grossTicketsTotal) > 0) {
+    grossTicket = Number(item.commitBookingData.grossTicketsTotal);
+  } else if (item?.addSeatData?.grossTicketsTotal !== undefined && Number(item.addSeatData.grossTicketsTotal) > 0) {
+    grossTicket = Number(item.addSeatData.grossTicketsTotal);
   } else if (item?.addSeatData?.curTicketsTotal !== undefined && Number(item.addSeatData.curTicketsTotal) > 0) {
     const seatTicket = parseFloat(item.addSeatData.curTicketsTotal) || 0;
     const memberDisc = parseFloat(item?.finalBookingCalculation?.ticketCart?.membershipDiscount) || 0;
