@@ -53,9 +53,24 @@ export const processOrderAttribution = async (initTransId, utmData = {}) => {
     let utm_source = (utmData?.utm_source || bookingDetails.utm_source || "direct").toLowerCase().trim();
     if (utm_source === "whatsapp" || utm_source === "wa" || utm_source === "wp" || utm_source.startsWith("wp_")) {
       utm_source = "whatsapp";
+    } else if (
+      utm_source === "justdial" ||
+      utm_source === "jd" ||
+      utm_source === "just_dial" ||
+      utm_source === "just-dial" ||
+      utm_source.startsWith("jd_")
+    ) {
+      utm_source = "justdial";
     }
     if (bookingDetails.utm_source === "whatsapp" || bookingDetails.utm_source === "wp") {
       utm_source = "whatsapp";
+    } else if (
+      bookingDetails.utm_source === "justdial" ||
+      bookingDetails.utm_source === "jd" ||
+      bookingDetails.utm_source === "just_dial" ||
+      bookingDetails.utm_source === "just-dial"
+    ) {
+      utm_source = "justdial";
     }
     const utm_campaign = (utmData?.utm_campaign || bookingDetails.utm_campaign || null)?.toLowerCase()?.trim() || null;
 
@@ -151,7 +166,12 @@ export const processOrderAttribution = async (initTransId, utmData = {}) => {
       }
     }
 
-    if (utm_source === "wp" || utm_source === "whatsapp") {
+    if (
+      utm_source === "wp" ||
+      utm_source === "whatsapp" ||
+      utm_source === "jd" ||
+      utm_source === "justdial"
+    ) {
       is_conversion = true;
     }
 

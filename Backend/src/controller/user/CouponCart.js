@@ -188,6 +188,14 @@ export const couponCart = async (req, res) => {
       const s = String(rawCartSource).toLowerCase().trim();
       if (s === "whatsapp" || s === "wp" || s === "wa" || s.startsWith("wp_")) {
         resolvedCartSource = "whatsapp";
+      } else if (
+        s === "justdial" ||
+        s === "jd" ||
+        s === "just_dial" ||
+        s === "just-dial" ||
+        s.startsWith("jd_")
+      ) {
+        resolvedCartSource = "justdial";
       } else {
         resolvedCartSource = s;
       }
@@ -200,7 +208,7 @@ export const couponCart = async (req, res) => {
       {
         $set: {
           fAndBDetails: selectedFood,
-          ...(resolvedCartSource ? { utm_source: resolvedCartSource } : {}),
+          ...(resolvedCartSource && resolvedCartSource !== "direct" ? { utm_source: resolvedCartSource } : {}),
           ...(resolvedCartCampaign ? { utm_campaign: resolvedCartCampaign } : {}),
           ...(rawCartPhone ? { normalized_phone: normalizePhoneNumber(rawCartPhone) } : {}),
         },

@@ -199,8 +199,10 @@ export const getConversions = async (req, res) => {
     if (utm_source) {
       if (utm_source !== "all" && utm_source !== "*") {
         const src = String(utm_source).trim().toLowerCase();
-        if (src === "wp" || src === "whatsapp") {
-          filter.utm_source = { $in: ["wp", "whatsapp"] };
+        if (src === "wp" || src === "whatsapp" || src === "wa") {
+          filter.utm_source = { $in: ["wp", "whatsapp", "wa"] };
+        } else if (src === "jd" || src === "justdial" || src === "just_dial" || src === "just-dial") {
+          filter.utm_source = { $in: ["jd", "justdial", "just_dial", "just-dial"] };
         } else {
           filter.utm_source = src;
         }

@@ -59,6 +59,51 @@ const detectWhatsAppSource = () => {
 };
 
 /**
+ * Checks if referrer or user-agent is definitely Justdial
+ */
+const detectJustDialSource = () => {
+  try {
+    if (typeof window === "undefined") return false;
+
+    if (navigator && navigator.userAgent && /Justdial/i.test(navigator.userAgent)) {
+      return true;
+    }
+
+    if (document && document.referrer) {
+      const ref = document.referrer.toLowerCase();
+      if (ref.includes("justdial.com") || ref.includes("jdmagicbox.com")) {
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn("[UTM Tracker] Error detecting Justdial source:", err);
+  }
+  return false;
+};
+
+/**
+ * Normalizes known UTM source aliases (whatsapp, justdial)
+ */
+const normalizeUtmSourceValue = (raw) => {
+  if (!raw) return null;
+  const s = String(raw).trim().toLowerCase();
+  if (!s) return null;
+  if (s === "wa" || s === "whatsapp" || s === "wp" || s.startsWith("wp_")) {
+    return "whatsapp";
+  }
+  if (
+    s === "jd" ||
+    s === "justdial" ||
+    s === "just_dial" ||
+    s === "just-dial" ||
+    s.startsWith("jd_")
+  ) {
+    return "justdial";
+  }
+  return s;
+};
+
+/**
  * Reads a cookie by name
  */
 const getCookie = (name) => {
@@ -108,15 +153,17 @@ export const getStoredUtm = () => {
         params.get("utm_medium") ||
         params.get("utm_Medium");
 
-      let resolvedSource = rawSource ? rawSource.trim().toLowerCase() : null;
-      if (resolvedSource === "wa" || resolvedSource === "whatsapp" || resolvedSource === "wp") {
-        resolvedSource = "whatsapp";
-      }
-      if (!resolvedSource && utmMedium && (utmMedium.trim().toLowerCase() === "whatsapp" || utmMedium.trim().toLowerCase() === "wp")) {
-        resolvedSource = "whatsapp";
+      let resolvedSource = normalizeUtmSourceValue(rawSource);
+      if (!resolvedSource && utmMedium) {
+        const normMed = normalizeUtmSourceValue(utmMedium);
+        if (normMed === "whatsapp" || normMed === "justdial") {
+          resolvedSource = normMed;
+        }
       }
       if (!resolvedSource && detectWhatsAppSource()) {
         resolvedSource = "whatsapp";
+      } else if (!resolvedSource && detectJustDialSource()) {
+        resolvedSource = "justdial";
       }
 
       if (resolvedSource || utmCampaign) {
@@ -132,9 +179,7 @@ export const getStoredUtm = () => {
 
     const normalizeStoredAttribution = (parsed) => {
       if (parsed && parsed.utm_source) {
-        if (parsed.utm_source === "whatsapp" || parsed.utm_source === "wa") {
-          parsed.utm_source = "whatsapp";
-        }
+        parsed.utm_source = normalizeUtmSourceValue(parsed.utm_source);
         return parsed;
       }
       return null;
@@ -210,17 +255,19 @@ export const captureUtmFromUrl = () => {
     const utmContent = params.get("utm_content");
     const utmTerm = params.get("utm_term");
 
-    let resolvedSource = rawSource ? rawSource.trim().toLowerCase() : null;
-    if (resolvedSource === "wa" || resolvedSource === "whatsapp" || resolvedSource === "wp") {
-      resolvedSource = "whatsapp";
-    }
-    if (!resolvedSource && utmMedium && (utmMedium.trim().toLowerCase() === "whatsapp" || utmMedium.trim().toLowerCase() === "wp")) {
-      resolvedSource = "whatsapp";
+    let resolvedSource = normalizeUtmSourceValue(rawSource);
+    if (!resolvedSource && utmMedium) {
+      const normMed = normalizeUtmSourceValue(utmMedium);
+      if (normMed === "whatsapp" || normMed === "justdial") {
+        resolvedSource = normMed;
+      }
     }
 
-    // Auto-detect WhatsApp referrer or in-app browser if not specified
+    // Auto-detect WhatsApp or Justdial referrer / in-app browser if not specified
     if (!resolvedSource && detectWhatsAppSource()) {
       resolvedSource = "whatsapp";
+    } else if (!resolvedSource && detectJustDialSource()) {
+      resolvedSource = "justdial";
     }
 
     // 1. If UTM params or WhatsApp referral are detected, persist them

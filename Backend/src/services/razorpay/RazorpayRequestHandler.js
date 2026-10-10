@@ -70,21 +70,32 @@ export const paymentRequest = async (req, res) => {
     const reqUserAgent = req.headers["user-agent"] || "";
     const reqReferer = req.headers["referer"] || req.headers["referrer"] || "";
     const isWhatsAppClient = /WA4A|WAiOS|WhatsApp/i.test(reqUserAgent) || /whatsapp|com\.whatsapp|l\.wl\.co/i.test(reqReferer);
+    const isJustDialClient = /Justdial/i.test(reqUserAgent) || /justdial\.com|jdmagicbox\.com/i.test(reqReferer);
 
     let resolvedSource = utm_source ? String(utm_source).toLowerCase().trim() : null;
     if (resolvedSource === "whatsapp" || resolvedSource === "wa" || resolvedSource === "wp" || resolvedSource?.startsWith("wp_")) {
       resolvedSource = "whatsapp";
+    } else if (
+      resolvedSource === "justdial" ||
+      resolvedSource === "jd" ||
+      resolvedSource === "just_dial" ||
+      resolvedSource === "just-dial" ||
+      resolvedSource?.startsWith("jd_")
+    ) {
+      resolvedSource = "justdial";
     }
     if ((!resolvedSource || resolvedSource === "direct") && isWhatsAppClient) {
       resolvedSource = "whatsapp";
+    } else if ((!resolvedSource || resolvedSource === "direct") && isJustDialClient) {
+      resolvedSource = "justdial";
     }
 
-    if (transId && (resolvedSource || utm_campaign || phone)) {
+    if (transId && ((resolvedSource && resolvedSource !== "direct") || utm_campaign || phone)) {
       await Transaction.updateOne(
         { initTransId: transId },
         {
           $set: {
-            ...(resolvedSource ? { utm_source: resolvedSource } : {}),
+            ...(resolvedSource && resolvedSource !== "direct" ? { utm_source: resolvedSource } : {}),
             ...(utm_campaign ? { utm_campaign: String(utm_campaign).toLowerCase().trim() } : {}),
             ...(phone ? { normalized_phone: normalizePhoneNumber(phone) } : {}),
           },

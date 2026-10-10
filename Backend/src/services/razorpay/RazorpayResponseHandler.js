@@ -109,26 +109,45 @@ export const paymentResponse = async (req, res) => {
       phone,
     } = req.body;
 
-    // Persist UTM and phone if provided at verification (protect existing whatsapp attribution)
+    // Persist UTM and phone if provided at verification (protect existing whatsapp/justdial attribution)
     const reqUserAgent = req.headers["user-agent"] || "";
     const reqReferer = req.headers["referer"] || req.headers["referrer"] || "";
     const isWhatsAppClient = /WA4A|WAiOS|WhatsApp/i.test(reqUserAgent) || /whatsapp|com\.whatsapp|l\.wl\.co/i.test(reqReferer);
+    const isJustDialClient = /Justdial/i.test(reqUserAgent) || /justdial\.com|jdmagicbox\.com/i.test(reqReferer);
 
     let resolvedSource = utm_source ? String(utm_source).toLowerCase().trim() : null;
     if (resolvedSource === "whatsapp" || resolvedSource === "wa" || resolvedSource === "wp" || resolvedSource?.startsWith("wp_")) {
       resolvedSource = "whatsapp";
+    } else if (
+      resolvedSource === "justdial" ||
+      resolvedSource === "jd" ||
+      resolvedSource === "just_dial" ||
+      resolvedSource === "just-dial" ||
+      resolvedSource?.startsWith("jd_")
+    ) {
+      resolvedSource = "justdial";
     }
     if ((!resolvedSource || resolvedSource === "direct") && isWhatsAppClient) {
       resolvedSource = "whatsapp";
+    } else if ((!resolvedSource || resolvedSource === "direct") && isJustDialClient) {
+      resolvedSource = "justdial";
     }
 
     if (transId) {
       try {
       const currentTx = await Transaction.findOne({ initTransId: transId }, { utm_source: 1 }).lean();
       const existingSource = currentTx?.utm_source;
-      const isExistingWp = existingSource === "wp" || existingSource === "whatsapp";
-      const isNewWp = resolvedSource === "whatsapp" || resolvedSource === "wp";
-      const shouldUpdateSource = resolvedSource && (!isExistingWp || isNewWp);
+      const isExistingTracked =
+        existingSource === "wp" ||
+        existingSource === "whatsapp" ||
+        existingSource === "jd" ||
+        existingSource === "justdial";
+      const isNewTracked =
+        resolvedSource === "whatsapp" ||
+        resolvedSource === "wp" ||
+        resolvedSource === "justdial" ||
+        resolvedSource === "jd";
+      const shouldUpdateSource = resolvedSource && (!isExistingTracked || isNewTracked);
 
       if (shouldUpdateSource || utm_campaign || phone) {
         await Transaction.updateOne(

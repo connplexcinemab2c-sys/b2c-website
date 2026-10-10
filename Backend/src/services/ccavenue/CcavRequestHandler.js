@@ -63,9 +63,20 @@ export const paymentRequest = async (req, res) => {
     let resolvedSource = utm_source ? String(utm_source).toLowerCase().trim() : null;
     if (resolvedSource === "whatsapp" || resolvedSource === "wa" || resolvedSource === "wp" || resolvedSource?.startsWith("wp_")) {
       resolvedSource = "whatsapp";
+    } else if (
+      resolvedSource === "justdial" ||
+      resolvedSource === "jd" ||
+      resolvedSource === "just_dial" ||
+      resolvedSource === "just-dial" ||
+      resolvedSource?.startsWith("jd_")
+    ) {
+      resolvedSource = "justdial";
     }
+    const isJustDialClient = /Justdial/i.test(reqUserAgent) || /justdial\.com|jdmagicbox\.com/i.test(reqReferer);
     if ((!resolvedSource || resolvedSource === "direct") && isWhatsAppClient) {
       resolvedSource = "whatsapp";
+    } else if ((!resolvedSource || resolvedSource === "direct") && isJustDialClient) {
+      resolvedSource = "justdial";
     }
 
     if (transId && (resolvedSource || utm_campaign || phone)) {
@@ -73,7 +84,7 @@ export const paymentRequest = async (req, res) => {
         { initTransId: transId },
         {
           $set: {
-            ...(resolvedSource ? { utm_source: resolvedSource } : {}),
+            ...(resolvedSource && resolvedSource !== "direct" ? { utm_source: resolvedSource } : {}),
             ...(utm_campaign ? { utm_campaign: String(utm_campaign).toLowerCase().trim() } : {}),
             ...(phone ? { normalized_phone: normalizePhoneNumber(phone) } : {}),
           },
