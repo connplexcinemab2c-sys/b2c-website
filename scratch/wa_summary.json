@@ -1,0 +1,474 @@
+{
+  "grandTotal": {
+    "bookings": 362,
+    "tickets": 1008,
+    "ticketRevenue": 310952.55,
+    "totalRevenue": 335639.2500000006
+  },
+  "dateTotals": {
+    "2026-09-11": {
+      "bookings": 64,
+      "tickets": 180,
+      "ticketRevenue": 55885,
+      "totalRevenue": 59562.58999999998
+    },
+    "2026-09-12": {
+      "bookings": 109,
+      "tickets": 299,
+      "ticketRevenue": 92239,
+      "totalRevenue": 100244.76999999995
+    },
+    "2026-09-13": {
+      "bookings": 75,
+      "tickets": 211,
+      "ticketRevenue": 64123.130000000005,
+      "totalRevenue": 70145.47999999997
+    },
+    "2026-09-14": {
+      "bookings": 32,
+      "tickets": 116,
+      "ticketRevenue": 33322.420000000006,
+      "totalRevenue": 36107.62
+    },
+    "2026-09-15": {
+      "bookings": 10,
+      "tickets": 26,
+      "ticketRevenue": 7245,
+      "totalRevenue": 7788.6
+    },
+    "2026-09-16": {
+      "bookings": 9,
+      "tickets": 28,
+      "ticketRevenue": 8300,
+      "totalRevenue": 8523.300000000001
+    },
+    "2026-09-22": {
+      "bookings": 2,
+      "tickets": 4,
+      "ticketRevenue": 998,
+      "totalRevenue": 1092.4
+    },
+    "2026-09-24": {
+      "bookings": 8,
+      "tickets": 9,
+      "ticketRevenue": 2490,
+      "totalRevenue": 2702.3999999999996
+    },
+    "2026-09-25": {
+      "bookings": 2,
+      "tickets": 7,
+      "ticketRevenue": 2220,
+      "totalRevenue": 2385.2
+    },
+    "2026-09-27": {
+      "bookings": 2,
+      "tickets": 4,
+      "ticketRevenue": 1200,
+      "totalRevenue": 1294.4
+    },
+    "2026-10-01": {
+      "bookings": 2,
+      "tickets": 6,
+      "ticketRevenue": 1800,
+      "totalRevenue": 1941.6000000000001
+    },
+    "2026-10-02": {
+      "bookings": 18,
+      "tickets": 42,
+      "ticketRevenue": 15540,
+      "totalRevenue": 16476.200000000004
+    },
+    "2026-10-03": {
+      "bookings": 12,
+      "tickets": 32,
+      "ticketRevenue": 11420,
+      "totalRevenue": 12029.2
+    },
+    "2026-10-04": {
+      "bookings": 6,
+      "tickets": 13,
+      "ticketRevenue": 4670,
+      "totalRevenue": 5123.9
+    },
+    "2026-10-05": {
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 1100,
+      "totalRevenue": 1147.2
+    },
+    "2026-10-07": {
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 700,
+      "totalRevenue": 747.2
+    },
+    "2026-10-08": {
+      "bookings": 3,
+      "tickets": 6,
+      "ticketRevenue": 1840,
+      "totalRevenue": 1971.6000000000001
+    },
+    "2026-10-09": {
+      "bookings": 1,
+      "tickets": 3,
+      "ticketRevenue": 750,
+      "totalRevenue": 820.8
+    },
+    "2026-10-10": {
+      "bookings": 3,
+      "tickets": 14,
+      "ticketRevenue": 3850,
+      "totalRevenue": 4180.39
+    },
+    "2026-10-11": {
+      "bookings": 2,
+      "tickets": 4,
+      "ticketRevenue": 1260,
+      "totalRevenue": 1354.4
+    }
+  },
+  "movieTotals": {
+    "HANUMAN ANSH (HINDI)": {
+      "bookings": 162,
+      "tickets": 512,
+      "ticketRevenue": 153792.55,
+      "totalRevenue": 165676.8199999999
+    },
+    "HAIWAAN (HINDI)": {
+      "bookings": 20,
+      "tickets": 44,
+      "ticketRevenue": 13095,
+      "totalRevenue": 14838.090000000002
+    },
+    "MIRZAPUR : THE MOVIE (HINDI)": {
+      "bookings": 117,
+      "tickets": 294,
+      "ticketRevenue": 92110,
+      "totalRevenue": 99566.8999999999
+    },
+    "PIDHA PACHHI (GUJARATI)": {
+      "bookings": 1,
+      "tickets": 4,
+      "ticketRevenue": 880,
+      "totalRevenue": 974.4
+    },
+    "TOM & CHERRY (GUJARATI)": {
+      "bookings": 2,
+      "tickets": 5,
+      "ticketRevenue": 1000,
+      "totalRevenue": 1118
+    },
+    "DAHAAN : THE EVIL WITHIN (ODIA)": {
+      "bookings": 2,
+      "tickets": 3,
+      "ticketRevenue": 647,
+      "totalRevenue": 695.35
+    },
+    "IRUMUDI (TELUGU)": {
+      "bookings": 2,
+      "tickets": 6,
+      "ticketRevenue": 1780,
+      "totalRevenue": 1881.6000000000001
+    },
+    "DAAYRA (HINDI)": {
+      "bookings": 2,
+      "tickets": 4,
+      "ticketRevenue": 998,
+      "totalRevenue": 1092.4
+    },
+    "3D AVENGERS ENDGAME : ENCORE (ENGLISH) RE RELEASE": {
+      "bookings": 1,
+      "tickets": 1,
+      "ticketRevenue": 200,
+      "totalRevenue": 223.6
+    },
+    "THE VVAAN - FORCE OF THE FORREST (HINDI)": {
+      "bookings": 5,
+      "tickets": 15,
+      "ticketRevenue": 4520,
+      "totalRevenue": 4874
+    },
+    "DRISHYAM : THE CONCLUSION (HINDI)": {
+      "bookings": 48,
+      "tickets": 120,
+      "ticketRevenue": 41930,
+      "totalRevenue": 44698.09
+    }
+  },
+  "dateMovieMap": {
+    "2026-09-11": {
+      "HANUMAN ANSH (HINDI)": {
+        "bookings": 33,
+        "tickets": 98,
+        "ticketRevenue": 32530,
+        "totalRevenue": 34102.29000000001
+      },
+      "HAIWAAN (HINDI)": {
+        "bookings": 7,
+        "tickets": 18,
+        "ticketRevenue": 4970,
+        "totalRevenue": 5634.9
+      },
+      "MIRZAPUR : THE MOVIE (HINDI)": {
+        "bookings": 21,
+        "tickets": 55,
+        "ticketRevenue": 16505,
+        "totalRevenue": 17733.000000000004
+      },
+      "PIDHA PACHHI (GUJARATI)": {
+        "bookings": 1,
+        "tickets": 4,
+        "ticketRevenue": 880,
+        "totalRevenue": 974.4
+      },
+      "TOM & CHERRY (GUJARATI)": {
+        "bookings": 2,
+        "tickets": 5,
+        "ticketRevenue": 1000,
+        "totalRevenue": 1118
+      }
+    },
+    "2026-09-12": {
+      "HAIWAAN (HINDI)": {
+        "bookings": 10,
+        "tickets": 20,
+        "ticketRevenue": 6730,
+        "totalRevenue": 7560.089999999999
+      },
+      "HANUMAN ANSH (HINDI)": {
+        "bookings": 48,
+        "tickets": 150,
+        "ticketRevenue": 44390,
+        "totalRevenue": 47867.99
+      },
+      "MIRZAPUR : THE MOVIE (HINDI)": {
+        "bookings": 50,
+        "tickets": 128,
+        "ticketRevenue": 40870,
+        "totalRevenue": 44566.539999999986
+      },
+      "DAHAAN : THE EVIL WITHIN (ODIA)": {
+        "bookings": 1,
+        "tickets": 1,
+        "ticketRevenue": 249,
+        "totalRevenue": 250.15
+      }
+    },
+    "2026-09-13": {
+      "MIRZAPUR : THE MOVIE (HINDI)": {
+        "bookings": 29,
+        "tickets": 72,
+        "ticketRevenue": 22755,
+        "totalRevenue": 24497.960000000006
+      },
+      "HAIWAAN (HINDI)": {
+        "bookings": 3,
+        "tickets": 6,
+        "ticketRevenue": 1395,
+        "totalRevenue": 1643.1
+      },
+      "HANUMAN ANSH (HINDI)": {
+        "bookings": 42,
+        "tickets": 131,
+        "ticketRevenue": 39373.130000000005,
+        "totalRevenue": 43387.219999999994
+      },
+      "IRUMUDI (TELUGU)": {
+        "bookings": 1,
+        "tickets": 2,
+        "ticketRevenue": 600,
+        "totalRevenue": 617.2
+      }
+    },
+    "2026-09-14": {
+      "MIRZAPUR : THE MOVIE (HINDI)": {
+        "bookings": 8,
+        "tickets": 20,
+        "ticketRevenue": 6280,
+        "totalRevenue": 6620.999999999999
+      },
+      "HANUMAN ANSH (HINDI)": {
+        "bookings": 23,
+        "tickets": 92,
+        "ticketRevenue": 25862.420000000002,
+        "totalRevenue": 28222.220000000005
+      },
+      "IRUMUDI (TELUGU)": {
+        "bookings": 1,
+        "tickets": 4,
+        "ticketRevenue": 1180,
+        "totalRevenue": 1264.4
+      }
+    },
+    "2026-09-15": {
+      "MIRZAPUR : THE MOVIE (HINDI)": {
+        "bookings": 4,
+        "tickets": 8,
+        "ticketRevenue": 2100,
+        "totalRevenue": 2288.8
+      },
+      "DAHAAN : THE EVIL WITHIN (ODIA)": {
+        "bookings": 1,
+        "tickets": 2,
+        "ticketRevenue": 398,
+        "totalRevenue": 445.2
+      },
+      "HANUMAN ANSH (HINDI)": {
+        "bookings": 5,
+        "tickets": 16,
+        "ticketRevenue": 4747,
+        "totalRevenue": 5054.6
+      }
+    },
+    "2026-09-16": {
+      "MIRZAPUR : THE MOVIE (HINDI)": {
+        "bookings": 4,
+        "tickets": 9,
+        "ticketRevenue": 3000,
+        "totalRevenue": 3212.4
+      },
+      "HANUMAN ANSH (HINDI)": {
+        "bookings": 5,
+        "tickets": 19,
+        "ticketRevenue": 5300,
+        "totalRevenue": 5310.900000000001
+      }
+    },
+    "2026-09-22": {
+      "DAAYRA (HINDI)": {
+        "bookings": 2,
+        "tickets": 4,
+        "ticketRevenue": 998,
+        "totalRevenue": 1092.4
+      }
+    },
+    "2026-09-24": {
+      "HANUMAN ANSH (HINDI)": {
+        "bookings": 6,
+        "tickets": 6,
+        "ticketRevenue": 1590,
+        "totalRevenue": 1731.6
+      },
+      "3D AVENGERS ENDGAME : ENCORE (ENGLISH) RE RELEASE": {
+        "bookings": 1,
+        "tickets": 1,
+        "ticketRevenue": 200,
+        "totalRevenue": 223.6
+      },
+      "THE VVAAN - FORCE OF THE FORREST (HINDI)": {
+        "bookings": 1,
+        "tickets": 2,
+        "ticketRevenue": 700,
+        "totalRevenue": 747.2
+      }
+    },
+    "2026-09-25": {
+      "THE VVAAN - FORCE OF THE FORREST (HINDI)": {
+        "bookings": 2,
+        "tickets": 7,
+        "ticketRevenue": 2220,
+        "totalRevenue": 2385.2
+      }
+    },
+    "2026-09-27": {
+      "MIRZAPUR : THE MOVIE (HINDI)": {
+        "bookings": 1,
+        "tickets": 2,
+        "ticketRevenue": 600,
+        "totalRevenue": 647.2
+      },
+      "THE VVAAN - FORCE OF THE FORREST (HINDI)": {
+        "bookings": 1,
+        "tickets": 2,
+        "ticketRevenue": 600,
+        "totalRevenue": 647.2
+      }
+    },
+    "2026-10-01": {
+      "THE VVAAN - FORCE OF THE FORREST (HINDI)": {
+        "bookings": 1,
+        "tickets": 4,
+        "ticketRevenue": 1000,
+        "totalRevenue": 1094.4
+      },
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 1,
+        "tickets": 2,
+        "ticketRevenue": 800,
+        "totalRevenue": 847.2
+      }
+    },
+    "2026-10-02": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 18,
+        "tickets": 42,
+        "ticketRevenue": 15540,
+        "totalRevenue": 16476.200000000004
+      }
+    },
+    "2026-10-03": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 12,
+        "tickets": 32,
+        "ticketRevenue": 11420,
+        "totalRevenue": 12029.2
+      }
+    },
+    "2026-10-04": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 6,
+        "tickets": 13,
+        "ticketRevenue": 4670,
+        "totalRevenue": 5123.9
+      }
+    },
+    "2026-10-05": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 1,
+        "tickets": 2,
+        "ticketRevenue": 1100,
+        "totalRevenue": 1147.2
+      }
+    },
+    "2026-10-07": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 1,
+        "tickets": 2,
+        "ticketRevenue": 700,
+        "totalRevenue": 747.2
+      }
+    },
+    "2026-10-08": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 3,
+        "tickets": 6,
+        "ticketRevenue": 1840,
+        "totalRevenue": 1971.6000000000001
+      }
+    },
+    "2026-10-09": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 1,
+        "tickets": 3,
+        "ticketRevenue": 750,
+        "totalRevenue": 820.8
+      }
+    },
+    "2026-10-10": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 3,
+        "tickets": 14,
+        "ticketRevenue": 3850,
+        "totalRevenue": 4180.39
+      }
+    },
+    "2026-10-11": {
+      "DRISHYAM : THE CONCLUSION (HINDI)": {
+        "bookings": 2,
+        "tickets": 4,
+        "ticketRevenue": 1260,
+        "totalRevenue": 1354.4
+      }
+    }
+  }
+}
