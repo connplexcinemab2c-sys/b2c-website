@@ -375,242 +375,391 @@ export const cinemaSync = async (skip, batchSize, triggerSource = "auto") => {
 //#endregion
 
 
-export const syncAllCinema = async (skip, batchSize, triggerSource = "auto") => {
-  let findCinema = await Cinema.find(
-    {
-      cinemaId: { $ne: null },
-      deletedStatus: 0,
-      isActive: true
-    },
-    {
-      cinemaName: 1,
-      cinemaId: 1,
-      cinemaWebServiceUrl: 1,
-      cinemaWebServiceUrl2: 1,
-    }
-  ).skip(skip)
-  .limit(batchSize);
+let isSyncAllCinemaRunning = false;
+let cachedPreFetchedData = null;
+let cachedGlobalSessions = null;
+let cachedPreFetchedItems = null;
 
-  // Pre-fetch global Vista data once to avoid repeated calls per cinema (prevents Vista server saturation)
-  let preFetchedData = null;
-  let globalSessions = null;
-  let preFetchedItems = null;
-  let cinemaMap = null;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const isWebServiceUrlReachable = async (url) => {
+  if (!url || typeof url !== "string") return false;
   try {
-    const prefetchTimeout = 30000;
-    const [detailsRes, sessionRes, itemsRes, allCinemas] = await Promise.allSettled([
-      axios.request({
-        method: "get",
-        maxBodyLength: Infinity,
-        url: `${process.env.VISTA_URL}/api.asmx/GetAllDetails?test=string`,
-        timeout: prefetchTimeout,
-      }),
-      axios.request({
-        method: "get",
-        maxBodyLength: Infinity,
-        url: `${process.env.VISTA_URL}/api.asmx/GetAllSession?test=string`,
-        timeout: prefetchTimeout,
-      }),
-      axios.request({
-        method: "get",
-        maxBodyLength: Infinity,
-        url: `${process.env.VISTA_URL}/api.asmx/GetAllItems?test=string`,
-        timeout: prefetchTimeout,
-      }),
-      Cinema.find({ deletedStatus: 0 }),
-    ]);
+    const res = await axios.get(url.trim(), { timeout: 5000 });
+    return res.status >= 200 && res.status < 400;
+  } catch {
+    return false;
+  }
+};
 
-    if (detailsRes.status === "fulfilled" && detailsRes.value?.data?.Status == 1) {
-      preFetchedData = detailsRes.value;
-    }
-    if (sessionRes.status === "fulfilled" && sessionRes.value?.data?.Status == 1) {
-      globalSessions = sessionRes.value;
-    }
-    if (itemsRes.status === "fulfilled" && itemsRes.value?.data?.Status == 1) {
-      preFetchedItems = itemsRes.value;
-    }
-    if (allCinemas.status === "fulfilled") {
-      cinemaMap = new Map(allCinemas.value.map((c) => [c.cinemaId, c]));
-    }
-    console.log("Global sync prefetch completed:", {
-      details: !!preFetchedData,
-      sessions: !!globalSessions,
-      items: !!preFetchedItems,
-    });
-  } catch (prefetchErr) {
-    console.warn("Global sync prefetch error:", prefetchErr.message);
+export const syncAllCinema = async (skip, batchSize, triggerSource = "auto") => {
+  if (skip === undefined && isSyncAllCinemaRunning) {
+    console.log("syncAllCinema is already in progress, skipping overlapping run at", new Date().toLocaleString());
+    return;
+  }
+  if (skip === undefined) {
+    isSyncAllCinemaRunning = true;
   }
 
-  for (const cinema of findCinema) {
-    var strCinemaId = cinema.cinemaId;
-    let config = {
-      method: "get",
-      maxBodyLength: Infinity,
-      url: `${process.env.VISTA_URL}/api.asmx/DatabaseSync?strCinemaId=${strCinemaId}`,
-      headers: {},
-      timeout: 8000,
-    };
-    if (strCinemaId) {
-      console.log("Cinema sync with vista service2", strCinemaId)
+  try {
+    let cinemaQuery = Cinema.find(
+      {
+        cinemaId: { $ne: null },
+        deletedStatus: 0,
+        isActive: true,
+      },
+      {
+        cinemaName: 1,
+        cinemaId: 1,
+        cinemaWebServiceUrl: 1,
+        cinemaWebServiceUrl2: 1,
+      }
+    );
+    if (typeof skip === "number") cinemaQuery = cinemaQuery.skip(skip);
+    if (typeof batchSize === "number") cinemaQuery = cinemaQuery.limit(batchSize);
+    let findCinema = await cinemaQuery;
 
-      try {
-        const d = await axios.request(config);
+    // Pre-fetch global Vista data sequentially with 90s timeout to avoid saturating Vista Central's upload bandwidth
+    let preFetchedData = cachedPreFetchedData;
+    let globalSessions = cachedGlobalSessions;
+    let preFetchedItems = cachedPreFetchedItems;
+    let cinemaMap = null;
 
-        // console.log(d)
+    try {
+      const allCinemas = await Cinema.find({ deletedStatus: 0 });
+      cinemaMap = new Map(allCinemas.map((c) => [c.cinemaId, c]));
+    } catch (mapErr) {
+      console.warn("Cinema map fetch error:", mapErr.message);
+    }
 
-        if (d.data.Status == "0" || !d.data.Status) {
-          const cinemaDoc = await Cinema.findOne({ cinemaId: strCinemaId, deletedStatus: 0 });
-          const hasUrl2 = !!(cinemaDoc?.cinemaWebServiceUrl && cinemaDoc?.cinemaWebServiceUrl2);
-          const newActiveUrl = hasUrl2
-            ? cinemaDoc.cinemaWebServiceUrl2
-            : cinemaDoc?.cinemaWebServiceUrl;
-
-          // Log DatabaseSync failure
-          createVistaLog(
-            null, null, "Cinema", "DatabaseSync",
-            { ...config, queryParameters: { strCinemaId } },
-            d.data, "Failed",
-            strCinemaId,
-            {
-              cinemaName: cinemaDoc?.cinemaName,
-              triggerSource,
-              failedUrl: cinemaDoc?.cinemaWebServiceUrl,
-              switchingToUrl: newActiveUrl,
-              urlSwitchAttempted: hasUrl2,
-            }
-          );
-
-          // Swap URLs in DB only when both exist
-          if (hasUrl2) {
-            await Cinema.findOneAndUpdate(
-              { cinemaId: strCinemaId, deletedStatus: 0 },
-              [
-                {
-                  $set: {
-                    cinemaWebServiceUrl: cinemaDoc.cinemaWebServiceUrl2,
-                    cinemaWebServiceUrl2: cinemaDoc.cinemaWebServiceUrl,
-                  },
-                },
-              ]
-            );
-            console.log("Movie Sync Failed for cinema", strCinemaId, "so changed the URL", new Date().toLocaleString());
+    const fetchGlobalEndpoint = async (endpoint, timeoutMs = 90000) => {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const res = await axios.request({
+            method: "get",
+            maxBodyLength: Infinity,
+            url: `${process.env.VISTA_URL}/api.asmx/${endpoint}?test=string`,
+            timeout: timeoutMs,
+          });
+          if (res?.data?.Status == 1) {
+            return res;
           }
+        } catch (err) {
+          console.warn(`Global prefetch ${endpoint} attempt ${attempt} failed:`, err.message);
+          if (attempt < 2) await sleep(2000);
+        }
+      }
+      return null;
+    };
 
-          // ALWAYS call UpdateCinemawebservicesURL when DatabaseSync fails (status 0)
+    try {
+      const sessionRes = await fetchGlobalEndpoint("GetAllSession", 60000);
+      if (sessionRes) {
+        globalSessions = sessionRes;
+        cachedGlobalSessions = sessionRes;
+      }
+
+      const detailsRes = await fetchGlobalEndpoint("GetAllDetails", 90000);
+      if (detailsRes) {
+        preFetchedData = detailsRes;
+        cachedPreFetchedData = detailsRes;
+      }
+
+      const itemsRes = await fetchGlobalEndpoint("GetAllItems", 90000);
+      if (itemsRes) {
+        preFetchedItems = itemsRes;
+        cachedPreFetchedItems = itemsRes;
+      }
+
+      console.log("Global sync prefetch completed:", {
+        details: !!preFetchedData,
+        sessions: !!globalSessions,
+        items: !!preFetchedItems,
+      });
+    } catch (prefetchErr) {
+      console.warn("Global sync prefetch error:", prefetchErr.message);
+    }
+
+    const movieMapByCinema = new Map();
+    const priceMapByCinema = new Map();
+
+    for (const cinema of findCinema) {
+      const strCinemaId = cinema.cinemaId;
+      if (!strCinemaId) continue;
+
+      console.log("Cinema sync with vista service2", strCinemaId);
+
+      let config = {
+        method: "get",
+        maxBodyLength: Infinity,
+        url: `${process.env.VISTA_URL}/api.asmx/DatabaseSync?strCinemaId=${strCinemaId}`,
+        headers: {},
+        timeout: 20000,
+      };
+
+      let dbSyncSuccess = false;
+
+      const handleUrlFailover = async (failureDataOrError, isException = false) => {
+        const cinemaDoc = await Cinema.findOne({ cinemaId: strCinemaId, deletedStatus: 0 });
+        const primaryUrl = cinemaDoc?.cinemaWebServiceUrl?.trim() || "";
+        const secondaryUrl = cinemaDoc?.cinemaWebServiceUrl2?.trim() || "";
+        const hasDifferentUrl2 = !!(primaryUrl && secondaryUrl && primaryUrl !== secondaryUrl);
+
+        let shouldSwapToUrl2 = false;
+        if (hasDifferentUrl2) {
+          shouldSwapToUrl2 = await isWebServiceUrlReachable(secondaryUrl);
+        }
+
+        const newActiveUrl = shouldSwapToUrl2 ? secondaryUrl : primaryUrl;
+
+        createVistaLog(
+          null,
+          null,
+          "Cinema",
+          "DatabaseSync",
+          { ...config, queryParameters: { strCinemaId } },
+          isException ? failureDataOrError?.response?.data : failureDataOrError,
+          "Failed",
+          strCinemaId,
+          {
+            cinemaName: cinemaDoc?.cinemaName || cinema.cinemaName,
+            triggerSource,
+            failedUrl: primaryUrl || cinema.cinemaWebServiceUrl,
+            switchingToUrl: newActiveUrl,
+            urlSwitchAttempted: shouldSwapToUrl2,
+            ...(isException && failureDataOrError?.message ? { errorMessage: failureDataOrError.message } : {}),
+          }
+        );
+
+        if (shouldSwapToUrl2) {
+          await Cinema.findOneAndUpdate(
+            { cinemaId: strCinemaId, deletedStatus: 0 },
+            [
+              {
+                $set: {
+                  cinemaWebServiceUrl: cinemaDoc.cinemaWebServiceUrl2,
+                  cinemaWebServiceUrl2: cinemaDoc.cinemaWebServiceUrl,
+                },
+              },
+            ]
+          );
+          console.log("Movie Sync Failed for cinema", strCinemaId, "so changed the URL to reachable backup", new Date().toLocaleString());
+        }
+
+        if (newActiveUrl) {
           try {
             const updateUrlConfig = {
               method: "get",
               maxBodyLength: Infinity,
               url: `${process.env.VISTA_URL}/api.asmx/UpdateCinemawebservicesURL?strCinemaId=${strCinemaId}&strWebServiceURL=${newActiveUrl}`,
               headers: {},
-              timeout: 8000,
+              timeout: 12000,
             };
             const updateResponse = await axios.request(updateUrlConfig);
-            const vistaLogStatus = updateResponse.data.Status == 1 ? "Success" : "Failed";
+            const vistaLogStatus = updateResponse.data?.Status == 1 ? "Success" : "Failed";
             createVistaLog(
-              null, null, "Cinema", "UpdateCinemawebservicesURL",
-              updateUrlConfig.url, updateResponse.data, vistaLogStatus,
+              null,
+              null,
+              "Cinema",
+              "UpdateCinemawebservicesURL",
+              updateUrlConfig.url,
+              updateResponse.data,
+              vistaLogStatus,
               strCinemaId,
               {
-                cinemaName: cinemaDoc?.cinemaName,
+                cinemaName: cinemaDoc?.cinemaName || cinema.cinemaName,
                 triggerSource,
-                previousUrl: cinemaDoc?.cinemaWebServiceUrl,
+                previousUrl: primaryUrl,
                 updatedToUrl: newActiveUrl,
-                urlSwitched: hasUrl2,
+                urlSwitched: shouldSwapToUrl2,
                 switchedAt: new Date().toISOString(),
               }
             );
           } catch (updateErr) {
             createVistaLog(
-              null, null, "Cinema", "UpdateCinemawebservicesURL",
+              null,
+              null,
+              "Cinema",
+              "UpdateCinemawebservicesURL",
               `${process.env.VISTA_URL}/api.asmx/UpdateCinemawebservicesURL?strCinemaId=${strCinemaId}&strWebServiceURL=${newActiveUrl}`,
-              updateErr.response?.data, "Failed",
+              updateErr.response?.data,
+              "Failed",
               strCinemaId,
               {
-                cinemaName: cinemaDoc?.cinemaName,
+                cinemaName: cinemaDoc?.cinemaName || cinema.cinemaName,
                 triggerSource,
-                previousUrl: cinemaDoc?.cinemaWebServiceUrl,
+                previousUrl: primaryUrl,
                 attemptedUrl: newActiveUrl,
-                urlSwitched: hasUrl2,
+                urlSwitched: shouldSwapToUrl2,
                 errorMessage: updateErr.message,
               }
             );
           }
         }
-       
-        // console.log(d.data);
-        //  if (strCinemaId == "CN01") {
-        console.log("Movie sync started", strCinemaId)
-        await movieSync(strCinemaId, preFetchedData, cinemaMap);
-        console.log("Movie sync ender", strCinemaId)
-        await priceDataSyncCinemaWise(strCinemaId, preFetchedData, cinemaMap);
-        // console.log("priceDataSyncCinemaWise","done");
-        await pricePackageDataSyncCinemaWise(strCinemaId, preFetchedData, cinemaMap);
-        // console.log("pricePackageDataSyncCinemaWise","done");
-        await showSync(strCinemaId, globalSessions, cinemaMap);
-        console.log("showSync", "done");
 
-        // await todayShowSync(strCinemaId);
-        // console.log("todayShowSync", "done");
-        await itemDataSyncCinemaWise(strCinemaId, preFetchedItems, cinemaMap);
-        // console.log("itemDataSync","done");
-        console.log("Sync all done for selected cinema", strCinemaId, new Date().toLocaleString());
-
-         await Cinema.findOneAndUpdate(
-            { cinemaId: strCinemaId },
-            { lastSync: Date.now(), lastSyncStatus: true },
-            { new: true }
-          );
-
-
-        cacheHelper.deleteManyCache([cacheKeys.upcomingMovieData])
-        cacheHelper.deleteKeysByPrefix("region_movies_data_");
-        cacheHelper.deleteKeysByPrefix("recent_release_region_movie_data_");
-        console.log("cleard cached")
-
-
-
-        
-
-      } catch (error) {
-        console.log(error)
-        console.log("Error wilse syncing ", strCinemaId)
-        createVistaLog(
-          null,
-          null,
-          "Cinema",
-          "DatabaseSync",
-          {
-            ...config,
-            queryParameters: {
-              strCinemaId: strCinemaId,
-            },
-          },
-          error.response?.data,
-          "Failed",
-          strCinemaId,
-          {
-            cinemaName: cinema.cinemaName,
-            triggerSource,
-            failedUrl: cinema.cinemaWebServiceUrl,
-            errorMessage: error.message,
+        // If we switched to a verified reachable secondary URL, retry DatabaseSync once
+        if (shouldSwapToUrl2) {
+          try {
+            await sleep(1500);
+            const retryAfterSwitch = await axios.request(config);
+            if (retryAfterSwitch.data?.Status == "1") {
+              dbSyncSuccess = true;
+              createVistaLog(
+                null,
+                null,
+                "Cinema",
+                "DatabaseSync",
+                { ...config, queryParameters: { strCinemaId } },
+                retryAfterSwitch.data,
+                "Success",
+                strCinemaId,
+                {
+                  cinemaName: cinemaDoc?.cinemaName || cinema.cinemaName,
+                  triggerSource,
+                  activeUrl: newActiveUrl,
+                }
+              );
+            }
+          } catch (retryErr) {
+            console.warn("DatabaseSync retry after URL switch failed for", strCinemaId, retryErr.message);
           }
-        );
+        }
+      };
 
-         await Cinema.findOneAndUpdate(
-            { cinemaId: strCinemaId },
-            { lastSync: Date.now(), lastSyncStatus: false },
-            { new: true }
+      try {
+        let d = await axios.request(config);
+
+        // If Vista Central returned Status 0 due to data.tmp file lock collision, wait and retry up to 2 times
+        let retries = 0;
+        while (
+          (d.data?.Status == "0" || !d.data?.Status) &&
+          String(d.data?.data || "").toLowerCase().includes("data.tmp") &&
+          retries < 2
+        ) {
+          retries++;
+          console.log(`DatabaseSync data.tmp lock for ${strCinemaId}, retrying (${retries}/2) after 3s...`);
+          await sleep(3000);
+          d = await axios.request(config);
+        }
+
+        if (d.data?.Status == "0" || !d.data?.Status) {
+          const isStillDataTmpLock = String(d.data?.data || "").toLowerCase().includes("data.tmp");
+          if (isStillDataTmpLock) {
+            createVistaLog(
+              null,
+              null,
+              "Cinema",
+              "DatabaseSync",
+              { ...config, queryParameters: { strCinemaId } },
+              d.data,
+              "Failed",
+              strCinemaId,
+              {
+                cinemaName: cinema.cinemaName,
+                triggerSource,
+                failedUrl: cinema.cinemaWebServiceUrl,
+                urlSwitchAttempted: false,
+              }
+            );
+          } else {
+            await handleUrlFailover(d.data, false);
+          }
+        } else {
+          dbSyncSuccess = true;
+          createVistaLog(
+            null,
+            null,
+            "Cinema",
+            "DatabaseSync",
+            { ...config, queryParameters: { strCinemaId } },
+            d.data,
+            "Success",
+            strCinemaId,
+            {
+              cinemaName: cinema.cinemaName,
+              triggerSource,
+              activeUrl: cinema.cinemaWebServiceUrl,
+            }
           );
+        }
+      } catch (error) {
+        console.log("Error while DatabaseSync for", strCinemaId, error.message);
+        // Wait 2.5s after a timeout so Vista Central releases data.tmp before next cinema
+        await sleep(2500);
+        await handleUrlFailover(error, true);
       }
 
+      // Always sync movies, prices, price packages, shows, and items from Vista Central into MongoDB
+      try {
+        console.log("Movie sync started", strCinemaId);
+        const movieRes = await movieSync(strCinemaId, preFetchedData, cinemaMap);
+        const movieResultMap = movieRes?.movieResultMap || null;
+        if (movieResultMap) movieMapByCinema.set(strCinemaId, movieResultMap);
+        console.log("Movie sync ended", strCinemaId);
 
+        const priceRes = await priceDataSyncCinemaWise(strCinemaId, preFetchedData, cinemaMap);
+        const priceResultMap = priceRes?.priceResultMap || null;
+        if (priceResultMap) priceMapByCinema.set(strCinemaId, priceResultMap);
 
+        await pricePackageDataSyncCinemaWise(strCinemaId, preFetchedData, cinemaMap);
+        await showSync(strCinemaId, globalSessions, cinemaMap, movieResultMap, priceResultMap);
+        console.log("showSync", "done", strCinemaId);
+
+        await itemDataSyncCinemaWise(strCinemaId, preFetchedItems, cinemaMap);
+        console.log("Sync all done for selected cinema", strCinemaId, new Date().toLocaleString());
+
+        await Cinema.findOneAndUpdate(
+          { cinemaId: strCinemaId },
+          { lastSync: Date.now(), lastSyncStatus: dbSyncSuccess },
+          { new: true }
+        );
+      } catch (dataSyncErr) {
+        console.error("Error syncing MongoDB data for cinema", strCinemaId, dataSyncErr);
+        await Cinema.findOneAndUpdate(
+          { cinemaId: strCinemaId },
+          { lastSync: Date.now(), lastSyncStatus: false },
+          { new: true }
+        );
+      }
+    }
+
+    // Fetch fresh GetAllSession after all DatabaseSync calls complete so newly pulled sessions are reflected immediately
+    try {
+      const freshSessions = await fetchGlobalEndpoint("GetAllSession", 60000);
+      if (freshSessions) {
+        cachedGlobalSessions = freshSessions;
+        for (const cinema of findCinema) {
+          const strCinemaId = cinema.cinemaId;
+          if (!strCinemaId) continue;
+          try {
+            await showSync(
+              strCinemaId,
+              freshSessions,
+              cinemaMap,
+              movieMapByCinema.get(strCinemaId) || null,
+              priceMapByCinema.get(strCinemaId) || null
+            );
+          } catch (postShowErr) {
+            console.warn("Post-DatabaseSync showSync error for", strCinemaId, postShowErr.message);
+          }
+        }
+      }
+    } catch (postRefreshErr) {
+      console.warn("Post-DatabaseSync session refresh error:", postRefreshErr.message);
+    }
+
+    cacheHelper.deleteManyCache([cacheKeys.upcomingMovieData]);
+    cacheHelper.deleteKeysByPrefix("region_movies_data_");
+    cacheHelper.deleteKeysByPrefix("recent_release_region_movie_data_");
+    console.log("cleared cache");
+    console.log("*********** Sync Ended *********", new Date().toLocaleString());
+  } finally {
+    if (skip === undefined) {
+      isSyncAllCinemaRunning = false;
     }
   }
-  console.log("*********** Sync Ended *********", new Date().toLocaleString())
-}
+};
+
 
 //#region syncAllCron
 export const syncAllCron = async (req, res) => {

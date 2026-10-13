@@ -270,7 +270,6 @@ const optimizedSync = new CronJob('*/15 * * * *', async () => {
   console.log('Running cinema sync job...');
 
   try {
-    await ensureIndexes();
     await syncAllCinema();
 
     console.log('Cinema sync completed successfully');
@@ -286,7 +285,9 @@ optimizedSync.start();
 
 app.listen(process.env.PORT || 3020, "0.0.0.0", async () => {
   console.log("server is listen at " + process.env.PORT);
-    // await ensureIndexes();
-    // await syncAllCinema();
-
+  try {
+    await ensureIndexes();
+  } catch (err) {
+    console.error("Failed to ensure indexes on startup:", err);
+  }
 });

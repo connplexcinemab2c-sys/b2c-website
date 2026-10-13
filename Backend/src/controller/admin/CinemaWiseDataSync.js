@@ -20,12 +20,14 @@ const config = {
   maxBodyLength: Infinity,
   url: `${process.env.VISTA_URL}/api.asmx/GetAllDetails?test=string`,
   headers: {},
+  timeout: 90000,
 };
 const itemConfig = {
   method: "get",
   maxBodyLength: Infinity,
   url: `${process.env.VISTA_URL}/api.asmx/GetAllItems?test=string`,
   headers: {},
+  timeout: 90000,
 };
 
 //#region movie sync cinema wise
@@ -33,15 +35,15 @@ export const movieSync = async (strCinemaId, preFetchedData = null, cinemaMap = 
   try {
     let resArray;
     if (preFetchedData) {
-      resArray = preFetchedData.data.data.Fillmlist;
+      resArray = preFetchedData.data?.data?.Fillmlist;
     } else {
       const response = await axios.request(config);
-      resArray = response.data.data.Fillmlist;
+      resArray = response.data?.data?.Fillmlist;
     }
 
     if (resArray && resArray.length) {
       const selectedMovie = resArray.filter((movie) => {
-        let cinemaId = movie.Film_strCode.slice(0, 4);
+        let cinemaId = (movie.Film_strCode || "").slice(0, 4);
         return cinemaId == strCinemaId;
       });
 
@@ -51,6 +53,11 @@ export const movieSync = async (strCinemaId, preFetchedData = null, cinemaMap = 
 
       const bulkOps = [];
       const movieResultMap = new Map();
+      existingMovies.forEach(m => {
+        if (m.filmCode) {
+          movieResultMap.set(m.filmCode.trim().toUpperCase(), m._id);
+        }
+      });
 
       for (let i = 0; i < selectedMovie.length; i++) {
         const ele = selectedMovie[i];
@@ -69,58 +76,17 @@ export const movieSync = async (strCinemaId, preFetchedData = null, cinemaMap = 
         // Parsing logic
         const regex = /\(([^)]+)\)/;
         const regexForCast = /^CAST\s*:\s*(.*?)(?:,\s*$|$)/i;
-        const castMatch = ele.Film_strDescription.match(regexForCast);
+        const castMatch = (ele.Film_strDescription || "").match(regexForCast);
         let castMembersString = (castMatch && castMatch.length >= 2) ? castMatch[1].trim() : "";
         
-        const match = regex.exec(ele.Film_strTitle);
+        const match = regex.exec(ele.Film_strTitle || "");
         let languages = (match && match.length >= 2) ? match[1] : null;
         
-        const openingDateMatch = ele.Film_dtmOpeningDate.match(/\d+/);
+        const openingDateMatch = (ele.Film_dtmOpeningDate || "").match(/\d+/);
         const openingDate = openingDateMatch ? new Date(parseInt(openingDateMatch[0], 10)) : new Date();
 
         if (exist) {
-          //  console.log("Existing movie", ele.Film_strCode, ele.Film_strTitle);
-          // await Movies.findByIdAndUpdate(
-          //   { _id: exist._id },
-          //   {
-          //     $set: {
-          //       name: ele.Film_strTitle,
-          //       cinemaId,
-          //       cinemaObjectId: cinema ? cinema._id : null,
-          //       // category: ele.Film_strContent,
-          //       [!exist.isDurationEdit
-          //         ? "category"
-          //         : ""]: ele.Film_strContent,
-          //       filmCode: ele.Film_strCode,
-          //       censorRating: ele.Film_strCensor,
-          //       filmContent: ele.Film_strContent,
-          //       description: ele.Film_strDescription,
-          //       shortName: ele.Film_strShortName,
-          //       signText: ele.Film_strSignText,
-          //       filmSignSequence: ele.Film_bytSignSequence,
-          //       filmCategoryCode: ele.FilmCat_strCode,
-          //       filmCategoryShortName: ele.FilmCat_strShortName,
-          //       children: ele.Film_strChildren,
-          //       // duration: ele.Film_intDuration,
-          //       [!exist.isDurationEdit
-          //         ? "duration"
-          //         : ""]: ele.Film_intDuration,
-          //       filmStatus: ele.Film_strStatus,
-          //       filmUpcomingFlag: ele.Film_strUpcomingFlag,
-          //       filmFeatureFlag: ele.Film_strFeatureFlag,
-          //       filmNowShowingFlag: ele.Film_strNowShowingFlag,
-          //       filmOpeningDate: new Date(
-          //         parseInt(openingDate.match(/\d+/)[0], 10)
-          //       ),
-          //       filmDescriptionLong: ele.Film_strDescriptionLong,
-          //       status: 1,
-          //       cast: castMembersString,
-          //       isActive:true,
-          //       deletedStatus:0
-          //       // languages,
-          //     },
-          //   }
-          // );
+          // Existing movie already in DB
         } else {
           const newMovieData = {
             cinemaId,
@@ -157,12 +123,13 @@ export const movieSync = async (strCinemaId, preFetchedData = null, cinemaMap = 
       }
 
       if (bulkOps.length > 0) {
-        const result = await Movies.bulkWrite(bulkOps);
-        // After bulk insert, we need the new IDs. 
-        // For simplicity in this step-by-step refactor, we fetch again or map manually.
-        // Fetching again is still faster than individual saves.
+        await Movies.bulkWrite(bulkOps);
         const updatedMovies = await Movies.find({ cinemaId: strCinemaId }, { filmCode: 1, _id: 1 });
-        updatedMovies.forEach(m => movieResultMap.set(m.filmCode, m._id));
+        updatedMovies.forEach(m => {
+          if (m.filmCode) {
+            movieResultMap.set(m.filmCode.trim().toUpperCase(), m._id);
+          }
+        });
       }
 
       console.log("movie sync done", strCinemaId, "New added:", bulkOps.length);
@@ -182,22 +149,23 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
   try {
     let resArray;
     if (globalSessions) {
-      resArray = globalSessions.data.data.SessionList;
+      resArray = globalSessions.data?.data?.SessionList;
     } else {
       const showConfig = {
         method: "get",
         maxBodyLength: Infinity,
         url: `${process.env.VISTA_URL}/api.asmx/GetAllSession?test=string`,
         headers: {},
+        timeout: 60000,
       };
       const response = await axios.request(showConfig);
-      resArray = response.data.data.SessionList;
+      resArray = response.data?.data?.SessionList;
     }
 
     if (resArray && resArray.length) {
       const cinemaIdUpper = Cinema_strID.trim().toUpperCase();
       const selectedMovieShows = resArray.filter((show) => {
-        return show.Cinema_strID.trim().toUpperCase() == cinemaIdUpper;
+        return (show.Cinema_strID || "").trim().toUpperCase() == cinemaIdUpper;
       });
 
       // De-duplicate API response
@@ -214,17 +182,17 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
 
       const bulkOps = [];
       for (const ele of uniqueSelectedShows) {
-        const filmCode = ele.Film_strCode.trim().toUpperCase();
-        const pGroupCode = ele.PGroup_strCode.trim().toUpperCase();
+        const filmCode = (ele.Film_strCode || "").trim().toUpperCase();
+        const pGroupCode = (ele.PGroup_strCode || "").trim().toUpperCase();
 
-        // High-speed Map Lookups
-        const cinema = cinemaMap ? cinemaMap.get(cinemaIdUpper) : await Cinema.findOne({ cinemaId: cinemaIdUpper });
-        const movieObjectId = movieMap ? movieMap.get(filmCode) : (await Movies.findOne({ filmCode, cinemaId: cinemaIdUpper }))?._id;
-        const priceObjectId = priceMap ? priceMap.get(pGroupCode) : (await Price.findOne({ pGroupCode, cinemaId: cinemaIdUpper }))?._id;
+        // High-speed Map Lookups with DB fallback
+        const cinema = (cinemaMap && cinemaMap.get(cinemaIdUpper)) || await Cinema.findOne({ cinemaId: cinemaIdUpper });
+        const movieObjectId = (movieMap && movieMap.get(filmCode)) || (await Movies.findOne({ filmCode, cinemaId: cinemaIdUpper }))?._id;
+        const priceObjectId = (priceMap && priceMap.get(pGroupCode)) || (await Price.findOne({ pGroupCode, cinemaId: cinemaIdUpper }))?._id;
 
-        const sessionRealShowMatch = ele.Session_dtmRealShow.match(/\d+/);
-        const sessionFinishShowMatch = ele.Session_dtmFinishShow.match(/\d+/);
-        const filmFirstShowMatch = ele.Session_dtmFilmFirstShow.match(/\d+/);
+        const sessionRealShowMatch = (ele.Session_dtmRealShow || "").match(/\d+/);
+        const sessionFinishShowMatch = (ele.Session_dtmFinishShow || "").match(/\d+/);
+        const filmFirstShowMatch = (ele.Session_dtmFilmFirstShow || "").match(/\d+/);
 
         const showData = {
           cinemaId: cinemaIdUpper,
@@ -286,30 +254,99 @@ export const syncVistaCinemas = async (req, res) => {
     cacheHelper.deleteKeysByPrefix("recent_release_region_movie_data_");
 
     let { strCinemaId } = req.params;
-    let config = {
+    let dbSyncConfig = {
       method: "get",
       maxBodyLength: Infinity,
       url: `${process.env.VISTA_URL}/api.asmx/DatabaseSync?strCinemaId=${strCinemaId}`,
       headers: {},
+      timeout: 25000,
     };
     if (strCinemaId) {
-      console.log("Cinema sync with vista service");
+      console.log("Cinema sync with vista service", strCinemaId);
+
+      const triggerBackgroundDataSync = () => {
+        (async () => {
+          try {
+            await Logs.create({
+              title: "Cinema wise sync process has been started",
+              lastSync: Date.now(),
+            });
+            const [detailsRes, sessionRes, itemsRes] = await Promise.allSettled([
+              axios.request(config),
+              axios.request({
+                method: "get",
+                maxBodyLength: Infinity,
+                url: `${process.env.VISTA_URL}/api.asmx/GetAllSession?test=string`,
+                headers: {},
+                timeout: 60000,
+              }),
+              axios.request(itemConfig),
+            ]);
+            const preFetchedDetails = detailsRes.status === "fulfilled" && detailsRes.value?.data?.Status == 1 ? detailsRes.value : null;
+            const preFetchedSessions = sessionRes.status === "fulfilled" && sessionRes.value?.data?.Status == 1 ? sessionRes.value : null;
+            const preFetchedItems = itemsRes.status === "fulfilled" && itemsRes.value?.data?.Status == 1 ? itemsRes.value : null;
+
+            const { movieResultMap } = await movieSync(strCinemaId, preFetchedDetails);
+            const { priceResultMap } = await priceDataSyncCinemaWise(strCinemaId, preFetchedDetails);
+            await pricePackageDataSyncCinemaWise(strCinemaId, preFetchedDetails);
+            await showSync(strCinemaId, preFetchedSessions, null, movieResultMap, priceResultMap);
+            await todayShowSync(strCinemaId, preFetchedSessions, null, movieResultMap, priceResultMap);
+            await itemDataSyncCinemaWise(strCinemaId, preFetchedItems);
+            await Logs.create({
+              title: "Cinema wise sync process has been completed",
+              lastSync: Date.now(),
+            });
+            console.log("Sync all done for selected cinema", strCinemaId);
+          } catch (bgErr) {
+            console.error("Background cinema sync error:", strCinemaId, bgErr?.message || bgErr);
+          }
+        })();
+      };
 
       axios
-        .request(config)
+        .request(dbSyncConfig)
         .then(async (response) => {
+          const cinema = await Cinema.findOne({
+            cinemaId: strCinemaId,
+            deletedStatus: 0,
+          });
 
           if (response.data.Status == "0" || !response.data.Status) {
-            const cinema = await Cinema.findOne({
-              cinemaId: strCinemaId,
-              deletedStatus: 0,
-            });
-
-            if (
+            const isDataTmpLock = String(response.data?.data || "").toLowerCase().includes("data.tmp");
+            const hasDifferentUrl2 = !!(
               cinema &&
               cinema.cinemaWebServiceUrl &&
-              cinema.cinemaWebServiceUrl2
-            ) {
+              cinema.cinemaWebServiceUrl2 &&
+              cinema.cinemaWebServiceUrl.trim() !== cinema.cinemaWebServiceUrl2.trim()
+            );
+            const newActiveUrl = (!isDataTmpLock && hasDifferentUrl2)
+              ? cinema.cinemaWebServiceUrl2
+              : cinema?.cinemaWebServiceUrl;
+
+            createVistaLog(
+              null,
+              null,
+              "Cinema",
+              "DatabaseSync",
+              {
+                ...dbSyncConfig,
+                queryParameters: {
+                  strCinemaId: strCinemaId,
+                },
+              },
+              response.data,
+              "Failed",
+              strCinemaId,
+              {
+                cinemaName: cinema?.cinemaName,
+                triggerSource: "manual",
+                failedUrl: cinema?.cinemaWebServiceUrl,
+                switchingToUrl: newActiveUrl,
+                urlSwitchAttempted: !isDataTmpLock && hasDifferentUrl2,
+              }
+            );
+
+            if (!isDataTmpLock && hasDifferentUrl2) {
               await Cinema.findOneAndUpdate(
                 { cinemaId: strCinemaId, deletedStatus: 0 },
                 [
@@ -321,61 +358,79 @@ export const syncVistaCinemas = async (req, res) => {
                   },
                 ]
               );
+            }
 
+            if (newActiveUrl) {
               let updateUrlConfig = {
                 method: "get",
                 maxBodyLength: Infinity,
-                url: `${process.env.VISTA_URL}/api.asmx/UpdateCinemawebservicesURL?strCinemaId=${cinema.cinemaId}&strWebServiceURL=${cinema.cinemaWebServiceUrl2}`,
+                url: `${process.env.VISTA_URL}/api.asmx/UpdateCinemawebservicesURL?strCinemaId=${strCinemaId}&strWebServiceURL=${newActiveUrl}`,
                 headers: {},
+                timeout: 15000,
               };
 
               const vistaLogRequest = {
                 ...updateUrlConfig,
                 queryParameters: {
-                  strCinemaId: cinema.cinemaId,
-                  strWebServiceURL: cinema.cinemaWebServiceUrl2,
+                  strCinemaId: strCinemaId,
+                  strWebServiceURL: newActiveUrl,
                 },
-              }; 
+              };
 
-              axios.request(updateUrlConfig).then((response)=>{
-                 let vistaLogStatus = response.data.Status == 1 ? "Success" : "Failed";
-
-                 createVistaLog(
-                   null,
-                   null,
-                   "Cinema",
-                   "UpdateCinemawebservicesURL",
-                   vistaLogRequest,
-                   response.data,
-                   vistaLogStatus
-                 );
-
-              }).catch((error)=>{
-                createVistaLog(
-                  null,
-                  null,
-                  "Cinema",
-                  "UpdateCinemawebservicesURL",
-                  vistaLogRequest,
-                  error.response.data,
-                  "Failed"
-                );
-              })
+              axios
+                .request(updateUrlConfig)
+                .then((updateRes) => {
+                  let vistaLogStatus = updateRes.data?.Status == 1 ? "Success" : "Failed";
+                  createVistaLog(
+                    null,
+                    null,
+                    "Cinema",
+                    "UpdateCinemawebservicesURL",
+                    vistaLogRequest,
+                    updateRes.data,
+                    vistaLogStatus,
+                    strCinemaId,
+                    {
+                      cinemaName: cinema?.cinemaName,
+                      triggerSource: "manual",
+                      previousUrl: cinema?.cinemaWebServiceUrl,
+                      updatedToUrl: newActiveUrl,
+                      urlSwitched: !isDataTmpLock && hasDifferentUrl2,
+                      switchedAt: new Date().toISOString(),
+                    }
+                  );
+                })
+                .catch((updateErr) => {
+                  createVistaLog(
+                    null,
+                    null,
+                    "Cinema",
+                    "UpdateCinemawebservicesURL",
+                    vistaLogRequest,
+                    updateErr.response?.data,
+                    "Failed",
+                    strCinemaId,
+                    {
+                      cinemaName: cinema?.cinemaName,
+                      triggerSource: "manual",
+                      previousUrl: cinema?.cinemaWebServiceUrl,
+                      attemptedUrl: newActiveUrl,
+                      urlSwitched: !isDataTmpLock && hasDifferentUrl2,
+                      errorMessage: updateErr.message,
+                    }
+                  );
+                });
             }
 
-            createVistaLog(
-              null,
-              null,
-              "Cinema",
-              "DatabaseSync",
+            // Still sync existing Vista Central data into MongoDB
+            triggerBackgroundDataSync();
+            await Cinema.findOneAndUpdate(
+              { cinemaId: strCinemaId, deletedStatus: 0 },
               {
-                ...config,
-                queryParameters: {
-                  strCinemaId: strCinemaId,
-                },
+                lastSync: Date.now(),
+                lastSyncStatus: false,
               },
-              response.data,
-              "Failed"
+              { new: true }
             );
 
             return res.status(400).json({
@@ -384,51 +439,30 @@ export const syncVistaCinemas = async (req, res) => {
               data: [],
             });
           } else {
-
             createVistaLog(
               null,
               null,
               "Cinema",
               "DatabaseSync",
               {
-                ...config,
+                ...dbSyncConfig,
                 queryParameters: {
                   strCinemaId: strCinemaId,
                 },
               },
               response.data,
-              "Success"
+              "Success",
+              strCinemaId,
+              {
+                cinemaName: cinema?.cinemaName,
+                triggerSource: "manual",
+                activeUrl: cinema?.cinemaWebServiceUrl,
+              }
             );
-            await Logs.create({
-              title: "Cinema wise sync process has been started",
-              lastSync: Date.now(),
-            });
 
-            movieSync(strCinemaId).then(() => {
-              console.log(390, "priceDataSyncCinemaWise");
-              priceDataSyncCinemaWise(strCinemaId).then(() => {
-                console.log(390, "priceDataSyncCinemaWise");
-                pricePackageDataSyncCinemaWise(strCinemaId).then(() => {
-                  console.log(391, "pricePackageDataSyncCinemaWise");
-                  showSync(strCinemaId).then(() => {
-                    console.log(392, "showSync");
-                    todayShowSync(strCinemaId).then(() => {
-                      console.log(393, "todayShowSync");
-                      itemDataSyncCinemaWise(strCinemaId).then(() => {
-                        console.log(394, "item");
-                        Logs.create({
-                          title: "Cinema wise sync process has been started",
-                          lastSync: Date.now(),
-                        });
-                        console.log("Sync all done for selected cinema");
-                      });
-                    });
-                  });
-                });
-              });
-            });
+            triggerBackgroundDataSync();
 
-            let cinemaTemp = await Cinema.findOneAndUpdate(
+            await Cinema.findOneAndUpdate(
               { cinemaId: strCinemaId, deletedStatus: 0 },
               {
                 lastSync: Date.now(),
@@ -445,21 +479,41 @@ export const syncVistaCinemas = async (req, res) => {
           }
         })
         .catch(async (error) => {
+          const cinemaDoc = await Cinema.findOne({ cinemaId: strCinemaId, deletedStatus: 0 });
+          const hasDifferentUrl2 = !!(
+            cinemaDoc?.cinemaWebServiceUrl &&
+            cinemaDoc?.cinemaWebServiceUrl2 &&
+            cinemaDoc.cinemaWebServiceUrl.trim() !== cinemaDoc.cinemaWebServiceUrl2.trim()
+          );
+          const newActiveUrl = hasDifferentUrl2
+            ? cinemaDoc.cinemaWebServiceUrl2
+            : cinemaDoc?.cinemaWebServiceUrl;
+
           createVistaLog(
-              null,
-              null,
-              "Cinema",
-              "DatabaseSync",
-              {
-                ...config,
-                queryParameters: {
-                  strCinemaId: strCinemaId,
-                },
+            null,
+            null,
+            "Cinema",
+            "DatabaseSync",
+            {
+              ...dbSyncConfig,
+              queryParameters: {
+                strCinemaId: strCinemaId,
               },
-              error.response.data,
-              "Failed"
-            );
-          let update = await Cinema.findOneAndUpdate(
+            },
+            error.response?.data,
+            "Failed",
+            strCinemaId,
+            {
+              cinemaName: cinemaDoc?.cinemaName,
+              triggerSource: "manual",
+              failedUrl: cinemaDoc?.cinemaWebServiceUrl,
+              switchingToUrl: newActiveUrl,
+              urlSwitchAttempted: hasDifferentUrl2,
+              errorMessage: error.message,
+            }
+          );
+
+          await Cinema.findOneAndUpdate(
             { cinemaId: strCinemaId },
             {
               lastSync: Date.now(),
@@ -467,37 +521,67 @@ export const syncVistaCinemas = async (req, res) => {
             },
             { new: true }
           );
-          let config = {
-            method: "get",
-            maxBodyLength: Infinity,
-            url: `${
-              process.env.VISTA_URL
-            }/api.asmx/UpdateCinemawebservicesURL?strCinemaId=${strCinemaId}&strWebServiceURL=${
-              update.cinemaWebServiceUrl2
-                ? update.cinemaWebServiceUrl2
-                : update.cinemaWebServiceUrl
-            }`,
-          };
-          const response = await axios.request(config);
 
-          const vistaLogRequest = {
-            ...config,
-            queryParameters: {
-              strCinemaId: strCinemaId,
-              strWebServiceURL:
-                update.cinemaWebServiceUrl2 || update.cinemaWebServiceUrl,
-            },
-          };
-          let vistaLogStatus = response.data.Status == 1 ? "Success" : "Failed";
-          createVistaLog(
-            null,
-            null,
-            "Cinema",
-            "UpdateCinemawebservicesURL",
-            vistaLogRequest,
-            response.data,
-            vistaLogStatus
-          );
+          triggerBackgroundDataSync();
+
+          if (newActiveUrl) {
+            try {
+              let updateConfig = {
+                method: "get",
+                maxBodyLength: Infinity,
+                url: `${process.env.VISTA_URL}/api.asmx/UpdateCinemawebservicesURL?strCinemaId=${strCinemaId}&strWebServiceURL=${newActiveUrl}`,
+                timeout: 15000,
+              };
+              const response = await axios.request(updateConfig);
+
+              const vistaLogRequest = {
+                ...updateConfig,
+                queryParameters: {
+                  strCinemaId: strCinemaId,
+                  strWebServiceURL: newActiveUrl,
+                },
+              };
+              let vistaLogStatus = response.data?.Status == 1 ? "Success" : "Failed";
+              createVistaLog(
+                null,
+                null,
+                "Cinema",
+                "UpdateCinemawebservicesURL",
+                vistaLogRequest,
+                response.data,
+                vistaLogStatus,
+                strCinemaId,
+                {
+                  cinemaName: cinemaDoc?.cinemaName,
+                  triggerSource: "manual",
+                  previousUrl: cinemaDoc?.cinemaWebServiceUrl,
+                  updatedToUrl: newActiveUrl,
+                  urlSwitched: hasDifferentUrl2,
+                  switchedAt: new Date().toISOString(),
+                }
+              );
+            } catch (updateErr) {
+              createVistaLog(
+                null,
+                null,
+                "Cinema",
+                "UpdateCinemawebservicesURL",
+                `${process.env.VISTA_URL}/api.asmx/UpdateCinemawebservicesURL?strCinemaId=${strCinemaId}&strWebServiceURL=${newActiveUrl}`,
+                updateErr.response?.data,
+                "Failed",
+                strCinemaId,
+                {
+                  cinemaName: cinemaDoc?.cinemaName,
+                  triggerSource: "manual",
+                  previousUrl: cinemaDoc?.cinemaWebServiceUrl,
+                  attemptedUrl: newActiveUrl,
+                  urlSwitched: hasDifferentUrl2,
+                  errorMessage: updateErr.message,
+                }
+              );
+            }
+          }
+
           return res.status(400).json({
             status: StatusCodes.BAD_REQUEST,
             message: "BAD REQUEST",
@@ -520,10 +604,10 @@ export const priceDataSyncCinemaWise = async (strCinemaId, preFetchedData = null
   try {
     let resArray;
     if (preFetchedData) {
-      resArray = preFetchedData.data.data.Price;
+      resArray = preFetchedData.data?.data?.Price;
     } else {
       const response = await axios.request(config);
-      resArray = response.data.data.Price;
+      resArray = response.data?.data?.Price;
     }
 
     if (resArray && resArray.length) {
@@ -640,13 +724,27 @@ export const priceDataSyncCinemaWise = async (strCinemaId, preFetchedData = null
           { cinemaId: strCinemaId.toUpperCase() },
           { pGroupCode: 1, _id: 1 }
         );
-        updatedPrices.forEach((p) => priceResultMap.set(p.pGroupCode, p._id));
+        updatedPrices.forEach((p) => {
+          if (p.pGroupCode) {
+            priceResultMap.set(p.pGroupCode.trim().toUpperCase(), p._id);
+          }
+        });
 
         console.log("Pricing sync done", strCinemaId, "Newly added:", newlyAddedCount);
         return { priceResultMap, count: newlyAddedCount };
       }
-      return { priceResultMap: new Map(), count: 0 };
+      const existingPrices = await Price.find(
+        { cinemaId: strCinemaId.toUpperCase() },
+        { pGroupCode: 1, _id: 1 }
+      );
+      existingPrices.forEach((p) => {
+        if (p.pGroupCode) {
+          priceResultMap.set(p.pGroupCode.trim().toUpperCase(), p._id);
+        }
+      });
+      return { priceResultMap, count: 0 };
     }
+    return { priceResultMap: new Map(), count: 0 };
   } catch (error) {
     console.error("Price sync error:", error);
     throw error;
@@ -659,16 +757,16 @@ export const pricePackageDataSyncCinemaWise = async (strCinemaId, preFetchedData
   try {
     let resArray;
     if (preFetchedData) {
-      resArray = preFetchedData.data.data.Prices_Packages;
+      resArray = preFetchedData.data?.data?.Prices_Packages;
     } else {
       const response = await axios.request(config);
-      resArray = response.data.data.Prices_Packages;
+      resArray = response.data?.data?.Prices_Packages;
     }
 
     if (resArray && resArray.length) {
       const cinemaIdUpper = strCinemaId.trim().toUpperCase();
       const selectedPricePackage = resArray.filter((pricePackage) => {
-        return pricePackage.Cinema_strID.trim().toUpperCase() == cinemaIdUpper;
+        return (pricePackage.Cinema_strID || "").trim().toUpperCase() == cinemaIdUpper;
       });
 
       // De-duplicate API response
@@ -690,13 +788,13 @@ export const pricePackageDataSyncCinemaWise = async (strCinemaId, preFetchedData
         const cinema = cinemaMap
           ? cinemaMap.get(cinemaIdUpper)
           : await Cinema.findOne({ cinemaId: cinemaIdUpper });
-        const pPackStampMatch = ele.PPack_dtmStamp.match(/\d+/);
+        const pPackStampMatch = (ele.PPack_dtmStamp || "").match(/\d+/);
 
         const pricePkgData = {
           cinemaId: cinemaIdUpper,
-          pPackCode: ele.PPack_strCode.trim().toUpperCase(),
-          pGroupCode: ele.PGroup_strCode.trim().toUpperCase(),
-          tTypeCode: ele.TType_strCode.trim().toUpperCase(),
+          pPackCode: (ele.PPack_strCode || "").trim().toUpperCase(),
+          pGroupCode: (ele.PGroup_strCode || "").trim().toUpperCase(),
+          tTypeCode: (ele.TType_strCode || "").trim().toUpperCase(),
           tTypeChildCode: ele.TType_strChildCode,
           itemStrItemId: ele.Item_strItemId,
           pPackQuantity: ele.PPack_curQuantity,
@@ -778,10 +876,10 @@ export const itemDataSyncCinemaWise = async (strCinemaId, preFetchedData = null,
   try {
     let resArray;
     if (preFetchedData) {
-      resArray = preFetchedData.data.data.Itemlist;
+      resArray = preFetchedData.data?.data?.Itemlist;
     } else {
       const response = await axios.request(itemConfig);
-      resArray = response.data.data.Itemlist;
+      resArray = response.data?.data?.Itemlist;
     }
 
     if (resArray && resArray.length) {
@@ -803,7 +901,7 @@ export const itemDataSyncCinemaWise = async (strCinemaId, preFetchedData = null,
         const cinema = cinemaMap ? cinemaMap.get(cinemaIdUpper) : await Cinema.findOne({ cinemaId: cinemaIdUpper });
         const exist = existingItemMap.get(ele.Item_strID);
 
-        const itemDateStampMatch = ele.Item_dtmStamp.match(/\d+/);
+        const itemDateStampMatch = (ele.Item_dtmStamp || "").match(/\d+/);
         const itemDateStamp = itemDateStampMatch ? new Date(parseInt(itemDateStampMatch[0], 10)) : new Date();
 
         const itemData = {
@@ -867,16 +965,17 @@ export const todayShowSync = async (strCinemaId, preFetchedData = null, cinemaMa
   try {
     let resArray;
     if (preFetchedData) {
-      resArray = preFetchedData.data.data.SessionList;
+      resArray = preFetchedData.data?.data?.SessionList;
     } else {
       const showConfig = {
         method: "get",
         maxBodyLength: Infinity,
         url: `${process.env.VISTA_URL}/api.asmx/GetAllSession?test=string`,
         headers: {},
+        timeout: 60000,
       };
       const response = await axios.request(showConfig);
-      resArray = response.data.data.SessionList;
+      resArray = response.data?.data?.SessionList;
     }
 
     if (resArray && resArray.length) {
@@ -897,30 +996,30 @@ export const todayShowSync = async (strCinemaId, preFetchedData = null, cinemaMa
         const ele = uniqueSelectedShows[i];
         incomingSessionIds.push(ele.Session_lngSessionId);
 
-        // High speed Map lookups
-        const cinema = cinemaMap
-          ? cinemaMap.get(cinemaIdUpper)
-          : await Cinema.findOne({ cinemaId: cinemaIdUpper });
-        const filmObjectId = movieMap
-          ? movieMap.get(ele.Film_strCode.toUpperCase())
-          : (
+        const filmCodeUpper = (ele.Film_strCode || "").trim().toUpperCase();
+        const pGroupCodeUpper = (ele.PGroup_strCode || "").trim().toUpperCase();
+
+        // High speed Map lookups with DB fallback
+        const cinema = (cinemaMap && cinemaMap.get(cinemaIdUpper))
+          || await Cinema.findOne({ cinemaId: cinemaIdUpper });
+        const filmObjectId = (movieMap && movieMap.get(filmCodeUpper))
+          || (
               await Movies.findOne({
-                filmCode: ele.Film_strCode.toUpperCase(),
+                filmCode: filmCodeUpper,
                 cinemaId: cinemaIdUpper,
               })
             )?._id;
-        const pGroupObjectId = priceMap
-          ? priceMap.get(ele.PGroup_strCode.toUpperCase())
-          : (
+        const pGroupObjectId = (priceMap && priceMap.get(pGroupCodeUpper))
+          || (
               await Price.findOne({
-                pGroupCode: ele.PGroup_strCode.toUpperCase(),
+                pGroupCode: pGroupCodeUpper,
                 cinemaId: cinemaIdUpper,
               })
             )?._id;
 
-        const sessionRealshowMatch = ele.Session_dtmRealShow.match(/\d+/);
-        const sessionFinishShowMatch = ele.Session_dtmFinishShow.match(/\d+/);
-        const filmFirstShowMatch = ele.Session_dtmFilmFirstShow.match(/\d+/);
+        const sessionRealshowMatch = (ele.Session_dtmRealShow || "").match(/\d+/);
+        const sessionFinishShowMatch = (ele.Session_dtmFinishShow || "").match(/\d+/);
+        const filmFirstShowMatch = (ele.Session_dtmFilmFirstShow || "").match(/\d+/);
 
         const todayShowData = {
           sessionId: ele.Session_lngSessionId,
@@ -966,27 +1065,27 @@ export const todayShowSync = async (strCinemaId, preFetchedData = null, cinemaMa
           },
         });
       }
-if (bulkOps.length > 0) {
-  const result = await TodayShow.bulkWrite(bulkOps);
-  const newlyAddedCount = result.upsertedCount || 0;
+      if (bulkOps.length > 0) {
+        const result = await TodayShow.bulkWrite(bulkOps);
+        const newlyAddedCount = result.upsertedCount || 0;
 
-  // Deferred Deletion: Remove today's shows no longer in Vista for this cinema
-  await TodayShow.deleteMany({
-    cinemaId: cinemaIdUpper,
-    sessionId: { $nin: incomingSessionIds },
-  });
-  console.log(
-    "todayShowSync done",
-    strCinemaId,
-    "Newly added:",
-    newlyAddedCount
-  );
-  return newlyAddedCount;
-}
-return 0;
-}
-} catch (error) {
-console.error("todayShowSync error:", error);
-throw error;
-}
+        // Deferred Deletion: Remove today's shows no longer in Vista for this cinema
+        await TodayShow.deleteMany({
+          cinemaId: cinemaIdUpper,
+          sessionId: { $nin: incomingSessionIds },
+        });
+        console.log(
+          "todayShowSync done",
+          strCinemaId,
+          "Newly added:",
+          newlyAddedCount
+        );
+        return newlyAddedCount;
+      }
+      return 0;
+    }
+  } catch (error) {
+    console.error("todayShowSync error:", error);
+    throw error;
+  }
 };//#endregion
