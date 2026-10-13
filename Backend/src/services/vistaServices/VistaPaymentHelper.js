@@ -38,26 +38,19 @@ export const buildMultiPaymentDetails = ({
     0;
   const fnbPaise = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
 
-  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE || "CW";
-  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER !== "false";
-
   let payIndex = 1;
   let multipayment = "";
 
-  if (enableDiscountTender && discountPaytype && discountPaise > 0) {
-    if (paidTicketPaise > 0) {
-      multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
-      payIndex++;
-      multipayment += `PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
-      payIndex++;
-    } else {
-      // 100% ticket discount: customer paid 0 for tickets
-      multipayment += `|PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
-      payIndex++;
-    }
+  // Only pass the actual customer paid amount for tickets to Vista (Trans_Cash table).
+  // The discount amount (e.g. 760/-) must NOT be passed as a tender entry in Trans_Cash.
+  if (paidTicketPaise > 0) {
+    multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
+    payIndex++;
+  } else if (ticketGrossPaise > 0 && discountPaise >= ticketGrossPaise) {
+    // 100% discount: customer paid 0 for tickets
+    multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=0|`;
+    payIndex++;
   } else {
-    // Vista holds seats at gross ticket total (in paise).
-    // udsCommitBook requires the gross ticket reservation amount under valid tender CW.
     multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${ticketGrossPaise}|`;
     payIndex++;
   }
