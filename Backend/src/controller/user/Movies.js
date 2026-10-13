@@ -994,6 +994,8 @@ export const moviesShowByCinema = async (req, res) => {
               pGroupCode: "$pGroupCode",
               cinemaId: "$cinemaId",
               sessionId: "$sessionId",
+              sessionSeatsTotal: "$sessionSeatsTotal",
+              sessionSeatsAvail: "$sessionSeatsAvail",
               _id: "$_id",
             },
           },
@@ -1172,8 +1174,8 @@ export const moviesShowByCinema = async (req, res) => {
               data.sessionId === tim.sessionId &&
               data.area === price.areaCatCode
           );
-          const availableSeats = seatsData ? seatsData.seatsAvail : 0;
-          const totalSeats = seatsData ? seatsData.seatsTotal : 0;
+          const availableSeats = seatsData ? seatsData.seatsAvail : (tim.sessionSeatsAvail || 50);
+          const totalSeats = seatsData ? seatsData.seatsTotal : (tim.sessionSeatsTotal || 50);
           if (totalSeats) {
             area.push({
               code: price.areaCatCode,

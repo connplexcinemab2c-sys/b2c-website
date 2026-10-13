@@ -630,25 +630,36 @@ export const seatFilter = async () => {
       maxBodyLength: Infinity,
       url: `${process.env.VISTA_URL}/api.asmx/Session_AreaCount`,
       headers: {},
+      timeout: 30000,
     };
     const response = await axios.request(config);
-    await SeatFilter.deleteMany({});
-    if (response.data.data.ItemPrice.length) {
-      const resArray = response.data.data.ItemPrice;
-      for (let i = 0; i < resArray.length; i++) {
-        const ele = resArray[i];
-        await new SeatFilter({
-          cinemaId: ele.Cinema_strID,
-          sessionId: ele.Session_lngSessionId,
-          seatsAvail: ele.SessAC_intSeatsAvail,
-          seatAllocation: ele.SessAC_strSeatAllocation,
-          seatsTotal: ele.SessAC_intSeatsTotal,
-          area: ele.AreaCat_strCode,
-          filmCode: ele.Film_strCode,
-        }).save();
-      }
+    const resArray = response.data?.data?.ItemPrice || [];
+    if (resArray.length) {
+      const bulkOps = resArray.map((ele) => ({
+        updateOne: {
+          filter: {
+            sessionId: parseInt(ele.Session_lngSessionId),
+            area: String(ele.AreaCat_strCode),
+          },
+          update: {
+            $set: {
+              cinemaId: ele.Cinema_strID,
+              sessionId: parseInt(ele.Session_lngSessionId),
+              seatsAvail: parseInt(ele.SessAC_intSeatsAvail) || 0,
+              seatAllocation: ele.SessAC_strSeatAllocation,
+              seatsTotal: parseInt(ele.SessAC_intSeatsTotal) || 0,
+              area: String(ele.AreaCat_strCode),
+              filmCode: ele.Film_strCode,
+              deletedStatus: 0,
+            },
+          },
+          upsert: true,
+        },
+      }));
+      await SeatFilter.bulkWrite(bulkOps, { ordered: false });
     }
   } catch (error) {
+    console.error("seatFilter error:", error?.message || error);
     throw error;
   }
 };
