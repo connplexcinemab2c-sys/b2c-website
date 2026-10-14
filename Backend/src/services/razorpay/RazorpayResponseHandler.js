@@ -322,6 +322,7 @@ export const paymentResponse = async (req, res) => {
         finalBookingCalculation: true,
         addSeatData: true,
         foodAndBvgResponse: true,
+        vistaOrderUpdated: true,
       }
     ).sort({ createdAt: -1 });
 
@@ -445,6 +446,7 @@ export const paymentResponse = async (req, res) => {
       finalBooking: bookingData?.finalBookingCalculation,
       addSeatData: bookingData?.addSeatData,
       foodAndBvgResponse: bookingData?.foodAndBvgResponse,
+      vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
     });
 
     const vistaConfig = {

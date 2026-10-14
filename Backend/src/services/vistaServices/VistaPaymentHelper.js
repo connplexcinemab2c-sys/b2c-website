@@ -11,6 +11,7 @@ export const buildMultiPaymentDetails = ({
   finalBooking,
   addSeatData,
   foodAndBvgResponse,
+  vistaOrderUpdated = false,
 }) => {
   // 1. Gross ticket reservation amount held in Vista
   // Vista requires udsCommitBook tender amounts to sum exactly to the gross seat reservation.
@@ -38,19 +39,41 @@ export const buildMultiPaymentDetails = ({
     0;
   const fnbPaise = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
 
+  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
+  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
+
   let payIndex = 1;
   let multipayment = "";
 
-  // Only pass the actual customer paid amount for tickets to Vista (Trans_Cash table).
-  // The discount amount (e.g. 760/-) must NOT be passed as a tender entry in Trans_Cash.
-  if (paidTicketPaise > 0) {
+  // CASE 1: blnUpdateOrder succeeded on the cinema server.
+  // Vista's internal order total in Trans_Ticket was successfully updated to the discounted price.
+  // Therefore, the tender sent must equal the discounted price.
+  if (vistaOrderUpdated) {
     multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
     payIndex++;
-  } else if (ticketGrossPaise > 0 && discountPaise >= ticketGrossPaise) {
-    // 100% discount: customer paid 0 for tickets
-    multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=0|`;
-    payIndex++;
-  } else {
+  }
+  // CASE 2: Cinema configured with a dedicated non-cash discount tender code in Vista POS (e.g. DISC, VOUC)
+  // Split between paid ticket (CW) and discount tender (DISC) so it sums to ticketGrossPaise.
+  else if (enableDiscountTender && discountPaytype && discountPaise > 0) {
+    if (paidTicketPaise > 0) {
+      multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
+      payIndex++;
+      multipayment += `PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
+      payIndex++;
+    } else {
+      // 100% ticket discount: customer paid 0 for tickets
+      multipayment += `|PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
+      payIndex++;
+    }
+  }
+  // CASE 3: Standard Vista commit flow.
+  // When blnUpdateOrder is blocked by cinema firewall, Vista holds the reservation at ticketGrossPaise.
+  // udsCommitBook strictly requires tenders to equal the gross reservation.
+  // By tendering the gross ticket total under CW (Web Payment):
+  // 1. Commit succeeds 100% (Status: 1) — prevents commit failure & customer deduction without ticket!
+  // 2. Only ONE single entry is created in Trans_Cash under CW (no duplicate cash row!).
+  // 3. Physical cash drawer accounting is unaffected (0 cash recorded).
+  else {
     multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${ticketGrossPaise}|`;
     payIndex++;
   }

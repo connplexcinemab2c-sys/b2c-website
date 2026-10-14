@@ -74,6 +74,11 @@ let transaction = new mongoose.Schema(
       type: Boolean,
       required: false,
     },
+    vistaOrderUpdated: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     refundStatus: {
       type: Boolean,
       required: false,

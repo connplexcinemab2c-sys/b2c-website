@@ -99,6 +99,7 @@ export const paymentResponse = async (req, res) => {
           commitBookingData: true,
           addSeatData: true,
           foodAndBvgResponse: true,
+          vistaOrderUpdated: true,
         }
       ).sort({ createdAt: -1 });
 
@@ -186,6 +187,7 @@ export const paymentResponse = async (req, res) => {
           finalBooking: bookingData?.finalBookingCalculation,
           addSeatData: bookingData?.addSeatData,
           foodAndBvgResponse: bookingData?.foodAndBvgResponse,
+          vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
         });
         await checkAndGrantWelcomeGift(userId);
         if (process.env.VISTA_TICKET_BOOKING == "true") {

@@ -356,6 +356,7 @@ const _commitTicketBooking = async (txn, notes, payment) => {
     finalBooking: txn.finalBookingCalculation,
     addSeatData: txn.addSeatData,
     foodAndBvgResponse: txn.foodAndBvgResponse,
+    vistaOrderUpdated: txn.vistaOrderUpdated === true,
   });
 
   try {
