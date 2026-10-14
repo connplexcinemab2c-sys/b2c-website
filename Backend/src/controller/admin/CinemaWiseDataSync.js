@@ -147,23 +147,41 @@ export const movieSync = async (strCinemaId, preFetchedData = null, cinemaMap = 
 //#region Shows sync cinema wise
 export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = null, movieMap = null, priceMap = null) => {
   try {
+    const rawId = typeof Cinema_strID === "object" ? (Cinema_strID.Cinema_strID || Cinema_strID.cinemaId) : Cinema_strID;
+    const cinemaIdUpper = (rawId || "").trim().toUpperCase();
+
     let resArray;
     if (globalSessions) {
-      resArray = globalSessions.data?.data?.SessionList;
+      resArray = globalSessions.data?.data?.SessionList || globalSessions.data?.data;
     } else {
-      const showConfig = {
-        method: "get",
-        maxBodyLength: Infinity,
-        url: `${process.env.VISTA_URL}/api.asmx/GetAllSession?test=string`,
-        headers: {},
-        timeout: 60000,
-      };
-      const response = await axios.request(showConfig);
-      resArray = response.data?.data?.SessionList;
+      try {
+        const cinemaShowConfig = {
+          method: "get",
+          maxBodyLength: Infinity,
+          url: `${process.env.VISTA_URL}/api.asmx/GetCinemawiseSession?CinemaId=${cinemaIdUpper}`,
+          headers: {},
+          timeout: 20000,
+        };
+        const response = await axios.request(cinemaShowConfig);
+        resArray = response.data?.data?.SessionList || (Array.isArray(response.data?.data) ? response.data?.data : null);
+      } catch (cinemaShowErr) {
+        console.warn(`GetCinemawiseSession failed for ${cinemaIdUpper}, falling back to GetAllSession:`, cinemaShowErr.message);
+      }
+
+      if (!resArray) {
+        const showConfig = {
+          method: "get",
+          maxBodyLength: Infinity,
+          url: `${process.env.VISTA_URL}/api.asmx/GetAllSession?test=string`,
+          headers: {},
+          timeout: 60000,
+        };
+        const response = await axios.request(showConfig);
+        resArray = response.data?.data?.SessionList;
+      }
     }
 
     if (resArray && resArray.length) {
-      const cinemaIdUpper = Cinema_strID.trim().toUpperCase();
       const selectedMovieShows = resArray.filter((show) => {
         return (show.Cinema_strID || "").trim().toUpperCase() == cinemaIdUpper;
       });
@@ -173,12 +191,19 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
         new Map(selectedMovieShows.map((s) => [s.Session_lngSessionId, s])).values()
       );
 
-      // Deactivate shows not in the current Vista list for this cinema
-      const sessionIds = uniqueSelectedShows.map(s => parseInt(s.Session_lngSessionId));
-      await Shows.updateMany(
-        { cinemaId: cinemaIdUpper, sessionId: { $nin: sessionIds }, isActive: true },
-        { $set: { isActive: false } }
-      );
+      // Deactivate upcoming shows not in the current Vista list for this cinema
+      const sessionIds = uniqueSelectedShows.map(s => parseInt(s.Session_lngSessionId, 10)).filter(Boolean);
+      if (sessionIds.length > 0) {
+        await Shows.updateMany(
+          {
+            cinemaId: cinemaIdUpper,
+            sessionRealShow: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+            sessionId: { $nin: sessionIds },
+            isActive: true
+          },
+          { $set: { isActive: false } }
+        );
+      }
 
       const bulkOps = [];
       for (const ele of uniqueSelectedShows) {
@@ -190,11 +215,25 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
         const movieObjectId = (movieMap && movieMap.get(filmCode)) || (await Movies.findOne({ filmCode, cinemaId: cinemaIdUpper }))?._id;
         const priceObjectId = (priceMap && priceMap.get(pGroupCode)) || (await Price.findOne({ pGroupCode, cinemaId: cinemaIdUpper }))?._id;
 
-        const sessionRealShowMatch = (ele.Session_dtmRealShow || "").match(/\d+/);
-        const sessionFinishShowMatch = (ele.Session_dtmFinishShow || "").match(/\d+/);
-        const filmFirstShowMatch = (ele.Session_dtmFilmFirstShow || "").match(/\d+/);
+        const parseVistaDate = (rawDate) => {
+          if (!rawDate) return new Date();
+          if (typeof rawDate === "string") {
+            if (rawDate.includes("/Date(")) {
+              const match = rawDate.match(/\/Date\((\d+)\)\//) || rawDate.match(/\d+/);
+              if (match) return new Date(parseInt(match[1] || match[0], 10));
+            }
+            const d = new Date(rawDate);
+            if (!isNaN(d.getTime())) return d;
+          } else if (rawDate instanceof Date) {
+            return rawDate;
+          }
+          return new Date();
+        };
+
+        const parsedSessionId = parseInt(ele.Session_lngSessionId, 10);
 
         const showData = {
+          sessionId: parsedSessionId,
           cinemaId: cinemaIdUpper,
           filmCode: filmCode,
           screenNumber: ele.Screen_bytNum,
@@ -202,14 +241,14 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
           screenName: ele.Screen_strName,
           screenStatus: ele.Session_strStatus,
           screenType: ele.Session_strType,
-          sessionRealShow: sessionRealShowMatch ? new Date(parseInt(sessionRealShowMatch[0], 10)) : new Date(),
-          sessionFinishShow: sessionFinishShowMatch ? new Date(parseInt(sessionFinishShowMatch[0], 10)) : new Date(),
+          sessionRealShow: parseVistaDate(ele.Session_dtmRealShow),
+          sessionFinishShow: parseVistaDate(ele.Session_dtmFinishShow),
           pGroupCode: ele.PGroup_strCode,
           sessionSeatsAvail: ele.Session_intSeatsAvail,
           sessionSeatsTotal: ele.Session_intSeatsTotal,
           sessionSeatAllocation: ele.Session_strSeatAllocation,
           sessionComments: ele.Session_strComments,
-          sessionFilmFirstShow: filmFirstShowMatch ? new Date(parseInt(filmFirstShowMatch[0], 10)) : new Date(),
+          sessionFilmFirstShow: parseVistaDate(ele.Session_dtmFilmFirstShow),
           sessionHOSessionId: ele.Session_strHOSessionID,
           sessionAdditionalData: ele.Session_strAdditionalData,
           cinOperatorCode: ele.CinOperator_strCode,
@@ -217,11 +256,12 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
           filmObjectId: movieObjectId || null,
           pGroupObjectId: priceObjectId || null,
           isActive: true,
+          deletedStatus: 0,
         };
 
         bulkOps.push({
           updateOne: {
-            filter: { sessionId: ele.Session_lngSessionId, cinemaId: cinemaIdUpper },
+            filter: { sessionId: parsedSessionId, cinemaId: cinemaIdUpper },
             update: { $set: showData },
             upsert: true
           }

@@ -506,12 +506,16 @@ export const showDataSync = async () => {
             filmObjectId: filmObjectId ? filmObjectId._id : null,
             pGroupObjectId: pGroupObjectId ? pGroupObjectId._id : null,
             isActive: true,
+            deletedStatus: 0,
           };
+
+          const parsedSessId = parseInt(ele.Session_lngSessionId, 10);
+          showData.sessionId = parsedSessId;
 
           bulkOps.push({
             updateOne: {
               filter: {
-                sessionId: ele.Session_lngSessionId,
+                sessionId: parsedSessId,
                 cinemaId: cinemaIdUpper,
               },
               update: { $set: showData },
@@ -524,18 +528,21 @@ export const showDataSync = async () => {
           const result = await Show.bulkWrite(bulkOps);
           totalUpserted += result.upsertedCount || 0;
 
-          await Show.updateMany(
-            {
-              sessionId: { $nin: sessionIds },
-              cinemaId: allCinemas[j].cinemaId,
-              isActive: true,
-            },
-            {
-              $set: {
-                isActive: false,
+          if (sessionIds.length > 0) {
+            await Show.updateMany(
+              {
+                cinemaId: allCinemas[j].cinemaId,
+                sessionRealShow: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+                sessionId: { $nin: sessionIds },
+                isActive: true,
               },
-            }
-          );
+              {
+                $set: {
+                  isActive: false,
+                },
+              }
+            );
+          }
         }
       }
       return totalUpserted;
