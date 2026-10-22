@@ -29,7 +29,18 @@ export const buildMultiPaymentDetails = ({
     discountPaise = ticketGrossPaise;
   }
 
-  const paidTicketPaise = Math.max(0, ticketGrossPaise - discountPaise);
+  // Determine actual net paid ticket amount (Total price - Discount applied)
+  let paidTicketPaise;
+  const hasCartTotal =
+    finalBooking?.ticketCart?.total !== undefined &&
+    finalBooking?.ticketCart?.total !== null &&
+    !isNaN(Number(finalBooking?.ticketCart?.total));
+
+  if (hasCartTotal) {
+    paidTicketPaise = Math.max(0, Math.round(Number(finalBooking.ticketCart.total) * 100));
+  } else {
+    paidTicketPaise = Math.max(0, ticketGrossPaise - discountPaise);
+  }
   const paidTicket = paidTicketPaise / 100;
 
   const foodAmount =
@@ -42,44 +53,49 @@ export const buildMultiPaymentDetails = ({
   const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
   const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
 
-  let payIndex = 1;
-  let multipayment = "";
+  const tenders = [];
 
-  // CASE 1: blnUpdateOrder succeeded on the cinema server.
-  // Vista's internal order total in Trans_Ticket was successfully updated to the discounted price.
-  // Therefore, the tender sent must equal the discounted price.
-  if (vistaOrderUpdated) {
-    multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
-    payIndex++;
-  }
-  // CASE 2: Cinema configured with a dedicated non-cash discount tender code in Vista POS (e.g. DISC, VOUC)
-  // Split between paid ticket (CW) and discount tender (DISC) so it sums to ticketGrossPaise.
-  else if (enableDiscountTender && discountPaytype && discountPaise > 0) {
+  // CASE 1: Cinema configured with dedicated discount tender in Vista POS (e.g. DISC, VOUC)
+  if (enableDiscountTender && discountPaytype && discountPaise > 0) {
     if (paidTicketPaise > 0) {
-      multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${paidTicketPaise}|`;
-      payIndex++;
-      multipayment += `PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
-      payIndex++;
+      tenders.push({ type: "CW", amount: paidTicketPaise });
+      tenders.push({ type: discountPaytype, amount: discountPaise });
     } else {
       // 100% ticket discount: customer paid 0 for tickets
-      multipayment += `|PAYTYPE${payIndex}=${discountPaytype}|AMOUNT${payIndex}=${discountPaise}|`;
-      payIndex++;
+      tenders.push({ type: discountPaytype, amount: discountPaise });
     }
   }
-  // CASE 3: Standard Vista commit flow.
-  // When blnUpdateOrder is blocked by cinema firewall, Vista holds the reservation at ticketGrossPaise.
-  // udsCommitBook strictly requires tenders to equal the gross reservation.
-  // By tendering the gross ticket total under CW (Web Payment):
-  // 1. Commit succeeds 100% (Status: 1) — prevents commit failure & customer deduction without ticket!
-  // 2. Only ONE single entry is created in Trans_Cash under CW (no duplicate cash row!).
-  // 3. Physical cash drawer accounting is unaffected (0 cash recorded).
+  // CASE 2: Standard tender flow (CW only)
+  // Reflect the net customer paid amount (Total Price - Discount Applied) in Vista DB (Trans_Cash)
   else {
-    multipayment += `|PAYTYPE${payIndex}=CW|AMOUNT${payIndex}=${ticketGrossPaise}|`;
-    payIndex++;
+    if (paidTicketPaise > 0) {
+      tenders.push({ type: "CW", amount: paidTicketPaise });
+    } else if (ticketGrossPaise > 0) {
+      // 100% discount: customer paid 0 for tickets.
+      // Vista's udsCommitBook rejects AMOUNT=0, so tender gross reservation or discount paytype.
+      if (discountPaytype) {
+        tenders.push({ type: discountPaytype, amount: ticketGrossPaise });
+      } else {
+        tenders.push({ type: "CW", amount: ticketGrossPaise });
+      }
+    }
   }
 
+  // F&B tender under CWFNB
   if (fnbPaise > 0) {
-    multipayment += `PAYTYPE${payIndex}=CWFNB|AMOUNT${payIndex}=${fnbPaise}|`;
+    tenders.push({ type: "CWFNB", amount: fnbPaise });
+  }
+
+  // Build pipe-delimited MultiPaymentDetails string:
+  // e.g. |PAYTYPE1=CW|AMOUNT1=10000| or |PAYTYPE1=CW|AMOUNT1=10000|PAYTYPE2=CWFNB|AMOUNT2=5000|
+  let multipayment = "";
+  if (tenders.length > 0) {
+    multipayment =
+      "|" +
+      tenders
+        .map((t, idx) => `PAYTYPE${idx + 1}=${t.type}|AMOUNT${idx + 1}=${t.amount}`)
+        .join("|") +
+      "|";
   }
 
   return {
