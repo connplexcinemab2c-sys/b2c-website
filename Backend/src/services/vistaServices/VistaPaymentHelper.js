@@ -66,18 +66,20 @@ export const buildMultiPaymentDetails = ({
     }
   }
   // CASE 2: Standard tender flow (CW only)
-  // Reflect the net customer paid amount (Total Price - Discount Applied) in Vista DB (Trans_Cash)
   else {
-    if (paidTicketPaise > 0) {
+    // If blnUpdateOrder successfully updated the order in Vista to the discounted price:
+    // Vista's internal order in Trans_Ticket is now at paidTicketPaise (e.g. ₹100).
+    // Therefore, tender paidTicketPaise so the tender matches Vista's updated order.
+    // In Vista DB, both Trans_Ticket and Trans_Cash will reflect the net paid amount (₹100).
+    if (vistaOrderUpdated && paidTicketPaise > 0) {
       tenders.push({ type: "CW", amount: paidTicketPaise });
-    } else if (ticketGrossPaise > 0) {
-      // 100% discount: customer paid 0 for tickets.
-      // Vista's udsCommitBook rejects AMOUNT=0, so tender gross reservation or discount paytype.
-      if (discountPaytype) {
-        tenders.push({ type: discountPaytype, amount: ticketGrossPaise });
-      } else {
-        tenders.push({ type: "CW", amount: ticketGrossPaise });
-      }
+    }
+    // If blnUpdateOrder was blocked by cinema firewall (vistaOrderUpdated = false):
+    // Vista still holds the reservation at ticketGrossPaise (e.g. ₹500).
+    // udsCommitBook strictly requires tenders to equal the gross reservation held in Vista.
+    // Tendering gross prevents commit failure & customer deduction without ticket.
+    else {
+      tenders.push({ type: "CW", amount: ticketGrossPaise });
     }
   }
 

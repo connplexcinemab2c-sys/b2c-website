@@ -25,7 +25,10 @@ export const ensureIndexes = async () => {
     await Shows.collection.createIndex({ cinemaId: 1, isActive: 1 });
 
     // PricePackage: Compound index for the unique combination used in sync
-    await PricePackage.collection.createIndex({ cinemaId: 1, pPackCode: 1, pGroupCode: 1, tTypeCode: 1 });
+    await PricePackage.collection.createIndex(
+      { cinemaId: 1, pPackCode: 1, pGroupCode: 1, tTypeCode: 1 },
+      { unique: true }
+    );
 
     // Items: Fast lookup for F&B
     await Items.collection.createIndex({ cinemaId: 1, itemId: 1 });

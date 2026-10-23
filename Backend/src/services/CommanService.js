@@ -65,7 +65,7 @@ export const decrypt = async (text) => {
 };
 //decrypt payment request of ccavenue
 export const decryptPayment = (salt, encoded) => {
-  const textToChars = (text) => text.split("").map((c) => c.charCodeAt(0));
+  const textToChars = (text) => text?.split("").map((c) => c.charCodeAt(0));
   const applySaltToChar = (code) =>
     textToChars(salt).reduce((a, b) => a ^ b, code);
   return encoded

@@ -119,8 +119,20 @@ export const updateVistaOrderPrice = async ({
         }
       }
     } else {
-      for (let i = 1; i <= qtyVal; i++) {
-        updateTicketsXml += `<Ticket><Id>${i}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
+      // Use outcome ID from AddSeats API (intBookId, strBookId, or strBookIdEx)
+      const outcomeId =
+        addSeatData.intBookId ||
+        addSeatData.strBookId ||
+        addSeatData.strBookIdEx ||
+        addSeatData.bookingId ||
+        addSeatData.id;
+
+      if (outcomeId) {
+        updateTicketsXml += `<Ticket><Id>${outcomeId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
+      } else {
+        for (let i = 1; i <= qtyVal; i++) {
+          updateTicketsXml += `<Ticket><Id>${i}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
+        }
       }
     }
 
@@ -317,6 +329,22 @@ export const couponCart = async (req, res) => {
     // }
           cart.foodCart.totalAmountByBase = FBamount;
 
+    createLog({
+      transaction_id: transId,
+      type: "Booking",
+      step: {
+        logType: "cartWholeCalculation",
+        success: true,
+        message: `Cart whole calculation: tickets ₹${cart.ticketCart?.total || 0}, F&B ₹${cart.foodCart?.total || 0}, convenience fee ₹${cart.convenienceFeesObject?.total || 0}, discount ₹${cart.totalDiscount || 0}, final amount ₹${cart.finalAmount || 0}`,
+        cart: JSON.parse(JSON.stringify(cart)),
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+    console.log(
+      `[CouponCart] Cart whole calculation for transId ${transId}:`,
+      JSON.stringify(cart, null, 2)
+    );
 
     await Transaction.findOneAndUpdate(
       {
@@ -327,6 +355,28 @@ export const couponCart = async (req, res) => {
           finalBookingCalculation: cart,
         },
       }
+    );
+
+    createLog({
+      transaction_id: transId,
+      type: "Booking",
+      step: {
+        logType: "finalBookingCalculation",
+        success: true,
+        finalAmount: cart.finalAmount,
+        totalDiscount: cart.totalDiscount,
+        ticketTotal: cart.ticketCart?.total,
+        fnbTotal: cart.foodCart?.total,
+        convenienceFee: cart.convenienceFeesObject?.total || 0,
+        rewardDiscount: cart.rewardDiscountApplied || 0,
+        couponCode: cart.ticketCart?.coupons?.[0] || null,
+        message: `Final booking calculation saved: finalAmount ₹${cart.finalAmount}, totalDiscount ₹${cart.totalDiscount}`,
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+    console.log(
+      `[CouponCart] Final booking calculation saved for transId ${transId}: finalAmount ₹${cart.finalAmount}, totalDiscount ₹${cart.totalDiscount}`
     );
 
     const findTx = await Transaction.findOne({ initTransId: transId }).populate("cinemaId");
