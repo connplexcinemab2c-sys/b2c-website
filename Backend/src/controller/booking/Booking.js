@@ -388,7 +388,7 @@ export const addSeats = async (req, res) => {
           status: StatusCodes.OK,
           message: ResponseMessage.ADD_SEAT_SUCCESS,
           data: {
-            Status: 1,
+            Status: "1",
             data: properties,
           },
         });
