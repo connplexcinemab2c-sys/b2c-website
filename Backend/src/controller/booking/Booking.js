@@ -362,11 +362,20 @@ export const addSeats = async (req, res) => {
         if (!properties.strBookId && properties.intBookId) {
           properties.strBookId = String(properties.intBookId);
         }
+        if (strType) {
+          properties.tTypeCode = strType;
+          properties.strType = strType;
+        }
+        // Always store original gross tickets total from Vista to prevent compounding discount bugs
+        properties.grossTicketsTotal = String(properties.curTicketsTotal || properties.curTotal || 0);
 
         await Transaction.findOneAndUpdate(
           { initTransId: strTransId },
           {
-            $set: { addSeatData: properties },
+            $set: {
+              addSeatData: properties,
+              ...(strType ? { tTypeCode: strType } : {}),
+            },
             $push: {
               logs: {
                 addSeat: new Date(),
@@ -471,6 +480,9 @@ export const addSeatsEx = async (req, res) => {
     });
 
     if (result.success) {
+      if (result.properties) {
+        result.properties.grossTicketsTotal = String(result.properties.curTicketsTotal || result.properties.curTotal || 0);
+      }
       if (strTransId) {
         await Transaction.findOneAndUpdate(
           { initTransId: strTransId },

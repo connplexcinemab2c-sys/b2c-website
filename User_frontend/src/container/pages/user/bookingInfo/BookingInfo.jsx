@@ -240,31 +240,30 @@ function BookingInfo() {
                         </Index.Box>
                       )}
 
-                      {finalBookingCalculation?.ticketCart?.discountAmount >
-                        0 && (
-                        <Index.Box className="payment-summary-row">
-                          <Index.Typography
-                            variant="p"
-                            component="p"
-                            className="payment-summary-label"
-                          >
-                            Discount :
-                          </Index.Typography>
-                          <Index.Typography
-                            variant="p"
-                            component="p"
-                            className="payment-summary-price"
-                          >
-                            - ₹
-                            {finalBookingCalculation?.ticketCart?.discountAmount
-                              ? parseFloat(
-                                  finalBookingCalculation?.ticketCart
-                                    ?.discountAmount
-                                )?.toFixed(2)
-                              : 0}
-                          </Index.Typography>
-                        </Index.Box>
-                      )}
+                      {(() => {
+                        const ticketCouponDisc =
+                          finalBookingCalculation?.ticketCart?.couponDiscount != null
+                            ? Number(finalBookingCalculation?.ticketCart?.couponDiscount)
+                            : Math.max(0, (Number(finalBookingCalculation?.ticketCart?.discountAmount) || 0) - (Number(finalBookingCalculation?.ticketCart?.membershipDiscount) || 0));
+                        return ticketCouponDisc > 0 ? (
+                          <Index.Box className="payment-summary-row">
+                            <Index.Typography
+                              variant="p"
+                              component="p"
+                              className="payment-summary-label"
+                            >
+                              Discount :
+                            </Index.Typography>
+                            <Index.Typography
+                              variant="p"
+                              component="p"
+                              className="payment-summary-price"
+                            >
+                              - ₹{parseFloat(ticketCouponDisc).toFixed(2)}
+                            </Index.Typography>
+                          </Index.Box>
+                        ) : null;
+                      })()}
 
                       {finalBookingCalculation?.ticketCart?.totalAfterDiscount >
                         0 && (
@@ -507,32 +506,30 @@ function BookingInfo() {
                                 </Index.Typography>
                               </Index.Box>
                             )}
-                            {finalBookingCalculation?.foodCart?.discountAmount >
-                              0 && (
-                              <Index.Box className="payment-summary-row ticket-book-gst">
-                                <Index.Typography
-                                  variant="p"
-                                  component="p"
-                                  className="payment-summary-label"
-                                >
-                                  Discount:
-                                </Index.Typography>
-                                <Index.Typography
-                                  variant="p"
-                                  component="p"
-                                  className="payment-summary-price"
-                                >
-                                  ₹
-                                  {finalBookingCalculation?.foodCart
-                                    ?.discountAmount
-                                    ? parseFloat(
-                                        finalBookingCalculation?.foodCart
-                                          ?.discountAmount
-                                      )?.toFixed(2)
-                                    : 0}
-                                </Index.Typography>
-                              </Index.Box>
-                            )}
+                            {(() => {
+                              const foodCouponDisc =
+                                finalBookingCalculation?.foodCart?.couponDiscount != null
+                                  ? Number(finalBookingCalculation?.foodCart?.couponDiscount)
+                                  : Math.max(0, (Number(finalBookingCalculation?.foodCart?.discountAmount) || 0) - (Number(finalBookingCalculation?.foodCart?.membershipDiscount) || 0));
+                              return foodCouponDisc > 0 ? (
+                                <Index.Box className="payment-summary-row ticket-book-gst">
+                                  <Index.Typography
+                                    variant="p"
+                                    component="p"
+                                    className="payment-summary-label"
+                                  >
+                                    Discount:
+                                  </Index.Typography>
+                                  <Index.Typography
+                                    variant="p"
+                                    component="p"
+                                    className="payment-summary-price"
+                                  >
+                                    - ₹{parseFloat(foodCouponDisc).toFixed(2)}
+                                  </Index.Typography>
+                                </Index.Box>
+                              ) : null;
+                            })()}
 
                             {finalBookingCalculation?.foodCart
                               ?.totalAfterDiscount > 0 && (

@@ -1156,34 +1156,35 @@ console.log({selectedFood});
                   ""
                 )}
 
-                {ticketCart?.discountAmount || foodCart?.discountAmount ? (
-                  <Index.Box className="payment-summary-row">
-                    <Index.Typography
-                      variant="p"
-                      component="p"
-                      className="payment-summary-label"
-                    >
-                      <Index.Typography variant="p" component="p">
-                        Discount:
+                {(() => {
+                  const combinedCouponDisc =
+                    (ticketCart?.couponDiscount != null
+                      ? Number(ticketCart?.couponDiscount)
+                      : Math.max(0, (Number(ticketCart?.discountAmount) || 0) - (Number(ticketCart?.membershipDiscount) || 0))) +
+                    (foodCart?.couponDiscount != null
+                      ? Number(foodCart?.couponDiscount)
+                      : Math.max(0, (Number(foodCart?.discountAmount) || 0) - (Number(foodCart?.membershipDiscount) || 0)));
+                  return combinedCouponDisc > 0 ? (
+                    <Index.Box className="payment-summary-row">
+                      <Index.Typography
+                        variant="p"
+                        component="p"
+                        className="payment-summary-label"
+                      >
+                        <Index.Typography variant="p" component="p">
+                          Discount:
+                        </Index.Typography>
                       </Index.Typography>
-                    </Index.Typography>
-                    <Index.Typography
-                      variant="p"
-                      component="p"
-                      className="payment-summary-price"
-                    >
-                      ₹
-                      {ticketCart?.discountAmount || foodCart?.discountAmount
-                        ? Number(
-                            +ticketCart?.discountAmount +
-                              +foodCart?.discountAmount
-                          )?.toFixed(2)
-                        : 0.0}
-                    </Index.Typography>
-                  </Index.Box>
-                ) : (
-                  ""
-                )}
+                      <Index.Typography
+                        variant="p"
+                        component="p"
+                        className="payment-summary-price"
+                      >
+                        - ₹{Number(combinedCouponDisc).toFixed(2)}
+                      </Index.Typography>
+                    </Index.Box>
+                  ) : null;
+                })()}
           
 
                 <Index.Box className="payment-summary-row">

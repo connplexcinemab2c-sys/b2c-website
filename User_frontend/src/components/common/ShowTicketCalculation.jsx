@@ -92,31 +92,33 @@ const ShowTicketCalculation = ({ bookingDetails, finalBookingCalculation }) => {
                 ""
               )}
 
-              {finalBookingCalculation?.ticketCart?.discountAmount || finalBookingCalculation?.foodCart?.discountAmount ? (
-                <Index.Box className="payment-summary-row">
-                  <Index.Typography
-                    variant="p"
-                    component="p"
-                    className="payment-summary-label"
-                  >
-                    Discount :
-                  </Index.Typography>
-                  <Index.Typography
-                    variant="p"
-                    component="p"
-                    className="payment-summary-value"
-                  >
-                    - ₹{
-                      parseFloat(
-                        (Number(finalBookingCalculation?.ticketCart?.discountAmount) || 0) +
-                        (Number(finalBookingCalculation?.foodCart?.discountAmount) || 0)
-                      ).toFixed(2)
-                    }
-                  </Index.Typography>
-                </Index.Box>
-              ) : (
-                ""
-              )}
+              {(() => {
+                const effectiveCouponDiscount =
+                  (finalBookingCalculation?.ticketCart?.couponDiscount != null
+                    ? Number(finalBookingCalculation?.ticketCart?.couponDiscount)
+                    : Math.max(0, (Number(finalBookingCalculation?.ticketCart?.discountAmount) || 0) - (Number(finalBookingCalculation?.ticketCart?.membershipDiscount) || 0))) +
+                  (finalBookingCalculation?.foodCart?.couponDiscount != null
+                    ? Number(finalBookingCalculation?.foodCart?.couponDiscount)
+                    : Math.max(0, (Number(finalBookingCalculation?.foodCart?.discountAmount) || 0) - (Number(finalBookingCalculation?.foodCart?.membershipDiscount) || 0)));
+                return effectiveCouponDiscount > 0 ? (
+                  <Index.Box className="payment-summary-row">
+                    <Index.Typography
+                      variant="p"
+                      component="p"
+                      className="payment-summary-label"
+                    >
+                      Discount :
+                    </Index.Typography>
+                    <Index.Typography
+                      variant="p"
+                      component="p"
+                      className="payment-summary-value"
+                    >
+                      - ₹{parseFloat(effectiveCouponDiscount).toFixed(2)}
+                    </Index.Typography>
+                  </Index.Box>
+                ) : null;
+              })()}
 
             </>
           ) :""}

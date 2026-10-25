@@ -39,6 +39,7 @@ export const getCouponCart = async (
 
   let ticketCart = {
     discountAmount: 0,
+    couponDiscount: 0,
     basePrice: ticketTotal > 0 ? ticketTotal : 0,
     membershipDiscount: 0,
     totalAfterDiscount: 0,
@@ -50,6 +51,7 @@ export const getCouponCart = async (
   };
   let foodCart = {
     discountAmount: 0,
+    couponDiscount: 0,
     basePrice: fnbprice > 0 ? fnbprice : 0,
     membershipDiscount: 0,
     totalAfterDiscount: 0,
@@ -180,9 +182,11 @@ export const recalculateCartPrices = (cart, couponDiscount = 0) => {
   cart.ticketCart.discountAmount = getNumberUptoTwoDecimal(
     Math.min(ticketTotal, ticketMembershipDiscount + ticketShareOfDiscount)
   );
+  cart.ticketCart.couponDiscount = getNumberUptoTwoDecimal(ticketShareOfDiscount);
   cart.foodCart.discountAmount = getNumberUptoTwoDecimal(
     Math.min(fnbTotal, foodMembershipDiscount + foodShareOfDiscount)
   );
+  cart.foodCart.couponDiscount = getNumberUptoTwoDecimal(foodShareOfDiscount);
 
   cart.ticketCart.totalAfterDiscount = getNumberUptoTwoDecimal(Math.max(0, ticketTotal - cart.ticketCart.discountAmount));
   cart.ticketCart.total = cart.ticketCart.totalAfterDiscount;

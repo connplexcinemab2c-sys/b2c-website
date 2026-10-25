@@ -768,30 +768,33 @@ export default function DownloadTicket() {
                                 </Index.Typography>
                               </Index.Box>
                             ):""}
-                            {finalBookingCalculation?.ticketCart?.discountAmount
-                               || finalBookingCalculation?.foodCart?.discountAmount
-                               ? (
-                              <Index.Box className="payment-summary-row">
-                                <Index.Typography
-                                  variant="p"
-                                  component="p"
-                                  className="payment-summary-label"
-                                >
-                                  Discount :
-                                </Index.Typography>
-                                <Index.Typography
-                                  variant="p"
-                                  component="p"
-                                  className="payment-summary-price"
-                                >
-                                  ₹
-                                  {parseFloat(
-                                        +finalBookingCalculation?.ticketCart?.discountAmount + +finalBookingCalculation?.foodCart?.discountAmount
-                                    )?.toFixed(2)
-                                  }
-                                </Index.Typography>
-                              </Index.Box>
-                            ): ""}
+                            {(() => {
+                              const combinedCouponDisc =
+                                (finalBookingCalculation?.ticketCart?.couponDiscount != null
+                                  ? Number(finalBookingCalculation?.ticketCart?.couponDiscount)
+                                  : Math.max(0, (Number(finalBookingCalculation?.ticketCart?.discountAmount) || 0) - (Number(finalBookingCalculation?.ticketCart?.membershipDiscount) || 0))) +
+                                (finalBookingCalculation?.foodCart?.couponDiscount != null
+                                  ? Number(finalBookingCalculation?.foodCart?.couponDiscount)
+                                  : Math.max(0, (Number(finalBookingCalculation?.foodCart?.discountAmount) || 0) - (Number(finalBookingCalculation?.foodCart?.membershipDiscount) || 0)));
+                              return combinedCouponDisc > 0 ? (
+                                <Index.Box className="payment-summary-row">
+                                  <Index.Typography
+                                    variant="p"
+                                    component="p"
+                                    className="payment-summary-label"
+                                  >
+                                    Discount :
+                                  </Index.Typography>
+                                  <Index.Typography
+                                    variant="p"
+                                    component="p"
+                                    className="payment-summary-price"
+                                  >
+                                    - ₹{parseFloat(combinedCouponDisc).toFixed(2)}
+                                  </Index.Typography>
+                                </Index.Box>
+                              ) : null;
+                            })()}
                     </Index.Box>
                   </Index.Box>
 

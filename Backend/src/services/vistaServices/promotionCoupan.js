@@ -47,7 +47,16 @@ export const applyCoupanService = async (req, transId) => {
     const requestObj = {
       param1: cinema.cinemaBranchCode,
       param2: req.area_category_code + string,
-      param3: moment(req.show_date_time).format("DD/MMM/YYYY HH:mm"),
+      param3: moment(
+        req.show_date_time,
+        ["YYYY-MM-DD hh:mm A", "YYYY-MM-DD HH:mm:ss", "YYYY-MM-DD HH:mm", moment.ISO_8601],
+        true
+      ).isValid()
+        ? moment(
+            req.show_date_time,
+            ["YYYY-MM-DD hh:mm A", "YYYY-MM-DD HH:mm:ss", "YYYY-MM-DD HH:mm", moment.ISO_8601]
+          ).format("DD/MMM/YYYY HH:mm")
+        : moment(req.show_date_time).format("DD/MMM/YYYY HH:mm"),
       param4: req.number_of_tickets,
       param5: req.customer_name,
       param6: formatted_ho_code,

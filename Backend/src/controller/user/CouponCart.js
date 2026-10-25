@@ -36,6 +36,7 @@ export const updateVistaOrderPrice = async ({
   quantity,
   addSeatData,
   setSeatData,
+  tTypeCode,
 }) => {
   if (!addSeatData) {
     console.warn("No addSeatData provided, skipping Vista order update.");
@@ -119,20 +120,15 @@ export const updateVistaOrderPrice = async ({
         }
       }
     } else {
-      // Use outcome ID from AddSeats API (intBookId, strBookId, or strBookIdEx)
-      const outcomeId =
-        addSeatData.intBookId ||
-        addSeatData.strBookId ||
-        addSeatData.strBookIdEx ||
-        addSeatData.bookingId ||
-        addSeatData.id;
+      // Use Ticket Type Code (tTypeCode) passed into AddSeats
+      const ticketId =
+        tTypeCode ||
+        addSeatData.tTypeCode ||
+        addSeatData.strType ||
+        "0001";
 
-      if (outcomeId) {
-        updateTicketsXml += `<Ticket><Id>${outcomeId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
-      } else {
-        for (let i = 1; i <= qtyVal; i++) {
-          updateTicketsXml += `<Ticket><Id>${i}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
-        }
+      for (let i = 1; i <= qtyVal; i++) {
+        updateTicketsXml += `<Ticket><Id>${ticketId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
       }
     }
 
@@ -175,6 +171,7 @@ export const couponCart = async (req, res) => {
       couponDetails,
       isCoupan,
       rewardCoins = 0,
+      tTypeCode,
       // } = req.body;
     } = payload;
     // let { selectedFood } = req.body;
@@ -237,7 +234,10 @@ export const couponCart = async (req, res) => {
 
 
     const existingTx = await Transaction.findOne({ initTransId: transId });
+    // Always use immutable gross tickets total if available to prevent compounding discount loop
     const vistaGross =
+      Number(existingTx?.addSeatData?.grossTicketsTotal) ||
+      Number(existingTx?.commitBookingData?.grossTicketsTotal) ||
       Number(existingTx?.addSeatData?.curTicketsTotal) ||
       Number(existingTx?.addSeatData?.curTotal) ||
       0;
@@ -412,6 +412,12 @@ export const couponCart = async (req, res) => {
                 quantity,
                 addSeatData: findTx.addSeatData,
                 setSeatData: findTx.setSeatData,
+                tTypeCode:
+                  payload?.tTypeCode ||
+                  findTx.tTypeCode ||
+                  findTx.addSeatData?.tTypeCode ||
+                  findTx.addSeatData?.strType ||
+                  "0001",
               });
 
               updateSuccess = updateResult?.success === true;
@@ -464,7 +470,8 @@ export const couponCart = async (req, res) => {
             const updatedVistaTotal = newTicketsTotal + curBookingFee;
             const grossTicketsTotal = String(
               findTx.addSeatData.grossTicketsTotal ||
-              findTx.addSeatData.curTicketsTotal ||
+              findTx.commitBookingData?.grossTicketsTotal ||
+              vistaGross ||
               cart.ticketCart.ticketTotal ||
               0
             );
