@@ -78,7 +78,7 @@ export const buildMultiPaymentDetails = ({
     // Vista still holds the reservation at ticketGrossPaise (e.g. ₹500).
     // udsCommitBook strictly requires tenders to equal the gross reservation held in Vista.
     // Tendering gross prevents commit failure & customer deduction without ticket.
-    else {
+    else if (ticketGrossPaise > 0) {
       tenders.push({ type: "CW", amount: ticketGrossPaise });
     }
   }
