@@ -711,6 +711,7 @@ export const upcomingMovies = async (req, res) => {
       const allCinemaIds = getAllMovieByCode.map((m) => m.cinemaId);
 
       if (allCinemaIds.length === 0) continue;
+      if (!regionId || !mongoose.Types.ObjectId.isValid(regionId)) continue;
 
       const cinemaDetails = await Cinema.find(
         {

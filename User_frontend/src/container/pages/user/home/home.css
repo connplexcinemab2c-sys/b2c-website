@@ -117,3 +117,35 @@ video::-webkit-media-controls-panel {
   }
 
   
+
+.movie-slider-heading-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.movie-slider-heading-row .view-all-link {
+    color: #d3b15f;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    padding-top: 30px;
+    transition: opacity 0.2s ease;
+}
+
+.movie-slider-heading-row .view-all-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.main-membership-plan .membership-section-heading {
+    margin-bottom: 25px;
+}
+
+.main-membership-plan .membership-section-heading h5 {
+    color: #d3b15f;
+    text-transform: uppercase;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}

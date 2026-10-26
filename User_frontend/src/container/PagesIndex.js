@@ -38,7 +38,7 @@ import {
 } from "../validation/FormikValidation";
 import { toast } from "react-toastify";
 import { Formik, useFormikContext } from "formik";
-import moment from "moment/moment";
+import moment from "moment";
 import momentTimezone from "moment-timezone";
 import {
   createSearchParams,

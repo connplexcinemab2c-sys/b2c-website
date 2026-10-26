@@ -1,10 +1,9 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState, useCallback } from "react";
 import Index from "../../../Index";
 import PagesIndex from "../../../PagesIndex";
 import "swiper/css/effect-fade";
 import Slider from "react-slick";
 import { FreeMode } from "swiper/modules";
-import { useCallback } from "react";
 import {
   DataService,
   IMAGES_API_ENDPOINT,
@@ -39,17 +38,22 @@ const SWIPER_BREAKPOINTS = {
 };
 
 // Memoized movie slider component
-const MovieSlider = memo(({ title, moviesList, isNowPlaying = false }) => {
+const MovieSlider = memo(({ title, moviesList, isNowPlaying = false, viewAllLink = null }) => {
   if (!moviesList?.length) return <Index.Box className="not-found"></Index.Box>;
-  console.log(title, ":isNowPlaying", isNowPlaying)
-  
+  console.log(title, ":isNowPlaying", isNowPlaying);
+
   const groupedMovies = groupMoviesByBaseName(moviesList);
 
   return (
     <Index.Box className="main-showing-part movie-slider">
       <Index.Box className="cus-container">
-        <Index.Box className="showing-txt movie-slider-heading">
+        <Index.Box className="showing-txt movie-slider-heading movie-slider-heading-row">
           <Index.Typography variant="h5">{title}</Index.Typography>
+          {viewAllLink && (
+            <Index.Link to={viewAllLink} className="view-all-link">
+              View all
+            </Index.Link>
+          )}
         </Index.Box>
         <Index.Box className="main-showing-slider movie-slider-inner">
           <PagesIndex.Swiper
@@ -126,7 +130,6 @@ function Home() {
   const dispatch = PagesIndex.useDispatch();
   const { region } = PagesIndex.useSelector((state) => state.UserReducer);
 
-
   const [state, setState] = useState({
     upcomingMoviesList: [],
     nowPlayingList: [],
@@ -190,6 +193,27 @@ function Home() {
     }));
   }, [region?._id, fetchData]);
 
+  // Upcoming movies data fetching
+  const fetchUpcomingMoviesData = useCallback(
+    async (currentRegionId) => {
+      const endpoint = currentRegionId
+        ? `${Api.GET_UPCOMING_MOVIES}?regionId=${currentRegionId}`
+        : Api.GET_UPCOMING_MOVIES;
+      const upcomingMovies = await fetchData(endpoint);
+      if (upcomingMovies?.status === 200 && Array.isArray(upcomingMovies?.data)) {
+        const flatList = upcomingMovies.data.flatMap(
+          (item) => item?.movies || []
+        );
+        setState((prev) => ({
+          ...prev,
+          upcomingMoviesList: flatList,
+        }));
+        dispatch(PagesIndex.upcomingMoviesList(upcomingMovies.data));
+      }
+    },
+    [fetchData, dispatch]
+  );
+
   // Update banner click count
   const updateBannerClickCount = useCallback(async (bannerId) => {
     try {
@@ -199,13 +223,12 @@ function Home() {
     }
   }, []);
 
-  // Initial data fetching
+  // Initial data fetching on mount
   useEffect(() => {
     const initializeData = async () => {
-      const [bannerData, membershipData, upcomingMovies] = await Promise.all([
+      const [bannerData, membershipData] = await Promise.all([
         fetchData(`${Api.GET_BANNER_IMAGES}?bannerType=Web Banner`),
         fetchData(Api.GET_MEMBERSHIP_DETAILS),
-        fetchData(`${Api.GET_UPCOMING_MOVIES}?regionId=${region?._id}`),
       ]);
 
       setState((prev) => ({
@@ -224,37 +247,24 @@ function Home() {
             : [],
         memberShipDetails:
           membershipData?.status === 200 ? membershipData?.data[0] : {},
-        upcomingMoviesList:
-          upcomingMovies?.status === 200
-            ? upcomingMovies?.data.flatMap((item) =>
-                item.movies.filter(
-                  (data) =>
-                    PagesIndex.moment()
-                      .utc()
-                      .diff(
-                        PagesIndex.moment(data?.filmOpeningDate),
-                        "months"
-                      ) <= 3
-                )
-              )
-            : [],
       }));
 
-      if (upcomingMovies?.status === 200) {
-        dispatch(PagesIndex.upcomingMoviesList(upcomingMovies?.data));
-      }
+      // Initial upcoming movies fetch
+      fetchUpcomingMoviesData(region?._id);
     };
 
     initializeData();
-  }, []); // Run only once on mount
+  }, []);
 
+  // Region-dependent data fetching
   useEffect(() => {
     if (!region?._id) return;
 
     fetchSliderData();
     fetchNowPlayingData();
     fetchRegionData();
-  }, [fetchSliderData, fetchNowPlayingData, fetchRegionData]);
+    fetchUpcomingMoviesData(region._id);
+  }, [region?._id, fetchSliderData, fetchNowPlayingData, fetchRegionData, fetchUpcomingMoviesData]);
 
   // Scroll to top effect
   useEffect(() => {
@@ -298,7 +308,6 @@ function Home() {
             );
           })}
         </Slider>
-        {/*  */}
       </Index.Box>
 
       {/* Now Showing Section */}
@@ -306,11 +315,52 @@ function Home() {
         title="Now Showing"
         moviesList={state.nowPlayingList}
         isNowPlaying={true}
+        viewAllLink="/cinema"
       />
 
-      {/* Membership details section */}
+      {/* Recent Releases Section */}
+      <MovieSlider
+        title="Recent Releases"
+        moviesList={state.recentReleasesList}
+        isNowPlaying={true}
+        viewAllLink="/cinema"
+      />
+
+      {/* Banner above upcoming movie section */}
+      <BannerSlider
+        bannerList={state.aboveUpcomingBannerList}
+        updateBannerClickCount={updateBannerClickCount}
+      />
+
+      {/* Upcoming Movie Categories */}
+      {["Bollywood", "Hollywood", "Regional"].map((category) => {
+        const categoryMovies = state.upcomingMoviesList?.filter(
+          (data) =>
+            (data?.movieCategory || "").trim().toLowerCase() ===
+            category.toLowerCase()
+        );
+        return categoryMovies?.length > 0 ? (
+          <MovieSlider
+            key={category}
+            title={`Upcoming ${category} Movies`}
+            moviesList={categoryMovies}
+            viewAllLink="/calender"
+          />
+        ) : null;
+      })}
+
+      {/* Banner below upcoming movie section */}
+      <BannerSlider
+        bannerList={state.belowUpcomingBannerList}
+        updateBannerClickCount={updateBannerClickCount}
+      />
+
+      {/* Membership Plan Section */}
       <Index.Box className="main-membership-plan">
         <Index.Box className="cus-container">
+          <Index.Box className="showing-txt movie-slider-heading membership-section-heading">
+            <Index.Typography variant="h5">Membership Plan</Index.Typography>
+          </Index.Box>
           <Index.Box className="membership-grid-main">
             <Index.Grid container>
               <Index.Grid item md={6} xxs={12}>
@@ -323,13 +373,12 @@ function Home() {
                     loop
                     preload="auto"
                     playsInline
-                    id="hello"
+                    id="membershipVideo"
+                    key={state.memberShipDetails?.file}
+                    src={`${PagesIndex.IMAGES_API_ENDPOINT}/${state.memberShipDetails?.file}`}
                   >
                     <source
-                      src={
-                        state.memberShipDetails?.file &&
-                        `${PagesIndex.IMAGES_API_ENDPOINT}/${state.memberShipDetails?.file}`
-                      }
+                      src={`${PagesIndex.IMAGES_API_ENDPOINT}/${state.memberShipDetails?.file}`}
                       className="member-img"
                       alt="Membership"
                       type="video/mp4"
@@ -347,28 +396,27 @@ function Home() {
                 item
                 md={6}
                 xxs={12}
-                className="membership-right-Index.Box"
+                className="membership-right-box"
               >
                 <Index.Box className="member-right-details">
                   <Index.Typography variant="h4">
                     {state.memberShipDetails?.title ||
-                      "Introducing a loyalty program with special rewards and exclusive benefits!"}
+                      "Your VIP Access Starts at Just ₹1 — Early Bird Rewards Await!"}
                   </Index.Typography>
 
-                  {/* <Index.Typography
+                  <Index.Typography
                     variant="p"
                     component="p"
                     className="comming-soon-text"
                   >
-                    {state.memberShipDetails?.description || ""}
-                  </Index.Typography> */}
+                    {state.memberShipDetails?.description ||
+                      "Unlock exclusive benefits, special offers, and premium experiences. Hurry — limited-time offer. Join now! Membership Plan is currently applicable only through the CONNPLEX Website and Mobile App."}
+                  </Index.Typography>
                   <Index.Box className="membership-btns main">
                     <Index.Link to="/membership" className="btn btn-primary">
                       Purchase Plan
                     </Index.Link>
-                    <Index.Link
-                      to={"https://ticketing.theconnplex.com/membership"}
-                    >
+                    <Index.Link to="/membership">
                       Already Member ?
                     </Index.Link>
                   </Index.Box>
@@ -378,7 +426,7 @@ function Home() {
                         "https://play.google.com/store/apps/details?id=com.connplex"
                       }
                       className="play-store-btns"
-                      target="blank"
+                      target="_blank"
                     >
                       <img
                         src={PagesIndex.Svg.PlayStore}
@@ -392,7 +440,7 @@ function Home() {
                         "https://apps.apple.com/in/app/connplex-cinemas-tickets/id6497171599"
                       }
                       className="apple-store-btns"
-                      target="blank"
+                      target="_blank"
                     >
                       <img
                         src={PagesIndex.Svg.AppleStore}
@@ -409,42 +457,7 @@ function Home() {
         </Index.Box>
       </Index.Box>
 
-      {/* Banner above upcoming movie section */}
-      <BannerSlider
-        bannerList={state.aboveUpcomingBannerList}
-        updateBannerClickCount={updateBannerClickCount}
-      />
-
-      {/* Movie Categories */}
-      {["Bollywood", "Hollywood", "Regional"].map(
-        (category) =>
-          state.upcomingMoviesList?.filter(
-            (data) => data?.movieCategory === category
-          )?.length > 0 && (
-            <MovieSlider
-              key={category}
-              title={`Upcoming ${category} Movies`}
-              moviesList={state.upcomingMoviesList.filter(
-                (data) => data?.movieCategory === category //&&
-                // PagesIndex.moment().utc().diff(PagesIndex.moment(data?.filmOpeningDate), "months") <= 3
-              )}
-            />
-          )
-      )}
-
-      {/* Recent Releases */}
-      <MovieSlider
-        title="Recent Releases"
-        moviesList={state.recentReleasesList}
-        isNowPlaying={true}
-      />
-
-      {/* Banner below upcoming movie section */}
-      <BannerSlider
-        bannerList={state.belowUpcomingBannerList}
-        updateBannerClickCount={updateBannerClickCount}
-      />
-
+      {/* Newsletter Section */}
       <PagesIndex.Membership />
     </Index.Box>
   );
