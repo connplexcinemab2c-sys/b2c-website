@@ -270,6 +270,155 @@ export const addEditCinema = async (req, res) => {
   }
 };
 
+export const normalizeCinemaName = (name) => {
+  if (!name) return "";
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s*:\s*/g, ":")
+    .replace(/\s*-\s*/g, "-")
+    .replace(/\s+/g, " ");
+};
+
+export const deduplicateCinemaDetails = (cinemas = []) => {
+  const seenNames = new Set();
+  const seenIds = new Set();
+  const unique = [];
+
+  for (const c of cinemas) {
+    const name = normalizeCinemaName(c.displayName || c.cinemaName);
+    const cid = (c.cinemaId || "").trim().toUpperCase();
+
+    if (name && seenNames.has(name)) continue;
+    if (cid && seenIds.has(cid)) continue;
+
+    if (name) seenNames.add(name);
+    if (cid) seenIds.add(cid);
+    unique.push(c);
+  }
+
+  return unique;
+};
+
+export const consolidateCinemaLicenses = (vistaList = [], dbCinemas = []) => {
+  const cinemaMap = new Map();
+
+  const getKeys = (id, name) => {
+    const keys = [];
+    const cleanId = (id || "").trim().toUpperCase();
+    if (cleanId) keys.push(`ID:${cleanId}`);
+    const cleanName = normalizeCinemaName(name);
+    if (cleanName) keys.push(`NAME:${cleanName}`);
+    return keys;
+  };
+
+  const addOrMerge = (entry) => {
+    const id = (entry.Cinema_strID || "").trim();
+    const name = (entry.Cinema_strName || "").trim();
+    const license = (entry.License_strCode || "").trim();
+
+    const keys = getKeys(id, name);
+    let existing = null;
+    for (const k of keys) {
+      if (cinemaMap.has(k)) {
+        existing = cinemaMap.get(k);
+        break;
+      }
+    }
+
+    if (existing) {
+      if (id && !existing.Cinema_strID) {
+        existing.Cinema_strID = id;
+      }
+      if (name && (!existing.Cinema_strName || existing.Cinema_strName.length < name.length)) {
+        existing.Cinema_strName = name;
+      }
+      if (license) {
+        existing.License_strCode = license;
+      }
+      const allKeys = getKeys(existing.Cinema_strID, existing.Cinema_strName);
+      allKeys.forEach((k) => cinemaMap.set(k, existing));
+    } else {
+      const newEntry = {
+        Cinema_strID: id,
+        Cinema_strName: name,
+        License_strCode: license,
+      };
+      keys.forEach((k) => cinemaMap.set(k, newEntry));
+    }
+  };
+
+  if (Array.isArray(vistaList)) {
+    vistaList.forEach((item) => {
+      if (!item) return;
+      addOrMerge({
+        Cinema_strID: item.Cinema_strID || "",
+        Cinema_strName: item.Cinema_strName || "",
+        License_strCode: item.License_strCode ? String(item.License_strCode) : "",
+      });
+    });
+  }
+
+  if (Array.isArray(dbCinemas)) {
+    dbCinemas.forEach((c) => {
+      if (!c) return;
+      const id = (c.cinemaId || "").trim();
+      const name = (c.displayName || c.cinemaName || "").trim();
+      const license = c.cinemaLicenseNumber
+        ? String(c.cinemaLicenseNumber).trim()
+        : c.websiteLicenseNumber
+        ? String(c.websiteLicenseNumber).trim()
+        : "";
+
+      const keys = getKeys(id, name);
+      let existing = null;
+      for (const k of keys) {
+        if (cinemaMap.has(k)) {
+          existing = cinemaMap.get(k);
+          break;
+        }
+      }
+
+      if (existing) {
+        if (id && !existing.Cinema_strID) existing.Cinema_strID = id;
+        if (name) existing.Cinema_strName = name;
+        if (license) existing.License_strCode = license;
+        const allKeys = getKeys(existing.Cinema_strID, existing.Cinema_strName);
+        allKeys.forEach((k) => cinemaMap.set(k, existing));
+      } else {
+        addOrMerge({
+          Cinema_strID: id,
+          Cinema_strName: name,
+          License_strCode: license,
+        });
+      }
+    });
+  }
+
+  const uniqueItems = Array.from(new Set(cinemaMap.values()));
+
+  const finalResult = [];
+  const seenNames = new Set();
+  const seenIds = new Set();
+
+  for (const item of uniqueItems) {
+    const normName = normalizeCinemaName(item.Cinema_strName);
+    const normId = (item.Cinema_strID || "").trim().toUpperCase();
+
+    if (normName && seenNames.has(normName)) {
+      continue;
+    }
+    if (normId && seenIds.has(normId)) {
+      continue;
+    }
+
+    if (normName) seenNames.add(normName);
+    if (normId) seenIds.add(normId);
+    finalResult.push(item);
+  }
+
+  return finalResult;
+};
 export const getCinemas = async (req, res) => {
   try {
     const userId = req.admin;
@@ -298,7 +447,7 @@ export const getCinemas = async (req, res) => {
         return res.status(200).json({
           status: StatusCodes.OK,
           message: ResponseMessage.CINEMA_FETCHED,
-          data: cinemaDetails,
+          data: deduplicateCinemaDetails(cinemaDetails),
         });
       }
     } else {
@@ -322,7 +471,7 @@ export const getCinemas = async (req, res) => {
         return res.status(200).json({
           status: StatusCodes.OK,
           message: ResponseMessage.CINEMA_FETCHED,
-          data: cinemaDetails,
+          data: deduplicateCinemaDetails(cinemaDetails),
         });
       }
     }
@@ -403,71 +552,19 @@ export const getCinemasLicence = async (req, res) => {
       .request(config)
       .then(async (response) => {
         if (response.data.Status == 1) {
-          // createVistaLog(
-          //   null,
-          //   null,
-          //   "Cinema",
-          //   "GetAllcinemaDetails",
-          //   config,
-          //   response.data,
-          //   "Success"
-          // );
-          let list = response.data.data.ItemCinemaDetails || [];
-          if (Array.isArray(list)) {
-            // Find all local cinemas and merge them
-            const dbCinemas = await Cinema.find({ deletedStatus: 0 });
-            dbCinemas.forEach((c) => {
-              if (!c.cinemaId) return;
-              const idx = list.findIndex(
-                (item) =>
-                  item.Cinema_strID &&
-                  item.Cinema_strID.toUpperCase() === c.cinemaId.toUpperCase()
-              );
-              const licenseNo =
-                c.cinemaLicenseNumber ||
-                String(c.websiteLicenseNumber || "");
-              if (idx !== -1) {
-                if (licenseNo) {
-                  list[idx].License_strCode = licenseNo;
-                }
-                if (c.displayName || c.cinemaName) {
-                  list[idx].Cinema_strName = c.displayName || c.cinemaName;
-                }
-              } else {
-                list.push({
-                  Cinema_strID: c.cinemaId,
-                  Cinema_strName: c.displayName || c.cinemaName,
-                  License_strCode: licenseNo || "",
-                });
-              }
-            });
-          }
+          const rawVistaList = response.data?.data?.ItemCinemaDetails || [];
+          const dbCinemas = await Cinema.find({ deletedStatus: 0 });
+          const list = consolidateCinemaLicenses(rawVistaList, dbCinemas);
+
           return res.status(200).json({
             status: StatusCodes.OK,
             message: ResponseMessage.CINEMA_DETAILS,
             data: list,
           });
         } else {
-          // createVistaLog(
-          //   null,
-          //   null,
-          //   "Cinema",
-          //   "GetAllcinemaDetails",
-          //   config,
-          //   response.data,
-          //   "Failed"
-          // );
           try {
             const dbCinemas = await Cinema.find({ deletedStatus: 0 });
-            const list = dbCinemas
-              .map((c) => ({
-                Cinema_strID: c.cinemaId,
-                Cinema_strName: c.displayName || c.cinemaName,
-                License_strCode:
-                  c.cinemaLicenseNumber ||
-                  String(c.websiteLicenseNumber || ""),
-              }))
-              .filter((c) => c.Cinema_strID);
+            const list = consolidateCinemaLicenses([], dbCinemas);
 
             return res.status(200).json({
               status: StatusCodes.OK,
@@ -484,26 +581,9 @@ export const getCinemasLicence = async (req, res) => {
         }
       })
       .catch(async (error) => {
-        // createVistaLog(
-        //   null,
-        //   null,
-        //   "Cinema",
-        //   "GetAllcinemaDetails",
-        //   config,
-        //   error.response.data,
-        //   "Failed"
-        // );
         try {
           const dbCinemas = await Cinema.find({ deletedStatus: 0 });
-          const list = dbCinemas
-            .map((c) => ({
-              Cinema_strID: c.cinemaId,
-              Cinema_strName: c.displayName || c.cinemaName,
-              License_strCode:
-                c.cinemaLicenseNumber ||
-                String(c.websiteLicenseNumber || ""),
-            }))
-            .filter((c) => c.Cinema_strID);
+          const list = consolidateCinemaLicenses([], dbCinemas);
 
           return res.status(200).json({
             status: StatusCodes.OK,
@@ -653,18 +733,30 @@ export const updateCinemaLicence = async (req, res) => {
     let browserName = parser.setUA(ua).getBrowser().name;
     let IpAddress = req.socket.remoteAddress;
 
-    let { cinemaId, licenceCode } = req.body;
+    let { cinemaId, licenceCode, cinemaName } = req.body;
 
     // Update locally in MongoDB database
-    await Cinema.findOneAndUpdate(
-      { cinemaId: { $regex: new RegExp(`^${cinemaId}$`, 'i') } },
-      { 
-        $set: { 
-          websiteLicenseNumber: Number(licenceCode) || undefined,
-          cinemaLicenseNumber: licenceCode 
+    let updateQuery = {};
+    if (cinemaId) {
+      updateQuery.cinemaId = { $regex: new RegExp(`^${cinemaId}$`, 'i') };
+    } else if (cinemaName) {
+      updateQuery.$or = [
+        { cinemaName: { $regex: new RegExp(`^${cinemaName}$`, 'i') } },
+        { displayName: { $regex: new RegExp(`^${cinemaName}$`, 'i') } }
+      ];
+    }
+
+    if (Object.keys(updateQuery).length > 0) {
+      await Cinema.updateMany(
+        updateQuery,
+        { 
+          $set: { 
+            websiteLicenseNumber: Number(licenceCode) || undefined,
+            cinemaLicenseNumber: licenceCode 
+          }
         }
-      }
-    );
+      );
+    }
 
     if (cinemaId && cinemaId.toUpperCase().startsWith("CN1")) {
       await Logs.create({

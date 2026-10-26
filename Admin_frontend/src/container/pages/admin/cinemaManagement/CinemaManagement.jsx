@@ -199,8 +199,18 @@ const CinemaManagement = () => {
       PagesIndex.Api.GET_CINEMA + "?" + new Date().getTime()
     )
       .then((res) => {
-        setCinemaList(res?.data?.data);
-        const cinemaListData = res?.data?.data?.filter((data) => {
+        const rawList = res?.data?.data || [];
+        const seenNames = new Set();
+        const uniqueCinemas = [];
+        rawList.forEach((c) => {
+          const name = (c?.displayName || c?.cinemaName || "").trim().toLowerCase();
+          if (!name || !seenNames.has(name)) {
+            if (name) seenNames.add(name);
+            uniqueCinemas.push(c);
+          }
+        });
+        setCinemaList(uniqueCinemas);
+        const cinemaListData = uniqueCinemas.filter((data) => {
           if (location?.state?.displayName) {
             return location?.state?.displayName == data?.displayName;
           } else {
@@ -211,15 +221,12 @@ const CinemaManagement = () => {
         setTimeout(() => {
           setLoading(false);
         }, 1500);
-        if (searchValue !== "" && !removeData && !filteredData == []) {
+        if (searchValue !== "" && !removeData) {
+          const searchLower = searchValue.toLowerCase();
           let filteredDataFilter = cinemaListData?.filter(
             (title) =>
-              title?.cinemaName
-                ?.toLowerCase()
-                .includes(searchValue?.toLowerCase()) ||
-              title?.displayName
-                ?.toLowerCase()
-                .includes(searchValue?.toLowerCase())
+              title?.cinemaName?.toLowerCase().includes(searchLower) ||
+              title?.displayName?.toLowerCase().includes(searchLower)
           );
           setFilteredData(filteredDataFilter);
         } else {
@@ -228,7 +235,7 @@ const CinemaManagement = () => {
           setRemoveData(false);
         }
       })
-      .catch((err) => {
+    .catch((err) => {
         setTimeout(() => {
           setLoading(false);
         }, 1500);

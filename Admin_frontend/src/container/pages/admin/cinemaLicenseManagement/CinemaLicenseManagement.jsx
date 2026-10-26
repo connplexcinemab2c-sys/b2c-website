@@ -42,6 +42,41 @@ const StyledInputBase = Index.styled(Index.InputBase)(({ theme }) => ({
   },
 }));
 
+const normalizeCinemaName = (name) => {
+  if (!name) return "";
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s*:\s*/g, ":")
+    .replace(/\s*-\s*/g, "-")
+    .replace(/\s+/g, " ");
+};
+
+const deduplicateCinemas = (list = []) => {
+  if (!Array.isArray(list)) return [];
+  const seenNames = new Set();
+  const seenIds = new Set();
+  const result = [];
+
+  list.forEach((item) => {
+    if (!item) return;
+    const normName = normalizeCinemaName(item?.Cinema_strName);
+    const normId = (item?.Cinema_strID || "").trim().toUpperCase();
+
+    if (normName && seenNames.has(normName)) {
+      return;
+    }
+    if (normId && seenIds.has(normId)) {
+      return;
+    }
+
+    if (normName) seenNames.add(normName);
+    if (normId) seenIds.add(normId);
+    result.push(item);
+  });
+
+  return result;
+};
 const CinemaLicenseManagement = () => {
   const dispatch = useDispatch();
   const { adminLoginData } = PagesIndex.useSelector(
@@ -77,6 +112,7 @@ const CinemaLicenseManagement = () => {
   const handleDeleteOpen = (item) => {
     setCinemaData({
       cinemaId: item?.Cinema_strID,
+      cinemaName: item?.Cinema_strName,
       licenseNo: item?.License_strCode,
     });
     setDeleteOpen(true);
@@ -93,10 +129,15 @@ const CinemaLicenseManagement = () => {
   };
   const requestSearch = (searched) => {
     setCurrentPage(0);
+    const searchLower = (searched || "").trim().toLowerCase();
+    if (!searchLower) {
+      setFilteredData(cinemaList);
+      return;
+    }
     let filteredData = cinemaList.filter(
       (data) =>
-        data?.Cinema_strName?.toLowerCase().includes(searched?.toLowerCase()) ||
-        data?.License_strCode?.toLowerCase().includes(searched?.toLowerCase())
+        data?.Cinema_strName?.toLowerCase().includes(searchLower) ||
+        data?.License_strCode?.toLowerCase().includes(searchLower)
     );
     setFilteredData(filteredData);
   };
@@ -107,24 +148,21 @@ const CinemaLicenseManagement = () => {
       PagesIndex.Api.GET_CINEMA_LICENSE + "?" + new Date().getTime()
     )
       .then((res) => {
-        setCinemaList(res?.data?.data);
-        setFilteredData(res?.data?.data);
+        const uniqueList = deduplicateCinemas(res?.data?.data || []);
+        setCinemaList(uniqueList);
         setTimeout(() => {
           setLoading(false);
         }, 1500);
-        if (searchValue !== "" && !removeData && !filteredData == []) {
-          let filteredDataFilter = res?.data?.data?.filter(
+        if (searchValue !== "" && !removeData) {
+          const searchLower = searchValue.toLowerCase();
+          let filteredDataFilter = uniqueList.filter(
             (title) =>
-              title?.Cinema_strName?.toLowerCase().includes(
-                searchValue?.toLowerCase()
-              ) ||
-              title?.License_strCode?.toLowerCase().includes(
-                searchValue?.toLowerCase()
-              )
+              title?.Cinema_strName?.toLowerCase().includes(searchLower) ||
+              title?.License_strCode?.toLowerCase().includes(searchLower)
           );
           setFilteredData(filteredDataFilter);
         } else {
-          setFilteredData(res?.data?.data);
+          setFilteredData(uniqueList);
           setSearchValue("");
           setRemoveData(false);
         }
@@ -142,8 +180,9 @@ const CinemaLicenseManagement = () => {
   const handleCinemaSubmit = (values) => {
     setIsLoading(true);
     const urlEncoded = new URLSearchParams();
-    urlEncoded.append("cinemaId", cinemaData?.cinemaId);
-    urlEncoded.append("licenceCode", cinemaData?.licenseNo);
+    urlEncoded.append("cinemaId", cinemaData?.cinemaId || "");
+    urlEncoded.append("cinemaName", cinemaData?.cinemaName || "");
+    urlEncoded.append("licenceCode", cinemaData?.licenseNo || "");
     PagesIndex.DataService.post(
       PagesIndex.Api.UPDATE_CINEMA_LICENSE,
       urlEncoded
@@ -165,7 +204,17 @@ const CinemaLicenseManagement = () => {
       PagesIndex.Api.GET_CINEMA + "?" + new Date().getTime()
     )
       .then((res) => {
-        setAllCinemas(res?.data?.data || []);
+        const rawList = res?.data?.data || [];
+        const seenNames = new Set();
+        const unique = [];
+        rawList.forEach((c) => {
+          const name = normalizeCinemaName(c?.displayName || c?.cinemaName);
+          if (!name || !seenNames.has(name)) {
+            if (name) seenNames.add(name);
+            unique.push(c);
+          }
+        });
+        setAllCinemas(unique);
       })
       .catch((err) => {
         console.error("Error fetching all cinemas:", err);
@@ -320,7 +369,7 @@ const CinemaLicenseManagement = () => {
                           currentPage * rowsPerPage + rowsPerPage
                         )
                         ?.map((item, index) => (
-                          <Index.TableRow key={item?._id}>
+                          <Index.TableRow key={item?.Cinema_strID || item?._id || `${item?.Cinema_strName}-${index}`}>
                             <Index.TableCell>
                               {item?.Cinema_strName ? (
                                 <Index.Tooltip
@@ -353,20 +402,26 @@ const CinemaLicenseManagement = () => {
                             <Index.TableCell>
                               <Index.TextField
                                 className="table-cus-input"
-                                value={item.License_strCode}
+                                value={item.License_strCode || ""}
                                 inputProps={{ maxLength: 10 }}
                                 onChange={(e) => {
-                                  setFilteredData((prev) => {
-                                    let data = [...prev];
-                                    let index = data.findIndex(
-                                      (x) =>
-                                        x.Cinema_strName === item.Cinema_strName
-                                    );
-                                    data[index].License_strCode =
-                                      e.target.value;
-
-                                    return data;
-                                  });
+                                  const newVal = e.target.value;
+                                  setFilteredData((prev) =>
+                                    prev.map((x) =>
+                                      (item.Cinema_strID && x.Cinema_strID === item.Cinema_strID) ||
+                                      x.Cinema_strName === item.Cinema_strName
+                                        ? { ...x, License_strCode: newVal }
+                                        : x
+                                    )
+                                  );
+                                  setCinemaList((prev) =>
+                                    prev.map((x) =>
+                                      (item.Cinema_strID && x.Cinema_strID === item.Cinema_strID) ||
+                                      x.Cinema_strName === item.Cinema_strName
+                                        ? { ...x, License_strCode: newVal }
+                                        : x
+                                    )
+                                  );
                                 }}
                               />
                             </Index.TableCell>
