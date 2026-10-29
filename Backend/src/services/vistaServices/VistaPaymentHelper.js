@@ -55,32 +55,33 @@ export const buildMultiPaymentDetails = ({
 
   const tenders = [];
 
-  // CASE 1: Cinema configured with dedicated discount tender in Vista POS (e.g. DISC, VOUC)
-  if (enableDiscountTender && discountPaytype && discountPaise > 0) {
+  // 1. If blnUpdateOrder successfully updated the order in Vista to the net discounted price:
+  // Vista's internal reservation is now at paidTicketPaise (e.g. ₹100).
+  // Tender paidTicketPaise under CW so tender matches Vista's updated order.
+  if (vistaOrderUpdated && paidTicketPaise > 0) {
+    tenders.push({ type: "CW", amount: paidTicketPaise });
+  } else if (vistaOrderUpdated && paidTicketPaise === 0) {
+    // 100% ticket discount and order updated to 0 in Vista
+    if (enableDiscountTender && discountPaytype) {
+      tenders.push({ type: discountPaytype, amount: ticketGrossPaise });
+    }
+  }
+  // 2. If blnUpdateOrder was bypassed or failed, but a dedicated discount tender is enabled:
+  // Split tenders between CW (net paid by customer) and discountPaytype (discount applied).
+  // The sum of tenders equals ticketGrossPaise, exactly satisfying Vista's validation.
+  // In Vista DB, CW reports net customer collection (₹100) and DISC reports discount (₹400).
+  else if (enableDiscountTender && discountPaytype && discountPaise > 0) {
     if (paidTicketPaise > 0) {
       tenders.push({ type: "CW", amount: paidTicketPaise });
       tenders.push({ type: discountPaytype, amount: discountPaise });
     } else {
-      // 100% ticket discount: customer paid 0 for tickets
       tenders.push({ type: discountPaytype, amount: discountPaise });
     }
   }
-  // CASE 2: Standard tender flow (CW only)
-  else {
-    // If blnUpdateOrder successfully updated the order in Vista to the discounted price:
-    // Vista's internal order in Trans_Ticket is now at paidTicketPaise (e.g. ₹100).
-    // Therefore, tender paidTicketPaise so the tender matches Vista's updated order.
-    // In Vista DB, both Trans_Ticket and Trans_Cash will reflect the net paid amount (₹100).
-    if (vistaOrderUpdated && paidTicketPaise > 0) {
-      tenders.push({ type: "CW", amount: paidTicketPaise });
-    }
-    // If blnUpdateOrder was blocked by cinema firewall (vistaOrderUpdated = false):
-    // Vista still holds the reservation at ticketGrossPaise (e.g. ₹500).
-    // udsCommitBook strictly requires tenders to equal the gross reservation held in Vista.
-    // Tendering gross prevents commit failure & customer deduction without ticket.
-    else if (ticketGrossPaise > 0) {
-      tenders.push({ type: "CW", amount: ticketGrossPaise });
-    }
+  // 3. Fallback when neither order update nor discount tender is active:
+  // Tendering gross prevents commit failure & customer deduction without ticket.
+  else if (ticketGrossPaise > 0) {
+    tenders.push({ type: "CW", amount: ticketGrossPaise });
   }
 
   // F&B tender under CWFNB

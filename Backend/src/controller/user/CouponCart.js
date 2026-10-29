@@ -110,25 +110,27 @@ export const updateVistaOrderPrice = async ({
 
     let updateTicketsXml = "";
     if (tickets.length > 0) {
+      let idx = 1;
       for (const ticket of tickets) {
         let ticketId = ticket.Id;
         if (Array.isArray(ticketId)) {
           ticketId = ticketId[0];
         }
-        if (ticketId) {
-          updateTicketsXml += `<Ticket><Id>${ticketId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
-        }
+        const effectiveId = ticketId || idx;
+        const typeCode = ticket.TicketTypeCode || tTypeCode || addSeatData.tTypeCode || "0001";
+        updateTicketsXml += `<Ticket><Id>${effectiveId}</Id><TicketTypeCode>${typeCode}</TicketTypeCode><PriceEach>${priceEach}</PriceEach></Ticket>`;
+        idx++;
       }
     } else {
-      // Use Ticket Type Code (tTypeCode) passed into AddSeats
-      const ticketId =
+      // Use 1-based order ticket index (1, 2, ...) and ticket type code
+      const typeCode =
         tTypeCode ||
         addSeatData.tTypeCode ||
         addSeatData.strType ||
         "0001";
 
       for (let i = 1; i <= qtyVal; i++) {
-        updateTicketsXml += `<Ticket><Id>${ticketId}</Id><PriceEach>${priceEach}</PriceEach></Ticket>`;
+        updateTicketsXml += `<Ticket><Id>${i}</Id><TicketTypeCode>${typeCode}</TicketTypeCode><PriceEach>${priceEach}</PriceEach></Ticket>`;
       }
     }
 
