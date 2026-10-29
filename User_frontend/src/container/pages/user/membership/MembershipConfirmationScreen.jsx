@@ -85,9 +85,10 @@ function MembershipConfirmationScreen() {
                   >
                     ₹{" "}
                     {parseFloat(
-                      membershipItem?.[0]?.subscriptionId?.price
-                        ? membershipItem?.[0]?.subscriptionId?.price
-                        : membershipItem?.[0]?.payments?.[0]?.paymentResponse?.amount || 0
+                      (membershipItem?.[0]?.subscriptionId?.isDiscounted
+                        ? membershipItem?.[0]?.subscriptionId?.discountedPrice
+                        : membershipItem?.[0]?.subscriptionId?.price) ||
+                        membershipItem?.[0]?.payments?.[0]?.paymentResponse?.amount || 0
                     ).toFixed(2)}
                   </Index.Typography>{" "}
                   Successful

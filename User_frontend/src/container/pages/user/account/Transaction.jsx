@@ -487,19 +487,17 @@ const Transaction = ({ membershipItem }) => {
                             {/* ₹{viewPlan?.subscriptionId?.price}
                             <br />
                             <span> Yearly</span> */}
-                            ₹
                             {viewPlan?.isDiscounted ? (
                               <>
                                 <span className="line-add-prices">
-                                  {viewPlan?.price}{" "}
+                                  ₹{viewPlan?.price}{" "}
                                 </span>{" "}
                                 <span>
-                                  {" "}
-                                  / <span>{viewPlan?.discountedPrice}</span>
+                                  ₹{viewPlan?.discountedPrice}
                                 </span>{" "}
                               </>
                             ) : (
-                              viewPlan?.price
+                              `₹${viewPlan?.price}`
                             )}
                             <br />
                             <span className="yearly-title">

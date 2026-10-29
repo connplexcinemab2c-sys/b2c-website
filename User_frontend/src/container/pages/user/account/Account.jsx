@@ -553,26 +553,18 @@ function Account() {
                             {/* ₹{userDetails?.subscriptionDetails?.price}
                             <br />
                             <span> Yearly</span> */}
-                            ₹
                             {membershipPlan?.subscriptionDetails
                               ?.isDiscounted ? (
                               <>
                                 <span className="line-add-prices">
-                                  {membershipPlan?.subscriptionDetails?.price}{" "}
+                                  ₹{membershipPlan?.subscriptionDetails?.price}{" "}
                                 </span>{" "}
                                 <span>
-                                  {" "}
-                                  /{" "}
-                                  <span>
-                                    {
-                                      membershipPlan?.subscriptionDetails
-                                        ?.discountedPrice
-                                    }
-                                  </span>
+                                  ₹{membershipPlan?.subscriptionDetails?.discountedPrice}
                                 </span>{" "}
                               </>
                             ) : (
-                              membershipPlan?.subscriptionDetails?.price
+                              `₹${membershipPlan?.subscriptionDetails?.price}`
                             )}
                             <br />
                             <span className="yearly-title">

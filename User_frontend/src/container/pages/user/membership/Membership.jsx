@@ -291,19 +291,17 @@ function Membership() {
                   <Index.Box className="button-inner-memberlist">
                     <Index.Box className="membership-price line-cross-prices">
                       <Index.Typography className="membership-price-inner">
-                        Rs.
                         {item?.isDiscounted ? (
                           <>
                             <span className="line-add-prices">
-                              {item?.price}{" "}
+                              Rs. {item?.price}
                             </span>{" "}
-                            <span>
-                              {" "}
-                              / <span>{item?.discountedPrice}</span>
-                            </span>{" "}
+                            <span className="active-discount-price">
+                              ₹{item?.discountedPrice}
+                            </span>
                           </>
                         ) : (
-                          item?.price
+                          `Rs. ${item?.price}`
                         )}
                         <br />
                         <span className="yearly-title">

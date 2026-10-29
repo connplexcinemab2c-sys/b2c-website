@@ -149,7 +149,6 @@ const MembershipCouponModal = ({
                   fontWeight: 700,
                 }}
               >
-                ₹{" "}
                 {selectedMembership?.isDiscounted ? (
                   <>
                     <span
@@ -160,12 +159,12 @@ const MembershipCouponModal = ({
                         fontSize: "0.85em",
                       }}
                     >
-                      {selectedMembership?.price}
+                      ₹{selectedMembership?.price}
                     </span>
-                    <span>{selectedMembership?.discountedPrice}</span>
+                    <span>₹{selectedMembership?.discountedPrice}</span>
                   </>
                 ) : (
-                  selectedMembership?.price
+                  `₹ ${selectedMembership?.price}`
                 )}
               </Index.Typography>
             </Index.Box>
