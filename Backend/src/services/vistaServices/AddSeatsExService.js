@@ -145,8 +145,76 @@ export const addSeatsExService = async ({
   };
 };
 
+// Master fallback map of cinema license codes from tblLicenses
+export const CINEMA_LICENSE_MAP = {
+  CN01: "7329",
+  CN02: "6428",
+  CN03: "6443",
+  CN04: "8214",
+  CN05: "6523",
+  CN06: "7396",
+  CN07: "8357",
+  CN08: "8319",
+  CN09: "7429",
+  CN10: "8429",
+  CN11: "6581",
+  CN12: "7954",
+  CN13: "8100",
+  CN14: "8283",
+  CN15: "7312",
+  CN16: "8177",
+  CN17: "8163",
+  CN18: "8197",
+  CN19: "7274",
+  CN20: "8035",
+  CN21: "8278",
+  CN22: "6563",
+  CN23: "7344",
+  CN24: "8423",
+  CN25: "7228",
+  CN26: "8294",
+  CN27: "8077",
+  CN28: "8432",
+  CN29: "8255",
+  CN30: "6302",
+  CN31: "8220",
+  CN32: "8196",
+  CN33: "8222",
+  CN34: "6431",
+  CN35: "6579",
+  CN36: "7462",
+  CN37: "8184",
+  CN38: "8401",
+  CN39: "7323",
+  CN40: "8415",
+  CN41: "8186",
+  CN42: "6445",
+  CN43: "8369",
+  CN44: "7501",
+  CN91: "8190",
+  CN92: "8012",
+  CN93: "8289",
+  CN94: "6655",
+  CN95: "8187",
+  CN96: "6477",
+};
+
 /**
- * Service to execute SOAP blnUpdateOrder call on a cinema's Vista web service.
+ * Resolves the properly formatted License String (WWW--<Code>) expected by Vista objExecute.
+ */
+export const getCinemaLicenseString = (cinema, cinemaId) => {
+  const code =
+    cinema?.cinemaLicenseNumber ||
+    cinema?.websiteLicenseNumber ||
+    CINEMA_LICENSE_MAP[cinemaId] ||
+    "";
+  if (!code) return "";
+  return String(code).startsWith("WWW--") ? String(code) : `WWW--${code}`;
+};
+
+/**
+ * Service to execute SOAP UpdateOrder call on a cinema's Vista web service.
+ * Signature: udsUpdateOrder(String strTransId, String strOrderData, String strLicense)
  *
  * @param {Object} params
  * @param {string} params.cinemaId - The cinema ID (e.g. CN43)
@@ -164,16 +232,16 @@ export const updateOrderService = async ({ cinemaId, strTransId, strOrderXml }) 
     throw new Error(`Cinema web service URL not configured for ${cinemaId}`);
   }
 
-  const cinemaBranchCode = cinema.cinemaBranchCode || "";
+  const licenseString = getCinemaLicenseString(cinema, cinemaId);
 
   const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <objExecute xmlns="http://www.bigtree.co.in">
-      <strCommand>blnUpdateOrder</strCommand>
-      <strParam1>${cinemaBranchCode}</strParam1>
-      <strParam2>${strTransId}</strParam2>
-      <strParam3><![CDATA[${strOrderXml}]]></strParam3>
+      <strCommand>UpdateOrder</strCommand>
+      <strParam1>${strTransId}</strParam1>
+      <strParam2><![CDATA[${strOrderXml}]]></strParam2>
+      <strParam3>${licenseString}</strParam3>
       <strParam4></strParam4>
       <strParam5></strParam5>
       <strParam6></strParam6>
@@ -190,7 +258,7 @@ export const updateOrderService = async ({ cinemaId, strTransId, strOrderXml }) 
   </soap:Body>
 </soap:Envelope>`;
 
-  console.log(`Sending blnUpdateOrder SOAP request to: ${url}`);
+  console.log(`Sending UpdateOrder SOAP request to: ${url} for transId: ${strTransId}`);
   const response = await axios.post(url, soapEnvelope, {
     headers: {
       "Content-Type": "text/xml; charset=utf-8",
@@ -260,15 +328,15 @@ export const continueTransService = async ({ cinemaId, strTransId }) => {
     throw new Error(`Cinema web service URL not configured for ${cinemaId}`);
   }
 
-  const cinemaBranchCode = cinema.cinemaBranchCode || "";
+  const licenseString = getCinemaLicenseString(cinema, cinemaId);
 
   const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <objExecute xmlns="http://www.bigtree.co.in">
-      <strCommand>blnContinueTrans</strCommand>
-      <strParam1>${cinemaBranchCode}</strParam1>
-      <strParam2>${strTransId}</strParam2>
+      <strCommand>ContinueTrans</strCommand>
+      <strParam1>${strTransId}</strParam1>
+      <strParam2>${licenseString}</strParam2>
       <strParam3></strParam3>
       <strParam4></strParam4>
       <strParam5></strParam5>
@@ -286,7 +354,7 @@ export const continueTransService = async ({ cinemaId, strTransId }) => {
   </soap:Body>
 </soap:Envelope>`;
 
-  console.log(`Sending blnContinueTrans SOAP request to: ${url}`);
+  console.log(`Sending ContinueTrans SOAP request to: ${url} for transId: ${strTransId}`);
   const response = await axios.post(url, soapEnvelope, {
     headers: {
       "Content-Type": "text/xml; charset=utf-8",
