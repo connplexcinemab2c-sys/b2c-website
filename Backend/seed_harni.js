@@ -114,7 +114,7 @@ async function main() {
       ],
       cinemaAmenities: ["M Ticket", "F&B", "Parking Facility"],
       address: "The Iconic, 30 Mtr. Harni - Sama Link Road, Opposite The Landmark, Harni, Vadodara, Gujarat 390022",
-      emailId: "iconic.harni@theconnplex.com",
+      emailId: "",
       googleUrl: "https://maps.google.com/?q=The+Iconic+Harni+Vadodara+Gujarat",
       mobileNumber: 9924577556,
       GSTNumber: "24AACCF6476A1ZX",
