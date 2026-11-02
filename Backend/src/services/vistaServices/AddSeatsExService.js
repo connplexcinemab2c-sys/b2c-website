@@ -191,6 +191,7 @@ export const CINEMA_LICENSE_MAP = {
   CN42: "6445",
   CN43: "8369",
   CN44: "7501",
+  CN45: "6571",
   CN91: "8190",
   CN92: "8012",
   CN93: "8289",
