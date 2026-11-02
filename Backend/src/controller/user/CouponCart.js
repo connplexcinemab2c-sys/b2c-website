@@ -245,10 +245,14 @@ export const couponCart = async (req, res) => {
       0;
     const resolvedTicketTotal = vistaGross > 0 ? vistaGross : ticketTotal;
 
+    // Concessions auto-attached in Vista AddSeats (e.g. mandatory 3D glasses)
+    const addSeatConcession = Number(existingTx?.addSeatData?.curFoodTotal) || 0;
+    const resolvedFnbPrice = (Number(fnbprice) || 0) + addSeatConcession;
+
     const cart = await getCouponCart(
       coupons,
       resolvedTicketTotal,
-      fnbprice,
+      resolvedFnbPrice,
       cityId,
       cinemaObjectId,
       movieLanguage,

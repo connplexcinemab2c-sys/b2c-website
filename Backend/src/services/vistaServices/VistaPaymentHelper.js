@@ -43,11 +43,16 @@ export const buildMultiPaymentDetails = ({
   }
   const paidTicket = paidTicketPaise / 100;
 
-  const foodAmount =
+  // 2. F&B and concession total held in Vista
+  // Vista requires udsCommitBook tender amounts to sum exactly to the gross reservation held in Vista.
+  // In 3D shows, Vista auto-attaches mandatory 3D glasses / concessions in addSeatData.curFoodTotal.
+  const addSeatConcession = Number(addSeatData?.curFoodTotal) || 0;
+  const separateFood =
     Number(foodAndBvgResponse?.curFoodTotal) ||
     Number(finalBooking?.foodCart?.basePrice) ||
     Number(finalBooking?.foodCart?.total) ||
     0;
+  const foodAmount = addSeatConcession + separateFood;
   const fnbPaise = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
 
   const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
@@ -87,6 +92,21 @@ export const buildMultiPaymentDetails = ({
   // F&B tender under CWFNB
   if (fnbPaise > 0) {
     tenders.push({ type: "CWFNB", amount: fnbPaise });
+  }
+
+  // Safety guard: ensure total tenders fully cover Vista's required reservation total
+  const vistaTotalPaise = Math.round(Number(addSeatData?.curTotal || 0) * 100);
+  if (vistaTotalPaise > 0) {
+    const currentTenderTotal = tenders.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    const diffPaise = vistaTotalPaise - currentTenderTotal;
+    if (diffPaise > 0) {
+      const fnbTender = tenders.find((t) => t.type === "CWFNB");
+      if (fnbTender) {
+        fnbTender.amount += diffPaise;
+      } else {
+        tenders.push({ type: "CWFNB", amount: diffPaise });
+      }
+    }
   }
 
   // Build pipe-delimited MultiPaymentDetails string:
