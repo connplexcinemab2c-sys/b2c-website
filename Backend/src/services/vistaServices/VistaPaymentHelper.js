@@ -166,7 +166,10 @@ export const formatCommitBookingData = (vistaData, tx) => {
       vistaRawTicketsTotal: commitData.curTicketsTotal,
       grossTicketsTotal: grossTotal,
       discountAmount: ticketCart.discountAmount,
-      discountPaytype: process.env.VISTA_DISCOUNT_PAYTYPE || "CW",
+      discountPaytype:
+        process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true" && process.env.VISTA_DISCOUNT_PAYTYPE
+          ? process.env.VISTA_DISCOUNT_PAYTYPE
+          : "CW",
       curTicketsTotal: discountedTotal,
       curTicketsTax1: cgst,
       curTicketsTax2: sgst,
