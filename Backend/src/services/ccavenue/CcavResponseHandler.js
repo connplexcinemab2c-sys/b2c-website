@@ -192,6 +192,47 @@ export const paymentResponse = async (req, res) => {
           vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
         });
         await checkAndGrantWelcomeGift(userId);
+
+        // ── Pre-Commit Seat Reservation Integrity Guard ─────────────────────
+        const ccavAddSeatEx = bookingData?.addSeatData?.intException;
+        const ccavHasAddSeatEx =
+          ccavAddSeatEx !== undefined && ccavAddSeatEx !== null && Number(ccavAddSeatEx) !== 0;
+        const ccavHasNoSeats =
+          !bookingData?.addSeatData?.strSeatInfo && !bookingData?.setSeatData?.strSeatInfo;
+        const ccavHasNoValidBookId =
+          (!bookingData?.addSeatData?.intBookId || Number(bookingData?.addSeatData?.intBookId) === 0) &&
+          (!bookingData?.setSeatData?.intBookId || Number(bookingData?.setSeatData?.intBookId) === 0);
+
+        if (ccavHasAddSeatEx || (ccavHasNoSeats && ccavHasNoValidBookId)) {
+          const seatFailReason =
+            bookingData?.addSeatData?.strException ||
+            "No valid seat reservation found in Vista. Seats could not be allocated.";
+          console.error(
+            `[PreCommitGuard CCAv] Transaction ${strTransId} has invalid/failed seat reservation (${seatFailReason}). Aborting commit.`
+          );
+
+          createLog({
+            transaction_id: strTransId,
+            type: "Booking",
+            step: {
+              success: false,
+              logType: "vistaBookingResponse",
+              message: "Ticket Booking Failed - Seats not reserved in Vista",
+              error: seatFailReason,
+              timestamp: new Date().toISOString(),
+            },
+          });
+
+          await _handleTicketFailed(
+            strTransId,
+            paymentData,
+            user,
+            userId,
+            { Status: "0", msg: "fail", data: seatFailReason }
+          );
+          return res.redirect(`/transaction-failed?transId=${strTransId}`);
+        }
+
         if (process.env.VISTA_TICKET_BOOKING == "true") {
           try {
             let config = {

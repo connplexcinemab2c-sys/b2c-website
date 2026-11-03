@@ -508,6 +508,52 @@ export const paymentResponse = async (req, res) => {
       });
     }
 
+    // ── 14.1 Pre-Commit Seat Reservation Integrity Guard ─────────────────────
+    const addSeatEx = bookingData?.addSeatData?.intException;
+    const hasAddSeatEx =
+      addSeatEx !== undefined && addSeatEx !== null && Number(addSeatEx) !== 0;
+    const hasNoSeats =
+      !bookingData?.addSeatData?.strSeatInfo && !bookingData?.setSeatData?.strSeatInfo;
+    const hasNoValidBookId =
+      (!bookingData?.addSeatData?.intBookId || Number(bookingData?.addSeatData?.intBookId) === 0) &&
+      (!bookingData?.setSeatData?.intBookId || Number(bookingData?.setSeatData?.intBookId) === 0);
+
+    if (hasAddSeatEx || (hasNoSeats && hasNoValidBookId)) {
+      const seatFailReason =
+        bookingData?.addSeatData?.strException ||
+        "No valid seat reservation found in Vista. Seats could not be allocated.";
+      console.error(
+        `[PreCommitGuard] Transaction ${transId} has invalid/failed seat reservation (${seatFailReason}). Aborting commit and auto-refunding.`
+      );
+
+      createLog({
+        transaction_id: transId,
+        type: "Booking",
+        step: {
+          success: false,
+          logType: "vistaBookingResponse",
+          message: "Ticket Booking Failed - Seats not reserved in Vista",
+          error: seatFailReason,
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+      await _handleTicketFailed(
+        transId,
+        razorpayPaymentData,
+        user,
+        userId,
+        { Status: "0", msg: "fail", data: seatFailReason }
+      );
+      await Transaction.updateOne({ initTransId: transId }, { $set: { isCommitting: false } }).catch(() => {});
+
+      return res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        message: "Booking failed - seats could not be confirmed. Refund initiated.",
+        redirectUrl: `/transaction-failed?transId=${transId}`,
+      });
+    }
+
     // ── 15. Build Vista CommitBookingEx parameters ────────────────────────────
     const name = user.lastName
       ? `${user.firstName} ${user.lastName}`
@@ -837,26 +883,45 @@ export const _handleTicketFailed = async (
   }
 
   const shouldRefund = process.env.VISTA_TICKET_REFUND !== "false";
-  const paymentId =
+  let paymentId =
     razorpayPaymentData?.razorpay_payment_id ||
     razorpayPaymentData?.id ||
     razorpayPaymentData?.paymentResponse?.razorpay_payment_id ||
     razorpayPaymentData?.paymentResponse?.id;
 
-  if (shouldRefund && paymentId) {
-    const refundAmount =
-      Number(razorpayPaymentData.amount) ||
-      Number(razorpayPaymentData.finalAmount) ||
-      Number(razorpayPaymentData?.paymentResponse?.amount) ||
-      0;
-    if (refundAmount > 0) {
-      console.log(`[AutoRefund] Initiating auto-refund of ₹${refundAmount} for failed booking ${strTransId}`);
-      await refundRazorpay(
-        paymentId,
-        refundAmount,
-        strTransId
-      ).catch((err) => console.error("Auto-refund failed in _handleTicketFailed:", err?.message));
+  let refundAmount =
+    Number(razorpayPaymentData?.amount) ||
+    Number(razorpayPaymentData?.finalAmount) ||
+    Number(razorpayPaymentData?.paymentResponse?.amount) ||
+    0;
+
+  // Fallback to database transaction document if paymentId or refundAmount is missing
+  if (!paymentId || refundAmount <= 0) {
+    const dbTx = await Transaction.findOne(
+      { initTransId: strTransId },
+      { paymentResponse: 1, finalBookingCalculation: 1, razorpayPaymentId: 1 }
+    ).lean();
+    if (!paymentId) {
+      paymentId =
+        dbTx?.paymentResponse?.razorpay_payment_id ||
+        dbTx?.paymentResponse?.id ||
+        dbTx?.razorpayPaymentId;
     }
+    if (refundAmount <= 0) {
+      refundAmount =
+        Number(dbTx?.paymentResponse?.amount) ||
+        Number(dbTx?.finalBookingCalculation?.finalAmount) ||
+        0;
+    }
+  }
+
+  if (shouldRefund && paymentId && refundAmount > 0) {
+    console.log(`[AutoRefund] Initiating auto-refund of ₹${refundAmount} for failed booking ${strTransId}`);
+    await refundRazorpay(
+      paymentId,
+      refundAmount,
+      strTransId
+    ).catch((err) => console.error("Auto-refund failed in _handleTicketFailed:", err?.message));
   }
 
   const updated = await Transaction.findOneAndUpdate(
@@ -1314,6 +1379,50 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
     }
 
     await checkAndGrantWelcomeGift(userId);
+
+    // ── Pre-Commit Seat Reservation Integrity Guard ─────────────────────
+    const directAddSeatEx = bookingData?.addSeatData?.intException;
+    const directHasAddSeatEx =
+      directAddSeatEx !== undefined && directAddSeatEx !== null && Number(directAddSeatEx) !== 0;
+    const directHasNoSeats =
+      !bookingData?.addSeatData?.strSeatInfo && !bookingData?.setSeatData?.strSeatInfo;
+    const directHasNoValidBookId =
+      (!bookingData?.addSeatData?.intBookId || Number(bookingData?.addSeatData?.intBookId) === 0) &&
+      (!bookingData?.setSeatData?.intBookId || Number(bookingData?.setSeatData?.intBookId) === 0);
+
+    if (directHasAddSeatEx || (directHasNoSeats && directHasNoValidBookId)) {
+      const seatFailReason =
+        bookingData?.addSeatData?.strException ||
+        "No valid seat reservation found in Vista. Seats could not be allocated.";
+      console.error(
+        `[PreCommitGuard Direct] Transaction ${transId} has invalid/failed seat reservation (${seatFailReason}). Aborting commit.`
+      );
+
+      createLog({
+        transaction_id: transId,
+        type: "Booking",
+        step: {
+          success: false,
+          logType: "vistaBookingResponse",
+          message: "Ticket Booking Failed - Seats not reserved in Vista",
+          error: seatFailReason,
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+      await _handleTicketFailed(
+        transId,
+        zeroPaymentData,
+        user,
+        userId,
+        { Status: "0", msg: "fail", data: seatFailReason }
+      );
+      return res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        message: "Booking failed - seats unavailable. Refund initiated.",
+        redirectUrl: `/transaction-failed?transId=${transId}`,
+      });
+    }
 
     if (process.env.VISTA_TICKET_BOOKING !== "true") {
       return res.status(StatusCodes.OK).json({

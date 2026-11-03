@@ -484,10 +484,9 @@ export const couponCart = async (req, res) => {
         }
 
         if (cinemaDoc?.cinemaId) {
-          const curTicketsTotal = Number(findTx.addSeatData.curTicketsTotal) || 0;
-          const newTicketsTotal = Number(cart.ticketCart.total) || 0;
+          const hasDiscount = (Number(cart.ticketCart?.discountAmount) || 0) > 0 || (Number(cart.totalDiscount) || 0) > 0;
 
-          if (curTicketsTotal !== newTicketsTotal) {
+          if (hasDiscount && !findTx.vistaOrderUpdated) {
             let updateSuccess = false;
             let failureReason = "";
             try {

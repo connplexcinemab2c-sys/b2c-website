@@ -344,6 +344,42 @@ export const addSeats = async (req, res) => {
       const response = await axios.request(config);
 
       if (response.data.Status == 1) {
+        const properties = response.data.data || {};
+
+        const intException =
+          properties.intException !== undefined && properties.intException !== null
+            ? Number(properties.intException)
+            : 0;
+        const hasNoSeats = !properties.strSeatInfo || String(properties.strSeatInfo).trim() === "";
+        const hasNoBookId = !properties.intBookId || Number(properties.intBookId) === 0;
+
+        // CRITICAL GUARD: In Vista POS API, Status==1 only means SOAP call succeeded.
+        // If intException !== 0, no seats were allocated and Vista threw an allocation error.
+        if (intException !== 0 || hasNoSeats || hasNoBookId) {
+          const errMsg =
+            properties.strException ||
+            "Could not allocate seats in a contiguous block. Please select different seats.";
+
+          createLog({
+            transaction_id: strTransId,
+            session_id: strSessId,
+            type: "Booking",
+            step: {
+              success: false,
+              message: "Add Seats Failed (Vista Allocation Error)",
+              error: errMsg,
+              intException,
+              timestamp: new Date().toISOString(),
+            },
+          });
+
+          return res.status(400).json({
+            status: StatusCodes.BAD_REQUEST,
+            message: errMsg,
+            data: properties,
+          });
+        }
+
         createLog({
           transaction_id: strTransId,
           session_id: strSessId,
@@ -354,8 +390,6 @@ export const addSeats = async (req, res) => {
             timestamp: new Date().toISOString(),
           },
         });
-
-        const properties = response.data.data || {};
         if (!properties.strTransId) {
           properties.strTransId = strTransId;
         }
@@ -633,6 +667,33 @@ export const setSeats = async (req, res) => {
       .request(config)
       .then(async (response) => {
         if (response.data.Status == 1) {
+          const setData = response.data.data || {};
+          const intException =
+            setData.intException !== undefined && setData.intException !== null
+              ? Number(setData.intException)
+              : 0;
+
+          if (intException !== 0) {
+            const errMsg =
+              setData.strException || "Could not assign selected seats. Please choose different seats.";
+            createLog({
+              transaction_id: strTransId,
+              type: "Booking",
+              step: {
+                success: false,
+                message: "Set Seats Failed (Vista Assignment Error)",
+                error: errMsg,
+                intException,
+                timestamp: new Date().toISOString(),
+              },
+            });
+            return res.status(400).json({
+              status: StatusCodes.BAD_REQUEST,
+              message: errMsg,
+              data: setData,
+            });
+          }
+
           createLog({
             transaction_id: strTransId,
             type: "Booking",
