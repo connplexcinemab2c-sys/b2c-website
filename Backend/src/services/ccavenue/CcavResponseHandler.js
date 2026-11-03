@@ -141,6 +141,7 @@ export const paymentResponse = async (req, res) => {
             couponId: couponIds, //new coupon
             status: 4,
             discountCouponStatus: true,
+            finalPrice: bookingData.finalBookingCalculation?.finalAmount,
           },
           $push: {
             logs: {
@@ -618,6 +619,7 @@ export const ticketBooked = async (res, strTransId, response, user) => {
     status: 1,
     commitStatus: true,
     discountCouponStatus: true,
+    finalPrice: tx?.finalBookingCalculation?.finalAmount,
   };
 
   const ticketCart = tx?.finalBookingCalculation?.ticketCart;

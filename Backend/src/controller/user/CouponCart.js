@@ -266,74 +266,165 @@ export const couponCart = async (req, res) => {
       rewardCoins
     );
 
-    let coupanResponse;
-    let totalDiscount;
+    let coupanResponse = null;
+    let totalDiscount = 0;
+    let discountTarget = "All";
+    let matchedCouponDoc = null;
+    let isCouponSuccessfullyApplied = false;
 
-    if (isCoupan == true || isCoupan === "true") {
-      if (coupons.length > 0) {
-        coupanResponse = await applyCoupanService(couponDetails, transId);
+    let couponCode = "";
+    if (Array.isArray(coupons) && coupons.length > 0) {
+      couponCode = typeof coupons[0] === "string" ? coupons[0] : (coupons[0]?.couponTitle || coupons[0]?.coupan_code || "");
+    }
+    // Only reuse existing coupon if request was not an explicit coupon-cart refresh with empty coupons
+    if (!couponCode && isCoupan !== true && existingTx?.coupan?.coupanCode) {
+      couponCode = existingTx.coupan.coupanCode;
+    }
 
-        if (coupanResponse?.blnSuccess.includes("true")) {
-          totalDiscount = Number(coupanResponse?.fltAmount[0]) || 0;
+    if (couponCode) {
+      // 1. Try Vista Promo SOAP service if couponDetails is available
+      if (couponDetails) {
+        try {
+          const detailsForVista = {
+            ...couponDetails,
+            coupan_code: Array.isArray(couponDetails.coupan_code)
+              ? couponDetails.coupan_code
+              : [couponCode],
+          };
+          coupanResponse = await applyCoupanService(detailsForVista, transId);
+          if (coupanResponse?.blnSuccess && coupanResponse.blnSuccess.includes("true")) {
+            totalDiscount = Number(coupanResponse?.fltAmount?.[0]) || 0;
+            isCouponSuccessfullyApplied = true;
+          }
+        } catch (err) {
+          console.warn(`[CouponCart] Vista promo applyCoupanService unavailable for ${couponCode}:`, err.message);
+        }
+      }
 
-          recalculateCartPrices(cart, totalDiscount);
+      // 2. If not successfully applied via Vista, check MongoDB Coupon collection
+      if (!isCouponSuccessfullyApplied) {
+        try {
+          const currentDate = new Date();
+          matchedCouponDoc = await Coupon.findOne({
+            couponTitle: { $regex: new RegExp(`^${couponCode.trim()}$`, "i") },
+            deletedStatus: 0,
+            isActive: true,
+            couponStartDate: { $lte: currentDate },
+            couponEndDate: { $gte: currentDate },
+          });
 
-          const ticketDiscount = (ticketTotal - cart.ticketCart.membershipDiscount) - cart.ticketCart.total;
-          const discountOn = ticketDiscount > 0 ? "Ticket" : "F&B";
+          if (!matchedCouponDoc) {
+            matchedCouponDoc = await Coupon.findOne({
+              couponTitle: { $regex: new RegExp(`^${couponCode.trim()}$`, "i") },
+              deletedStatus: 0,
+              isActive: true,
+            });
+          }
 
-          await Transaction.findOneAndUpdate(
-            { initTransId: transId },
-            {
-              $set: {
-                coupan: {
-                  coupanCode: coupons[0],
-                  lngSessionId: coupanResponse?.lngTrans[0],
-                  discountOn: discountOn,
-                  discountValue: cart.totalDiscount,
-                },
-              },
+          if (matchedCouponDoc) {
+            discountTarget = matchedCouponDoc.couponType || "All";
+            const discountVal = parseFloat(matchedCouponDoc.discount) || 0;
+            if (matchedCouponDoc.discountType === "flat") {
+              totalDiscount = discountVal;
+            } else if (matchedCouponDoc.discountType === "%") {
+              const applicableBase =
+                discountTarget === "F&B" || discountTarget === "Food"
+                  ? resolvedFnbPrice
+                  : resolvedTicketTotal;
+              totalDiscount = (applicableBase * discountVal) / 100;
+              if (matchedCouponDoc.couponUpTo && totalDiscount > parseFloat(matchedCouponDoc.couponUpTo)) {
+                totalDiscount = parseFloat(matchedCouponDoc.couponUpTo);
+              }
             }
-          );
+            totalDiscount = Math.min(totalDiscount, resolvedTicketTotal + resolvedFnbPrice);
+            if (totalDiscount > 0) {
+              isCouponSuccessfullyApplied = true;
+            }
+          }
+        } catch (dbErr) {
+          console.warn(`[CouponCart] DB Coupon lookup error for ${couponCode}:`, dbErr.message);
+        }
+      }
 
-          cart.isCouponUsage = true;
-          cart.isOverAllCouponUsage = true;
-          cart.ticketCart.coupons = coupons;
+      // 3. If successfully applied (either via Vista or DB), recalculate cart prices
+      if (isCouponSuccessfullyApplied && totalDiscount > 0) {
+        recalculateCartPrices(cart, totalDiscount, discountTarget);
+
+        cart.isCouponUsage = true;
+        cart.isOverAllCouponUsage = true;
+        if (matchedCouponDoc) {
+          cart.ticketCart.coupons = [
+            {
+              _id: matchedCouponDoc._id,
+              couponTitle: matchedCouponDoc.couponTitle,
+              discount: matchedCouponDoc.discount,
+              discountType: matchedCouponDoc.discountType,
+              couponUpTo: matchedCouponDoc.couponUpTo,
+              couponCategory: matchedCouponDoc.couponCategory,
+            },
+          ];
+        } else {
+          cart.ticketCart.coupons = [couponCode];
         }
       }
     }
 
-    //   ticketCart: {
-    //     discountAmount: 0,
-    //     basePrice: 144.068,
-    //     membershipDiscount: 0,
-    //     totalAfterDiscount: 170,
-    //     cgst: 0,
-    //     sgst: 0,
-    //     coupons: [],
-    //     total: 170,
-    //     ticketTotal: 170
-    //   },
-    //   foodCart: {
-    //     discountAmount: 50,
-    //     basePrice: -50,
-    //     membershipDiscount: 0,
-    //     totalAfterDiscount: 400.008,
-    //     cgst: 0,
-    //     sgst: 0,
-    //     coupons: [],
-    //     total: 400.008,
-    //     fnbTotal: 400.008
-    //   },
-    //   finalAmount: 587.7080000000001,
-    //   totalDiscount: 50,
-    //   isCouponUsage: true,
-    //   isOverAllCouponUsage: true,
-    //   convenienceFeesObject: { convenienceFees: 15, gst: 2.7, total: 17.7 }
-    // }
+    cart.foodCart.totalAmountByBase = FBamount;
 
-    // if (coupanResponse?.blnSuccess.includes(true)) {
-    // }
-          cart.foodCart.totalAmountByBase = FBamount;
+    const discountedTicketTotal = Number(cart.ticketCart?.total) || 0;
+    const finalDiscountedPrice = Number(cart.finalAmount) || 0;
+    const grossTicketsTotal = String(
+      existingTx?.addSeatData?.grossTicketsTotal ||
+      existingTx?.commitBookingData?.grossTicketsTotal ||
+      vistaGross ||
+      resolvedTicketTotal ||
+      cart.ticketCart?.ticketTotal ||
+      0
+    );
+    const curBookingFee = Number(existingTx?.addSeatData?.curBookingFee) || 0;
+    const curFoodTotal = Number(existingTx?.addSeatData?.curFoodTotal) || 0;
+    const netCurTotal = discountedTicketTotal + curBookingFee + curFoodTotal;
+
+    const txUpdateSet = {
+      finalBookingCalculation: cart,
+      finalPrice: finalDiscountedPrice,
+      totalPrice: Number(grossTicketsTotal) + curFoodTotal + curBookingFee,
+      discountAmount: Number(cart.totalDiscount) || 0,
+      discountCouponStatus: (cart.totalDiscount || 0) > 0,
+    };
+
+    if (existingTx?.addSeatData) {
+      txUpdateSet["addSeatData.grossTicketsTotal"] = grossTicketsTotal;
+      txUpdateSet["addSeatData.curTicketsTotal"] = String(discountedTicketTotal);
+      txUpdateSet["addSeatData.curTotal"] = String(netCurTotal);
+      txUpdateSet["addSeatData.discountAmount"] = cart.ticketCart?.discountAmount || 0;
+      txUpdateSet["addSeatData.curTicketsTax1"] = String(cart.ticketCart?.cgst || 0);
+      txUpdateSet["addSeatData.curTicketsTax2"] = String(cart.ticketCart?.sgst || 0);
+    }
+
+    if (isCouponSuccessfullyApplied && totalDiscount > 0) {
+      const ticketDiscount = (resolvedTicketTotal - cart.ticketCart.membershipDiscount) - cart.ticketCart.total;
+      const discountOn = ticketDiscount > 0 ? "Ticket" : "F&B";
+      txUpdateSet.coupan = {
+        coupanCode: couponCode,
+        lngSessionId: coupanResponse?.lngTrans?.[0] || "",
+        discountOn: discountOn,
+        discountValue: cart.totalDiscount,
+      };
+      if (matchedCouponDoc?._id) {
+        txUpdateSet.couponId = [matchedCouponDoc._id];
+      }
+    }
+
+    const txUpdateObj = { $set: txUpdateSet };
+    if (!isCouponSuccessfullyApplied || totalDiscount <= 0) {
+      txUpdateObj.$unset = { coupan: "", couponId: "" };
+    }
+
+    await Transaction.findOneAndUpdate(
+      { initTransId: transId },
+      txUpdateObj
+    );
 
     createLog({
       transaction_id: transId,
@@ -350,17 +441,6 @@ export const couponCart = async (req, res) => {
     console.log(
       `[CouponCart] Cart whole calculation for transId ${transId}:`,
       JSON.stringify(cart, null, 2)
-    );
-
-    await Transaction.findOneAndUpdate(
-      {
-        initTransId: transId,
-      },
-      {
-        $set: {
-          finalBookingCalculation: cart,
-        },
-      }
     );
 
     createLog({
@@ -505,10 +585,12 @@ export const couponCart = async (req, res) => {
       }
     }
 
+    const successMsg = coupanResponse?.strMessage?.[0] || "Coupon applied successfully";
+    const failMsg = coupanResponse?.strException?.[0] || (couponCode ? "Invalid or expired coupon" : "Cart updated");
+
     return res.status(200).json({
       status: StatusCodes.OK,
-      message:
-        coupanResponse?.strMessage?.[0] || coupanResponse?.strException?.[0],
+      message: isCouponSuccessfullyApplied ? successMsg : (couponCode ? failMsg : "Cart updated"),
       data: cart,
     });
   } catch (error) {
@@ -532,26 +614,48 @@ export const removeCouponFromCart = async (req, res) => {
         data: [],
       });
     }
-    const response = await rollbackCoupanService({
-      lngSessionId: findRecord.coupan.lngSessionId,
-      coupanCode: couponCode,
-      cinemaId: cinemaId,
-    });
-    if (!response?.blnSuccess.includes("true")) {
-      return res.status(400).json({
-        status: StatusCodes.BAD_REQUEST,
-        message: ResponseMessage.COUPON_ROLLBACK_FAILED,
-        data: [],
-      });
+
+    if (findRecord.coupan?.lngSessionId && cinemaId) {
+      try {
+        const response = await rollbackCoupanService({
+          lngSessionId: findRecord.coupan.lngSessionId,
+          coupanCode: couponCode,
+          cinemaId: cinemaId,
+        });
+        if (!response?.blnSuccess?.includes("true")) {
+          console.warn("[removeCouponFromCart] Vista rollback returned non-success, unsetting coupon in DB anyway.");
+        }
+      } catch (rollbackErr) {
+        console.warn("[removeCouponFromCart] Vista rollback failed:", rollbackErr.message);
+      }
     }
+
+    const grossTicketsTotal = String(
+      findRecord.addSeatData?.grossTicketsTotal ||
+      findRecord.commitBookingData?.grossTicketsTotal ||
+      findRecord.addSeatData?.curTicketsTotal ||
+      0
+    );
+    const curBookingFee = Number(findRecord.addSeatData?.curBookingFee) || 0;
+    const curFoodTotal = Number(findRecord.addSeatData?.curFoodTotal) || 0;
+    const undiscountedTotal = Number(grossTicketsTotal) + curFoodTotal + curBookingFee;
+    const convFee = findRecord.finalBookingCalculation?.convenienceFeesObject?.total || 0;
+
     await Transaction.findOneAndUpdate(
       { initTransId: transId },
       {
         $unset: {
-          "coupan.coupanCode": "",
-          "coupan.lngSessionId": "",
-          "coupan.discountOn": "",
-          "coupan.discountValue": "",
+          coupan: "",
+          couponId: "",
+        },
+        $set: {
+          discountCouponStatus: false,
+          discountAmount: 0,
+          finalPrice: undiscountedTotal + convFee,
+          totalPrice: undiscountedTotal,
+          "addSeatData.curTicketsTotal": grossTicketsTotal,
+          "addSeatData.curTotal": String(undiscountedTotal),
+          "addSeatData.discountAmount": 0,
         },
       }
     );

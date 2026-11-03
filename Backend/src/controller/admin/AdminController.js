@@ -2553,6 +2553,9 @@ export const getUserTransactionDetails = async (req, res) => {
         paymentsStatus: true,
         showId: true,
         finalBookingCalculation: true,
+        finalPrice: true,
+        totalPrice: true,
+        discountAmount: true,
       }
     )
       .populate({

@@ -143,7 +143,7 @@ export const getCouponCart = async (
   };
 };
 
-export const recalculateCartPrices = (cart, couponDiscount = 0) => {
+export const recalculateCartPrices = (cart, couponDiscount = 0, discountTarget = "All") => {
   const ticketTotal = cart.ticketCart.ticketTotal || 0;
   const ticketMembershipDiscount = cart.ticketCart.membershipDiscount || 0;
 
@@ -164,7 +164,16 @@ export const recalculateCartPrices = (cart, couponDiscount = 0) => {
   let ticketShareOfDiscount = 0;
   let foodShareOfDiscount = 0;
 
-  if (sumAfterMembership > 0) {
+  const isCinemaTarget = discountTarget === "Cinema" || discountTarget === "Ticket";
+  const isFoodTarget = discountTarget === "F&B" || discountTarget === "Food";
+
+  if (isCinemaTarget) {
+    ticketShareOfDiscount = Math.min(ticketTotalAfterMembership, effectiveDiscount);
+    foodShareOfDiscount = Math.min(foodTotalAfterMembership, Math.max(0, effectiveDiscount - ticketShareOfDiscount));
+  } else if (isFoodTarget) {
+    foodShareOfDiscount = Math.min(foodTotalAfterMembership, effectiveDiscount);
+    ticketShareOfDiscount = Math.min(ticketTotalAfterMembership, Math.max(0, effectiveDiscount - foodShareOfDiscount));
+  } else if (sumAfterMembership > 0) {
     ticketShareOfDiscount = (ticketTotalAfterMembership / sumAfterMembership) * effectiveDiscount;
     foodShareOfDiscount = (foodTotalAfterMembership / sumAfterMembership) * effectiveDiscount;
   }
@@ -211,6 +220,11 @@ export const recalculateCartPrices = (cart, couponDiscount = 0) => {
   cart.finalAmount = getNumberUptoTwoDecimal(finalTicketTotal + finalFoodTotal + convenienceFeesTotal);
   const effectiveCouponDiscount = Math.max(0, effectiveDiscount - rewardDiscount);
   cart.totalDiscount = getNumberUptoTwoDecimal(effectiveCouponDiscount);
+
+  cart.finalPrice = cart.finalAmount;
+  cart.totalPrice = getNumberUptoTwoDecimal(ticketTotal + fnbTotal + convenienceFeesTotal);
+  cart.ticketCart.finalPrice = cart.ticketCart.total;
+  cart.ticketCart.discountedPrice = cart.ticketCart.total;
 
   return cart;
 };

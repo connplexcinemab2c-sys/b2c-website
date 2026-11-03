@@ -584,13 +584,13 @@ function AddSnacks() {
     console.log(coupon, ":coupon121");
     if (isRemovingCoupon?.isRemoving) return;
 
-    setIsRemovingCoupon({ couponCode: coupon, isRemoving: true });
+    const couponCodeStr = typeof coupon === "object" ? coupon?.couponTitle : coupon;
+    setIsRemovingCoupon({ couponCode: couponCodeStr, isRemoving: true });
     const payload = {
       transId,
-      couponCode: coupon,
+      couponCode: couponCodeStr,
       cinemaId: stateData?.cinemaData?.cinemaData?._id,
     };
-
     try {
       if (coupon === "") {
         setIsRemovingCoupon({ couponCode: "", isRemoving: false });

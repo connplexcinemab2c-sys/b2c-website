@@ -147,6 +147,18 @@ let transaction = new mongoose.Schema(
       type: Object,
       required: false,
     },
+    finalPrice: {
+      type: Number,
+      required: false,
+    },
+    totalPrice: {
+      type: Number,
+      required: false,
+    },
+    discountAmount: {
+      type: Number,
+      required: false,
+    },
     discountCouponStatus: {
       type: Boolean,
       required: false,

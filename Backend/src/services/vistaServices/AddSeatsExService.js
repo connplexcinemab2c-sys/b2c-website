@@ -228,22 +228,29 @@ export const updateOrderService = async ({ cinemaId, strTransId, strOrderXml }) 
     throw new Error(`Cinema with ID ${cinemaId} not found`);
   }
 
-  const url = cinema.cinemaWebServiceUrl || cinema.cinemaWebServiceUrl2;
-  if (!url) {
+  const targetUrl = cinema.cinemaWebServiceUrl || cinema.cinemaWebServiceUrl2;
+  if (!targetUrl) {
     throw new Error(`Cinema web service URL not configured for ${cinemaId}`);
   }
 
+  const relayUrl = process.env.VISTA_RELAY_URL || "http://14.194.50.141/relay.ashx";
   const licenseString = getCinemaLicenseString(cinema, cinemaId);
+  const branchCode = cinema.cinemaBranchCode || "";
 
-  const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>
+  const executeSoap = async (cmdName, p1, p2, p3, p4 = "", useRelay = true) => {
+    const postUrl = useRelay && relayUrl
+      ? `${relayUrl}?target=${encodeURIComponent(targetUrl)}`
+      : targetUrl;
+
+    const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <objExecute xmlns="http://www.bigtree.co.in">
-      <strCommand>UpdateOrder</strCommand>
-      <strParam1>${strTransId}</strParam1>
-      <strParam2><![CDATA[${strOrderXml}]]></strParam2>
-      <strParam3>${licenseString}</strParam3>
-      <strParam4></strParam4>
+      <strCommand>${cmdName}</strCommand>
+      <strParam1>${p1}</strParam1>
+      <strParam2><![CDATA[${p2}]]></strParam2>
+      <strParam3>${p3}</strParam3>
+      <strParam4>${p4}</strParam4>
       <strParam5></strParam5>
       <strParam6></strParam6>
       <strParam7></strParam7>
@@ -259,56 +266,92 @@ export const updateOrderService = async ({ cinemaId, strTransId, strOrderXml }) 
   </soap:Body>
 </soap:Envelope>`;
 
-  console.log(`Sending UpdateOrder SOAP request to: ${url} for transId: ${strTransId}`);
-  const response = await axios.post(url, soapEnvelope, {
-    headers: {
-      "Content-Type": "text/xml; charset=utf-8",
-      SOAPAction: "http://www.bigtree.co.in/objExecute",
-    },
-    timeout: 30000,
-  });
+    console.log(`Sending ${cmdName} SOAP request via ${useRelay ? "relay" : "direct"}: ${postUrl} for transId: ${strTransId}`);
+    const response = await axios.post(postUrl, soapEnvelope, {
+      headers: {
+        "Content-Type": "text/xml; charset=utf-8",
+        SOAPAction: "http://www.bigtree.co.in/objExecute",
+      },
+      timeout: 30000,
+    });
 
-  const parsed = await parseStringPromise(response.data, {
-    tagNameProcessors: [stripPrefix],
-  });
+    const parsed = await parseStringPromise(response.data, {
+      tagNameProcessors: [stripPrefix],
+    });
 
-  const body = parsed.Envelope.Body[0];
-  const objExecuteResponse = body.objExecuteResponse[0];
-  const objExecuteResult = objExecuteResponse.objExecuteResult[0];
+    const body = parsed.Envelope.Body[0];
+    const objExecuteResponse = body.objExecuteResponse[0];
+    const objExecuteResult = objExecuteResponse.objExecuteResult[0];
 
-  const blnSuccess = objExecuteResult.blnSuccess[0] === "true";
-  const intException = parseInt(objExecuteResult.intException[0] || "0", 10);
-  const strException = objExecuteResult.strException[0] || "";
+    const blnSuccess = objExecuteResult.blnSuccess[0] === "true";
+    const intException = parseInt(objExecuteResult.intException[0] || "0", 10);
+    const strException = objExecuteResult.strException[0] || "";
 
-  // Parse any serialized properties returned inside strData XML
-  const properties = {};
-  const strData = objExecuteResult.strData ? objExecuteResult.strData[0] : null;
-  if (strData) {
-    try {
-      const dataParsed = await parseStringPromise(strData, {
-        tagNameProcessors: [stripPrefix],
-      });
-      const rootKey = Object.keys(dataParsed)[0];
-      const root = dataParsed[rootKey];
-      for (const key in root) {
-        const val = root[key];
-        if (Array.isArray(val)) {
-          properties[key] = typeof val[0] === "string" ? val[0] : val[0];
-        } else {
-          properties[key] = val;
+    const properties = {};
+    const strData = objExecuteResult.strData ? objExecuteResult.strData[0] : null;
+    if (strData) {
+      try {
+        const dataParsed = await parseStringPromise(strData, {
+          tagNameProcessors: [stripPrefix],
+        });
+        const rootKey = Object.keys(dataParsed)[0];
+        const root = dataParsed[rootKey];
+        for (const key in root) {
+          const val = root[key];
+          if (Array.isArray(val)) {
+            properties[key] = typeof val[0] === "string" ? val[0] : val[0];
+          } else {
+            properties[key] = val;
+          }
         }
+      } catch (parseErr) {
+        console.error("Error parsing updateOrder strData XML response:", parseErr);
       }
-    } catch (parseErr) {
-      console.error("Error parsing updateOrder strData XML response:", parseErr);
+    }
+
+    return { success: blnSuccess, intException, strException, properties };
+  };
+
+  // Try UpdateOrder via relay
+  let res;
+  try {
+    res = await executeSoap("UpdateOrder", strTransId, strOrderXml, licenseString, "", true);
+  } catch (relayErr) {
+    console.warn(`[updateOrderService] Relay attempt failed (${relayErr.message}), trying direct...`);
+    res = await executeSoap("UpdateOrder", strTransId, strOrderXml, licenseString, "", false);
+  }
+
+  // If UpdateOrder returns invalid command (-45), try blnUpdateOrder
+  if (!res.success && res.intException === -45) {
+    try {
+      res = await executeSoap("blnUpdateOrder", strTransId, strOrderXml, licenseString, "", true);
+    } catch (e) {
+      console.warn("[updateOrderService] blnUpdateOrder retry failed:", e.message);
     }
   }
 
-  return {
-    success: blnSuccess,
-    intException,
-    strException,
-    properties,
-  };
+  // If unauthorized on direct, retry via relay
+  if (!res.success && res.intException === -3) {
+    try {
+      res = await executeSoap("UpdateOrder", strTransId, strOrderXml, licenseString, "", true);
+    } catch (e) {
+      console.warn("[updateOrderService] Relay retry failed:", e.message);
+    }
+  }
+
+  // If failed with format error, try Pattern 2 with branchCode: branchCode, strTransId, strOrderXml, licenseString
+  if (!res.success && res.intException !== -3 && res.intException !== -45 && branchCode) {
+    try {
+      const res2 = await executeSoap("UpdateOrder", branchCode, strTransId, strOrderXml, licenseString, true);
+      if (res2.success) {
+        res = res2;
+      }
+    } catch (retryErr) {
+      console.warn("UpdateOrder Pattern 2 retry failed:", retryErr.message);
+    }
+  }
+
+  return res;
 };
 
 /**

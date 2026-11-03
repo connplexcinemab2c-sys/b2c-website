@@ -379,6 +379,7 @@ export const paymentResponse = async (req, res) => {
           couponId: couponIds,
           status: 4,
           discountCouponStatus: true,
+          finalPrice: bookingData.finalBookingCalculation?.finalAmount,
         },
         $push: { logs: { paymentSuccess: new Date() } },
       }
@@ -598,6 +599,7 @@ export const _handleBookingSuccess = async (strTransId, vistaResponse, user) => 
     status: 1,
     commitStatus: true,
     discountCouponStatus: true,
+    finalPrice: tx?.finalBookingCalculation?.finalAmount,
   };
 
   const ticketCart = tx?.finalBookingCalculation?.ticketCart;
@@ -1170,6 +1172,7 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
           couponId: couponIds,
           status: 4,
           discountCouponStatus: true,
+          finalPrice: bookingData.finalBookingCalculation?.finalAmount,
         },
         $push: { logs: { paymentSuccess: new Date() } },
       }

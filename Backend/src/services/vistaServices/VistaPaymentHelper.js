@@ -155,7 +155,11 @@ export const formatCommitBookingData = (vistaData, tx) => {
     const discountedTotal = String(ticketCart.total);
     const cgst = String(ticketCart.cgst);
     const sgst = String(ticketCart.sgst);
-    const grossTotal = commitData.curTicketsTotal || String(ticketCart.ticketTotal || "");
+    const grossTotal =
+      commitData.grossTicketsTotal ||
+      tx?.addSeatData?.grossTicketsTotal ||
+      commitData.curTicketsTotal ||
+      String(ticketCart.ticketTotal || "");
 
     const foodTotal = Number(commitData.curFoodTotal) || 0;
     const bookingFee = Number(commitData.curBookingFee) || 0;

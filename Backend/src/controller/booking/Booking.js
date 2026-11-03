@@ -368,12 +368,16 @@ export const addSeats = async (req, res) => {
         }
         // Always store original gross tickets total from Vista to prevent compounding discount bugs
         properties.grossTicketsTotal = String(properties.curTicketsTotal || properties.curTotal || 0);
+        const initialPrice = Number(properties.curTicketsTotal || properties.curTotal || 0);
 
         await Transaction.findOneAndUpdate(
           { initTransId: strTransId },
           {
             $set: {
               addSeatData: properties,
+              finalPrice: initialPrice,
+              totalPrice: initialPrice,
+              discountAmount: 0,
               ...(strType ? { tTypeCode: strType } : {}),
             },
             $push: {
@@ -484,10 +488,16 @@ export const addSeatsEx = async (req, res) => {
         result.properties.grossTicketsTotal = String(result.properties.curTicketsTotal || result.properties.curTotal || 0);
       }
       if (strTransId) {
+        const initialPriceEx = Number(result?.properties?.curTicketsTotal || result?.properties?.curTotal || 0);
         await Transaction.findOneAndUpdate(
           { initTransId: strTransId },
           {
-            $set: { addSeatData: result.properties },
+            $set: {
+              addSeatData: result.properties,
+              finalPrice: initialPriceEx,
+              totalPrice: initialPriceEx,
+              discountAmount: 0,
+            },
             $push: {
               logs: {
                 addSeatsEx: new Date(),
@@ -1258,6 +1268,9 @@ export const getAllBookingUser = async (req, res) => {
         foodAndBvgResponse: true,
         fAndBDetails: true,
         status: true,
+        finalPrice: true,
+        totalPrice: true,
+        discountAmount: true,
         finalBookingCalculation: true,
         city: true,
         cityId: true,
@@ -2100,6 +2113,9 @@ export const getBookingDetailsByTransId = async (initTransId) => {
       "commitBookingData.curTicketsTax2": 1,
       fAndBDetails: 1,
       finalBookingCalculation: 1,
+      finalPrice: 1,
+      totalPrice: 1,
+      discountAmount: 1,
       city: 1,
       cityId: 1,
       regionId: 1,

@@ -851,11 +851,11 @@ console.log({selectedFood});
                 <>
                   <Index.Box key={index} className="coupon-applied-box">
                     <Index.Typography className="coupon-applied-text">
-                      {`'${item}' applied`}
+                      {`'${item?.couponTitle || item}' applied`}
                     </Index.Typography>
                     <Index.Typography
                       className="remove-text image-cursor"
-                      onClick={() => handleRemoveCoupon(item)}
+                      onClick={() => handleRemoveCoupon(item?.couponTitle || item)}
                     >
                       Remove
                     </Index.Typography>
@@ -874,7 +874,7 @@ console.log({selectedFood});
                     </Index.Typography>
                     <Index.Typography
                       className="remove-text image-cursor"
-                      onClick={() => handleRemoveCoupon(item)}
+                      onClick={() => handleRemoveCoupon(item?.couponTitle || item)}
                     >
                       Remove
                     </Index.Typography>
@@ -1038,7 +1038,7 @@ console.log({selectedFood});
                                       <PagesIndex.Button
                                         onClick={() => {
                                           handleRollbackCoupon(
-                                            ticketCart?.coupons?.[0] || "",
+                                            ticketCart?.coupons?.[0]?.couponTitle || ticketCart?.coupons?.[0] || "",
                                             stateData?.cinemaData?.transactionId
                                           );
                                           handleAddRemoveItem(
@@ -1061,7 +1061,7 @@ console.log({selectedFood});
                                       <PagesIndex.Button
                                         onClick={() => {
                                           handleRollbackCoupon(
-                                            ticketCart?.coupons?.[0] || "",
+                                            ticketCart?.coupons?.[0]?.couponTitle || ticketCart?.coupons?.[0] || "",
                                             stateData?.cinemaData?.transactionId
                                           );
                                           handleAddRemoveItem(
@@ -1079,7 +1079,7 @@ console.log({selectedFood});
                                       className="snacks-remove"
                                       onClick={() => {
                                         handleRollbackCoupon(
-                                          ticketCart?.coupons?.[0] || "",
+                                          ticketCart?.coupons?.[0]?.couponTitle || ticketCart?.coupons?.[0] || "",
                                           stateData?.cinemaData?.transactionId
                                         );
                                         handleRemoveItem(item?.index);
