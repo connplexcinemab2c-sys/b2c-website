@@ -71,13 +71,13 @@ export const getCouponCart = async (
   });
 
   let ticketMembershipDiscount = 0;
-  if (
-    subscriptionData?.subscriptionDetails &&
-    subscriptionData?.subscriptionDetails.discountOnTicket
-  ) {
-    ticketMembershipDiscount =
-      subscriptionData?.subscriptionDetails.discountOnTicket;
-    ticketMembershipDiscount = getNumberUptoTwoDecimal(ticketMembershipDiscount)
+  if (subscriptionData?.subscriptionDetails) {
+    const rawDisc = subscriptionData.subscriptionDetails.discountOnTicket;
+    const rawDiscUpTo = subscriptionData.subscriptionDetails.discountOnTicketUpTo;
+    const numDisc = Number(rawDisc) || 0;
+    const numDiscUpTo = Number(rawDiscUpTo) || 0;
+    ticketMembershipDiscount = Math.max(numDisc, numDiscUpTo);
+    ticketMembershipDiscount = getNumberUptoTwoDecimal(ticketMembershipDiscount);
   }
   let foodMembershipDiscount = 0;
   if (
@@ -85,7 +85,7 @@ export const getCouponCart = async (
     subscriptionData?.subscriptionDetails.discountOfFAndB
   ) {
     foodMembershipDiscount = subscriptionData?.subscriptionDetails.discountOfFAndB;
-    foodMembershipDiscount = getNumberUptoTwoDecimal(foodMembershipDiscount)
+    foodMembershipDiscount = getNumberUptoTwoDecimal(foodMembershipDiscount);
   }
 
   const ticketMembershipDiscountVal = getNumberUptoTwoDecimal(calculateMembershipDiscount(
