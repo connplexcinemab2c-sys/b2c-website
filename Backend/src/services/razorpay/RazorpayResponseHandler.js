@@ -62,28 +62,30 @@ import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 /**
  * Helper to call Vista CommitBookingEx with automatic retry on transient failures.
  */
-export const callVistaCommitWithRetry = async (vistaConfig, retries = 2, delayMs = 1000) => {
+export const callVistaCommitWithRetry = async (vistaConfig, retries = 3, delayMs = 1000) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await axios.request({ ...vistaConfig, timeout: 20000 });
+      const response = await axios.request({ ...vistaConfig, timeout: 25000 });
       if (response?.data?.Status == 1) {
         return response;
       }
       const dataStr = JSON.stringify(response?.data || "");
-      // Do not retry definitive business errors (e.g. seats already sold / contiguous error)
-      if (dataStr.includes("contiguous") || dataStr.includes("not available")) {
+      // Do not retry definitive business errors where seats were already sold to another customer
+      if (dataStr.includes("Seat not available") || dataStr.includes("Seat already sold") || dataStr.includes("SeatAlreadyAllocated")) {
         return response;
       }
       if (attempt < retries) {
-        console.warn(`[VistaRetry] Attempt ${attempt} returned non-success, retrying in ${delayMs}ms...`);
-        await new Promise((r) => setTimeout(r, delayMs));
+        const backoff = delayMs * attempt;
+        console.warn(`[VistaRetry] Attempt ${attempt} returned non-success, retrying in ${backoff}ms...`);
+        await new Promise((r) => setTimeout(r, backoff));
         continue;
       }
       return response;
     } catch (err) {
       if (attempt < retries) {
-        console.warn(`[VistaRetry] Network error on attempt ${attempt} (${err.message}), retrying in ${delayMs}ms...`);
-        await new Promise((r) => setTimeout(r, delayMs));
+        const backoff = delayMs * attempt;
+        console.warn(`[VistaRetry] Network error on attempt ${attempt} (${err.message}), retrying in ${backoff}ms...`);
+        await new Promise((r) => setTimeout(r, backoff));
       } else {
         throw err;
       }
@@ -725,15 +727,22 @@ export const _handleTicketFailed = async (
   vistaErrorResponse
 ) => {
   const shouldRefund = process.env.VISTA_TICKET_REFUND !== "false";
-  if (shouldRefund && razorpayPaymentData?.razorpay_payment_id) {
+  const paymentId =
+    razorpayPaymentData?.razorpay_payment_id ||
+    razorpayPaymentData?.id ||
+    razorpayPaymentData?.paymentResponse?.razorpay_payment_id ||
+    razorpayPaymentData?.paymentResponse?.id;
+
+  if (shouldRefund && paymentId) {
     const refundAmount =
       Number(razorpayPaymentData.amount) ||
       Number(razorpayPaymentData.finalAmount) ||
+      Number(razorpayPaymentData?.paymentResponse?.amount) ||
       0;
     if (refundAmount > 0) {
       console.log(`[AutoRefund] Initiating auto-refund of ₹${refundAmount} for failed booking ${strTransId}`);
       await refundRazorpay(
-        razorpayPaymentData.razorpay_payment_id,
+        paymentId,
         refundAmount,
         strTransId
       ).catch((err) => console.error("Auto-refund failed in _handleTicketFailed:", err?.message));

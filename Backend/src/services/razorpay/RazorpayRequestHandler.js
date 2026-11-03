@@ -21,6 +21,7 @@ import { createLog } from "../LogsServices.js";
 import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 import { verifyMembershipCoupon } from "../CouponCartService.js";
 import { buySubscriptionMembershipDirectly, razorpayBookDirectly } from "./RazorpayResponseHandler.js";
+import { continueTransService } from "../vistaServices/AddSeatsExService.js";
 
 // ---------------------------------------------------------------------------
 // Ticket booking — create Razorpay order
@@ -65,6 +66,13 @@ export const paymentRequest = async (req, res) => {
       appliedRewardPoints,
       booking_type,
     ] = parts;
+
+    // Refresh seat hold in Vista POS so reservation timer does not expire while customer pays
+    if (cinemaId && transId) {
+      continueTransService({ cinemaId, strTransId: transId }).catch((err) =>
+        console.warn(`[ContinueTrans] Session hold refresh notice for ${transId}:`, err?.message)
+      );
+    }
 
     // Attach UTM and normalized phone to Transaction for conversion attribution
     const reqUserAgent = req.headers["user-agent"] || "";
@@ -237,6 +245,7 @@ export const paymentRequest = async (req, res) => {
       amount: amountInPaise,
       currency: "INR",
       receipt: transId,
+      payment_capture: 1, // Immediately capture authorized payment
       notes: {
         transId,
         cinemaId,
@@ -315,9 +324,22 @@ export const refundRazorpay = async (paymentId, amount, initTransId) => {
       return false;
     }
 
-    const refund = await razorpayInstance.payments.refund(paymentId, {
-      amount: refundPaise,
-    });
+    let refund;
+    try {
+      refund = await razorpayInstance.payments.refund(paymentId, {
+        amount: refundPaise,
+      });
+    } catch (refErr) {
+      if (refErr?.error?.description?.toLowerCase().includes("not been captured") || refErr?.message?.toLowerCase().includes("not been captured")) {
+        console.warn(`[refundRazorpay] Payment ${paymentId} not captured yet. Capturing now before refund...`);
+        await razorpayInstance.payments.capture(paymentId, refundPaise, "INR").catch(console.error);
+        refund = await razorpayInstance.payments.refund(paymentId, {
+          amount: refundPaise,
+        });
+      } else {
+        throw refErr;
+      }
+    }
 
     if (refund && refund.id) {
       await Transaction.findOneAndUpdate(
@@ -328,6 +350,8 @@ export const refundRazorpay = async (paymentId, amount, initTransId) => {
             refundResponse: refund,
             refundStatus: true,
             autoRefund: true,
+            refundId: refund.id,
+            refundAmount: refundPaise / 100,
           },
           $push: { logs: { ticketRefunded: new Date() } },
         }

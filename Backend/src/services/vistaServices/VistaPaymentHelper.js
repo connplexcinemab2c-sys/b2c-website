@@ -13,100 +13,70 @@ export const buildMultiPaymentDetails = ({
   foodAndBvgResponse,
   vistaOrderUpdated = false,
 }) => {
-  // 1. Gross ticket reservation amount held in Vista
-  // Vista requires udsCommitBook tender amounts to sum exactly to the gross seat reservation.
-  const grossTicket =
-    Number(addSeatData?.grossTicketsTotal) ||
-    Number(finalBooking?.ticketCart?.ticketTotal) ||
-    Number(addSeatData?.curTicketsTotal) ||
-    Number(addSeatData?.curTotal) ||
-    0;
-  const ticketGrossPaise = Math.round(grossTicket * 100);
+  // 1. Determine Vista POS exact required reservation total (in paise)
+  // Vista requires udsCommitBook tender amounts to sum exactly to the reservation total held in Vista.
+  const reservationTotal = Number(
+    foodAndBvgResponse?.curTotal ?? addSeatData?.curTotal ?? 0
+  );
+  const vistaTotalPaise = Math.max(0, Math.round(reservationTotal * 100));
 
+  // 2. Determine Vista POS exact concession/F&B amount (in paise)
+  // In 3D shows, Vista auto-attaches mandatory 3D glasses in addSeatData.curFoodTotal.
+  // When food is added separately, Vista's foodAndBvgResponse includes both 3D glasses and food.
+  const vistaFood = Number(
+    foodAndBvgResponse?.curFoodTotal !== undefined && foodAndBvgResponse?.curFoodTotal !== null
+      ? foodAndBvgResponse.curFoodTotal
+      : (addSeatData?.curFoodTotal || 0)
+  );
+  let fnbPaise = Math.max(0, Math.round(vistaFood * 100));
+  if (fnbPaise > vistaTotalPaise) {
+    fnbPaise = vistaTotalPaise;
+  }
+
+  // 3. Ticket portion is the exact remainder so sum of tenders ALWAYS equals vistaTotalPaise
+  const ticketPaise = Math.max(0, vistaTotalPaise - fnbPaise);
+
+  // 4. Handle discount split if explicitly enabled in environment
+  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE || "DISC";
+  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
   const rawDiscount = Number(finalBooking?.ticketCart?.discountAmount) || 0;
   let discountPaise = rawDiscount > 0 ? Math.round(rawDiscount * 100) : 0;
-  if (discountPaise > ticketGrossPaise) {
-    discountPaise = ticketGrossPaise;
+  if (discountPaise > ticketPaise) {
+    discountPaise = ticketPaise;
   }
-
-  // Determine actual net paid ticket amount (Total price - Discount applied)
-  let paidTicketPaise;
-  const hasCartTotal =
-    finalBooking?.ticketCart?.total !== undefined &&
-    finalBooking?.ticketCart?.total !== null &&
-    !isNaN(Number(finalBooking?.ticketCart?.total));
-
-  if (hasCartTotal) {
-    paidTicketPaise = Math.max(0, Math.round(Number(finalBooking.ticketCart.total) * 100));
-  } else {
-    paidTicketPaise = Math.max(0, ticketGrossPaise - discountPaise);
-  }
-  const paidTicket = paidTicketPaise / 100;
-
-  // 2. F&B and concession total held in Vista
-  // Vista requires udsCommitBook tender amounts to sum exactly to the gross reservation held in Vista.
-  // In 3D shows, Vista auto-attaches mandatory 3D glasses / concessions in addSeatData.curFoodTotal.
-  const addSeatConcession = Number(addSeatData?.curFoodTotal) || 0;
-  const separateFood =
-    Number(foodAndBvgResponse?.curFoodTotal) ||
-    Number(finalBooking?.foodCart?.basePrice) ||
-    Number(finalBooking?.foodCart?.total) ||
-    0;
-  const foodAmount = addSeatConcession + separateFood;
-  const fnbPaise = foodAmount > 0 ? Math.round(foodAmount * 100) : 0;
-
-  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
-  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
 
   const tenders = [];
 
-  // 1. If blnUpdateOrder successfully updated the order in Vista to the net discounted price:
-  // Vista's internal reservation is now at paidTicketPaise (e.g. ₹100).
-  // Tender paidTicketPaise under CW so tender matches Vista's updated order.
-  if (vistaOrderUpdated && paidTicketPaise > 0) {
-    tenders.push({ type: "CW", amount: paidTicketPaise });
-  } else if (vistaOrderUpdated && paidTicketPaise === 0) {
-    // 100% ticket discount and order updated to 0 in Vista
-    if (enableDiscountTender && discountPaytype) {
-      tenders.push({ type: discountPaytype, amount: ticketGrossPaise });
-    }
-  }
-  // 2. If blnUpdateOrder was bypassed or failed, but a dedicated discount tender is enabled:
-  // Split tenders between CW (net paid by customer) and discountPaytype (discount applied).
-  // The sum of tenders equals ticketGrossPaise, exactly satisfying Vista's validation.
-  // In Vista DB, CW reports net customer collection (₹100) and DISC reports discount (₹400).
-  else if (enableDiscountTender && discountPaytype && discountPaise > 0) {
+  // When discount tenders are active and discount was applied, split ticket between CW and discountPaytype
+  if (enableDiscountTender && discountPaise > 0) {
+    const paidTicketPaise = ticketPaise - discountPaise;
     if (paidTicketPaise > 0) {
       tenders.push({ type: "CW", amount: paidTicketPaise });
-      tenders.push({ type: discountPaytype, amount: discountPaise });
-    } else {
-      tenders.push({ type: discountPaytype, amount: discountPaise });
     }
-  }
-  // 3. Fallback when neither order update nor discount tender is active:
-  // Tendering gross prevents commit failure & customer deduction without ticket.
-  else if (ticketGrossPaise > 0) {
-    tenders.push({ type: "CW", amount: ticketGrossPaise });
+    tenders.push({ type: discountPaytype, amount: discountPaise });
+  } else if (ticketPaise > 0) {
+    // Default / Standard: All ticket value tendered under CW
+    tenders.push({ type: "CW", amount: ticketPaise });
   }
 
-  // F&B tender under CWFNB
+  // Add Concession / 3D glasses tender
   if (fnbPaise > 0) {
     tenders.push({ type: "CWFNB", amount: fnbPaise });
   }
 
-  // Safety guard: ensure total tenders fully cover Vista's required reservation total
-  const vistaTotalPaise = Math.round(Number(addSeatData?.curTotal || 0) * 100);
-  if (vistaTotalPaise > 0) {
-    const currentTenderTotal = tenders.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-    const diffPaise = vistaTotalPaise - currentTenderTotal;
-    if (diffPaise > 0) {
-      const fnbTender = tenders.find((t) => t.type === "CWFNB");
-      if (fnbTender) {
-        fnbTender.amount += diffPaise;
-      } else {
-        tenders.push({ type: "CWFNB", amount: diffPaise });
-      }
-    }
+  // Handle 100% free booking (0 total)
+  if (tenders.length === 0 && vistaTotalPaise === 0) {
+    tenders.push({ type: "CW", amount: 0 });
+  }
+
+  // Critical Mathematical Invariant:
+  // Ensure sum(tenders) strictly equals vistaTotalPaise to prevent ANY Vista commit rejection
+  const currentTenderTotal = tenders.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  const diffPaise = vistaTotalPaise - currentTenderTotal;
+  if (diffPaise !== 0 && tenders.length > 0) {
+    // Absorb any microscopic rounding drift into the primary CW tender
+    const primaryTender = tenders.find((t) => t.type === "CW") || tenders[0];
+    primaryTender.amount += diffPaise;
   }
 
   // Build pipe-delimited MultiPaymentDetails string:
@@ -123,14 +93,16 @@ export const buildMultiPaymentDetails = ({
 
   return {
     multipayment,
-    grossTicket,
-    paidTicket,
+    grossTicket: ticketPaise / 100,
+    paidTicket: (ticketPaise - discountPaise) / 100,
     discountAmount: discountPaise / 100,
     fnbTotal: fnbPaise / 100,
-    ticketGrossPaise,
-    paidTicketPaise,
+    ticketGrossPaise: ticketPaise,
+    paidTicketPaise: ticketPaise - discountPaise,
     discountPaise,
     fnbPaise,
+    totalPaise: vistaTotalPaise,
+    tenders,
   };
 };
 

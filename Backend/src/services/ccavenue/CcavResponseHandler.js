@@ -32,6 +32,7 @@ import { processOrderAttribution } from "../WhatsAppConversionService.js";
 import GeneralSetting from "../../models/GeneralSetting.js";
 import { createLog } from "../LogsServices.js";
 import { buildMultiPaymentDetails, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
+import { callVistaCommitWithRetry } from "../razorpay/RazorpayResponseHandler.js";
 dotenv.config();
 export const paymentResponse = async (req, res) => {
   try {
@@ -214,8 +215,7 @@ export const paymentResponse = async (req, res) => {
             //   }
             // };
 
-            axios
-              .request(config)
+            callVistaCommitWithRetry(config, 3, 1000)
               .then(async (response) => {
                 console.log("VISTA response:", response.data);
                 if (response.data.Status == 1) {
