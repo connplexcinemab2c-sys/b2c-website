@@ -286,6 +286,10 @@ export const fetchDashboardData = async (req, res) => {
       promises.ticketFailedCount = Transaction.countDocuments({
         deletedStatus: 0,
         paymentsStatus: true, // payment done
+        status: { $nin: [1, 2] },
+        "paymentResponse.order_status": {
+          $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+        },
         $or: [{ commitStatus: false }, { commitStatus: { $exists: false } }],
         createdAt: { $gte: start, $lte: end },
       });
@@ -303,6 +307,9 @@ export const fetchDashboardData = async (req, res) => {
       promises.membershipFailedCount = SubscriptionTransaction.countDocuments({
         deletedStatus: 0,
         status: 5,
+        "paymentResponse.order_status": {
+          $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+        },
         paymentsStatus: false,
         createdAt: { $gte: start, $lte: end },
       });

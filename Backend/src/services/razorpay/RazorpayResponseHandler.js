@@ -905,6 +905,8 @@ export const _handlePaymentFailedDb = async (strTransId, paymentData, userId, ta
                       paymentData?.order_status === "cancelled" || 
                       paymentData?.order_status === "user_cancelled" || 
                       paymentData?.order_status === "Abandoned" ||
+                      paymentData?.order_status === "Aborted" ||
+                      paymentData?.order_status === "aborted" ||
                       paymentData?.isTestAttempt;
 
   const finalStatus = isAbandoned ? 2 : targetStatus;
@@ -916,6 +918,7 @@ export const _handlePaymentFailedDb = async (strTransId, paymentData, userId, ta
       paymentsStatus: false,
       userId,
       status: finalStatus,
+      isCommitting: false,
     },
     $push: { logs: logPush },
   };

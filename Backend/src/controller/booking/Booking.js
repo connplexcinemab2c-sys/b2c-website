@@ -1621,7 +1621,10 @@ export const transactionReport = async (req, res) => {
     };
 
     if (showAbortedTransaction === "No") {
-      matchStage.status = { $ne: 0 }; // Exclude aborted transactions
+      matchStage.status = { $nin: [0, 2] }; // Exclude aborted and cancelled transactions
+      matchStage["paymentResponse.order_status"] = {
+        $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+      };
     }
 
     if (fromDate) {
@@ -1931,12 +1934,30 @@ export const transactionDateWiseReport = async (req, res) => {
       }),
     ]);
 
-    // 🔴 Payment failed
-    const failedCount = await Transaction.countDocuments({
-      deletedStatus: 0,
-      paymentsStatus: false,
-      createdAt: { $gte: new Date(start), $lte: new Date(end) },
-    });
+    // 🔴 Payment failed (technical failures only, excluding user voluntary cancellations/aborts)
+    const [failedCount, userAbortedCount] = await Promise.all([
+      Transaction.countDocuments({
+        deletedStatus: 0,
+        paymentsStatus: false,
+        status: { $in: [4, 5] },
+        "paymentResponse.order_status": {
+          $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+        },
+        createdAt: { $gte: new Date(start), $lte: new Date(end) },
+      }),
+      Transaction.countDocuments({
+        deletedStatus: 0,
+        $or: [
+          { status: 2 },
+          {
+            "paymentResponse.order_status": {
+              $in: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+            },
+          },
+        ],
+        createdAt: { $gte: new Date(start), $lte: new Date(end) },
+      }),
+    ]);
 
     // 🔵 Discounts & Convenience Fees (successful payments)
     const discountAndFeesResult = await Transaction.aggregate([
@@ -1964,10 +1985,14 @@ export const transactionDateWiseReport = async (req, res) => {
     ]);
     const discountData = discountAndFeesResult[0] || {};
 
-    // 🔴 Total transactions (all with payment response)
+    // 🔴 Total transactions (all attempted; excludes user voluntary cancellations/aborts)
     const totalTransactions = await Transaction.countDocuments({
       deletedStatus: 0,
       paymentResponse: { $ne: null },
+      status: { $nin: [0, 2] },
+      "paymentResponse.order_status": {
+        $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+      },
       createdAt: { $gte: new Date(start), $lte: new Date(end) },
     });
 
@@ -2032,6 +2057,7 @@ export const transactionDateWiseReport = async (req, res) => {
         convenienceFees: Number(discountData.convenienceFees || 0).toFixed(2),
         shipped: shippedCount,
         failed: failedCount,
+        userAborted: userAbortedCount,
         paymentSuccessBookingFailed,
         totalTransactions,
         total3DCharges: Number(total3DCharges).toFixed(2),

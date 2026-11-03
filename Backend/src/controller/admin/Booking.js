@@ -431,7 +431,10 @@ export const getAllBookingAdmin = async (req, res) => {
     };
 
     if (showAbortedTransaction === "No") {
-      query.status = { $ne: 0 };
+      query.status = { $nin: [0, 2] };
+      query["paymentResponse.order_status"] = {
+        $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+      };
     }
 
     if (cinemaId && mongoose.Types.ObjectId.isValid(cinemaId)) {
@@ -562,6 +565,10 @@ export const getAllBookingAdmin = async (req, res) => {
     ) {
       query.paymentsStatus = true;
       query.commitStatus = { $ne: true };
+      query.status = { $nin: [1, 2] };
+      query["paymentResponse.order_status"] = {
+        $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+      };
     } else if (
       paymentStatus === "Unsuccessfull" &&
       bookingStatus === "Unsuccessfull"
@@ -569,12 +576,26 @@ export const getAllBookingAdmin = async (req, res) => {
       query.$and = [
         { paymentsStatus: { $ne: true } },
         { commitStatus: { $ne: true } },
+        { status: { $nin: [0, 2] } },
+        {
+          "paymentResponse.order_status": {
+            $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+          },
+        },
       ];
     } else if (paymentStatus === "Unsuccessfull") {
       query.paymentsStatus = { $ne: true };
+      query.status = { $nin: [0, 2] };
+      query["paymentResponse.order_status"] = {
+        $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+      };
     } else if (bookingStatus === "Unsuccessfull") {
       query.paymentsStatus = true;
       query.commitStatus = { $ne: true };
+      query.status = { $nin: [1, 2] };
+      query["paymentResponse.order_status"] = {
+        $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+      };
     }
 
     // Construct search regex
@@ -963,11 +984,14 @@ export const getAllFailedBooking = async (req, res) => {
       });
     }
 
-    // Base Query
+    // Base Query: Only genuine paid ticket commit failures, excluding user-aborted/cancelled transactions
     let query = {
       deletedStatus: 0,
-      // status: { $in: [4, 5] },
       paymentsStatus: true,
+      status: { $nin: [1, 2] },
+      "paymentResponse.order_status": {
+        $nin: ["cancelled", "user_cancelled", "Abandoned", "Aborted"],
+      },
       $or: [{ commitStatus: false }, { commitStatus: { $exists: false } }],
     };
 

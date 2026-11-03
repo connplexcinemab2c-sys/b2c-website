@@ -473,6 +473,15 @@ export const paymentFailed = async (
 
   const id = user._id;
 
+  const isAborted =
+    paymentData?.payment?.order_status === "Aborted" ||
+    paymentData?.payment?.order_status === "cancelled" ||
+    paymentData?.payment?.order_status === "user_cancelled" ||
+    paymentData?.payment?.order_status === "Abandoned";
+
+  const targetStatus = isAborted ? 2 : 5;
+  const logPush = isAborted ? { userCancelled: new Date() } : { paymentFailed: new Date() };
+
   // Try to update in SubscriptionTransaction
   let TransactionDetails = await SubscriptionTransaction.findOneAndUpdate(
     { initTransId: strTransId },
@@ -481,12 +490,10 @@ export const paymentFailed = async (
         paymentResponse: paymentData.payment,
         paymentsStatus: false,
         id,
-        status: 5, // payment Failed
+        status: targetStatus,
       },
       $push: {
-        logs: {
-          paymentFailed: new Date(),
-        },
+        logs: logPush,
       },
     },
     { new: true }
@@ -501,12 +508,11 @@ export const paymentFailed = async (
           paymentResponse: paymentData.payment,
           paymentsStatus: false,
           id,
-          status: 5, // payment Failed
+          status: targetStatus,
+          isCommitting: false,
         },
         $push: {
-          logs: {
-            paymentFailed: new Date(),
-          },
+          logs: logPush,
         },
       },
       { new: true }

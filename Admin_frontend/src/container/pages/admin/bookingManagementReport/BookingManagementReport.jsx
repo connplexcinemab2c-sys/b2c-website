@@ -423,6 +423,10 @@ const BookingManagementReport = () => {
             Value: report?.failed || 0,
           },
           {
+            "Website Report": "User Aborted / Cancelled",
+            Value: report?.userAborted || 0,
+          },
+          {
             "Website Report": "Payment Success but Booking Failed",
             Value: report?.paymentSuccessBookingFailed || 0,
           },
