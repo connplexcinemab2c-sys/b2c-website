@@ -127,7 +127,7 @@ export const paymentRequest = async (req, res) => {
       const initBookingTime = findTransaction.logs[0]?.initBooking;
       if (
         initBookingTime &&
-        now.diff(moment(initBookingTime), "minutes") > 10
+        now.diff(moment(initBookingTime), "minutes") > 15
       ) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           status: StatusCodes.BAD_REQUEST,

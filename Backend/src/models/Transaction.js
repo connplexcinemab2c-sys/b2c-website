@@ -227,6 +227,22 @@ let transaction = new mongoose.Schema(
       required: false,
       default: false,
     },
+    isCommitting: {
+      type: Boolean,
+      required: false,
+      default: false,
+      index: true,
+    },
+    commitLockAcquiredAt: {
+      type: Date,
+      required: false,
+      default: null,
+    },
+    commitLockOwner: {
+      type: String,
+      required: false,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -234,6 +250,7 @@ let transaction = new mongoose.Schema(
 );
 transaction.index({ createdAt: -1, deletedStatus: 1 });
 transaction.index({ cinemaId: 1, createdAt: -1 });
+transaction.index({ initTransId: 1, isCommitting: 1 });
 
 const Transaction = mongoose.model("transaction", transaction);
 export default Transaction;

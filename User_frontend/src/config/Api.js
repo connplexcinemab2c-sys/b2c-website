@@ -86,4 +86,5 @@ export const Api = {
   // Razorpay — payment verification (called by frontend after popup closes)
   RAZORPAY_VERIFY_PAYMENT: "user/ccavResponseHandler",
   SUBSCRIPTION_RAZORPAY_VERIFY: "user/subscription-ccavResponseHandler",
+  CONTINUE_TRANS: "continue-trans",
 };

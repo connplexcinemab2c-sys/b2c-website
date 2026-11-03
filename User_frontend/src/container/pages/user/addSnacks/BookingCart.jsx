@@ -568,6 +568,21 @@ console.log({selectedFood});
       return;
     }
 
+    // Keep-alive heartbeat: periodically extends Vista temporary seat reservation while payment modal is active
+    let heartbeatTimer = setInterval(() => {
+      PagesIndex.apiPostHandler(PagesIndex.Api.CONTINUE_TRANS, {
+        cinemaId: stateData?.cinemaData?.cinemaData?.cinemaId || cinemaId,
+        strTransId: transId,
+      }).catch(() => {});
+    }, 60000);
+
+    const clearHeartbeat = () => {
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
+    };
+
     // Step 3 — Open Razorpay popup
     const options = {
       key: keyId,
@@ -600,6 +615,7 @@ console.log({selectedFood});
       },
 
       handler: async (paymentResult) => {
+        clearHeartbeat();
         console.log(paymentResult , ":paymentResult")
         // Step 4 — Verify payment with backend
         dispatch(PagesIndex.showLoader());
@@ -636,6 +652,7 @@ console.log({selectedFood});
 
       modal: {
         ondismiss: () => {
+          clearHeartbeat();
           PagesIndex.toast.warn("Payment was not completed. Your seats are still reserved! Click 'Pay Now' to retry.");
         },
       },
@@ -643,6 +660,7 @@ console.log({selectedFood});
 
     const rzp = new window.Razorpay(options);
     rzp.on("payment.failed", (response) => {
+      clearHeartbeat();
       console.warn("Payment failed at gateway:", response?.error);
       PagesIndex.toast.error(
         response?.error?.description || "Payment was not completed. You can retry with UPI, Card, or Netbanking."

@@ -27,6 +27,7 @@ import calculateAndSaveCoins, { processCoinRedemption } from "../../controller/u
 import { processOrderAttribution } from "../WhatsAppConversionService.js";
 import { buildMultiPaymentDetails, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
 import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
+import { continueTransService } from "../vistaServices/AddSeatsExService.js";
 
 // ---------------------------------------------------------------------------
 // Ticket booking — verify Razorpay payment & commit Vista booking
@@ -62,7 +63,7 @@ import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 /**
  * Helper to call Vista CommitBookingEx with automatic retry on transient failures.
  */
-export const callVistaCommitWithRetry = async (vistaConfig, retries = 3, delayMs = 1000) => {
+export const callVistaCommitWithRetry = async (vistaConfig, retries = 3, delayMs = 1200) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const response = await axios.request({ ...vistaConfig, timeout: 25000 });
@@ -70,6 +71,16 @@ export const callVistaCommitWithRetry = async (vistaConfig, retries = 3, delayMs
         return response;
       }
       const dataStr = JSON.stringify(response?.data || "");
+      // If already committed in Vista, treat immediately as success!
+      if (
+        dataStr.toLowerCase().includes("already committed") ||
+        dataStr.toLowerCase().includes("already finalised") ||
+        dataStr.toLowerCase().includes("already finalized") ||
+        dataStr.toLowerCase().includes("already booked") ||
+        dataStr.toLowerCase().includes("cannot commit a completed transaction")
+      ) {
+        return response;
+      }
       // Do not retry definitive business errors where seats were already sold to another customer
       if (dataStr.includes("Seat not available") || dataStr.includes("Seat already sold") || dataStr.includes("SeatAlreadyAllocated")) {
         return response;
@@ -82,6 +93,16 @@ export const callVistaCommitWithRetry = async (vistaConfig, retries = 3, delayMs
       }
       return response;
     } catch (err) {
+      const errStr = String(err?.response?.data || err?.message || "");
+      // If error message indicates booking is already committed, return success object
+      if (
+        errStr.toLowerCase().includes("already committed") ||
+        errStr.toLowerCase().includes("already finalised") ||
+        errStr.toLowerCase().includes("already finalized") ||
+        errStr.toLowerCase().includes("already booked")
+      ) {
+        return { data: { Status: 1, data: "already_committed_recovered", msg: "Recovered from already committed state" } };
+      }
       if (attempt < retries) {
         const backoff = delayMs * attempt;
         console.warn(`[VistaRetry] Network error on attempt ${attempt} (${err.message}), retrying in ${backoff}ms...`);
@@ -315,6 +336,53 @@ export const paymentResponse = async (req, res) => {
       },
     });
 
+    // ── ATOMIC CONCURRENCY LOCK: Prevent parallel commit requests (Webhook vs Frontend Race)
+    const lockAcquired = await Transaction.findOneAndUpdate(
+      {
+        initTransId: transId,
+        status: { $nin: [1, 3] }, // Never lock if already confirmed or refunded
+        $or: [
+          { isCommitting: { $ne: true } },
+          { commitLockAcquiredAt: { $lt: new Date(Date.now() - 35000) } }, // Auto-release stale lock if crashed > 35s
+        ],
+      },
+      {
+        $set: {
+          isCommitting: true,
+          commitLockAcquiredAt: new Date(),
+        },
+      },
+      { new: true }
+    );
+
+    if (!lockAcquired) {
+      console.log(`[paymentResponse] Concurrency Lock: Another thread is processing or has finalized ${transId}. Waiting for result...`);
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const check = await Transaction.findOne(
+          { initTransId: transId },
+          { status: 1, commitStatus: 1, isCommitting: 1 }
+        ).lean();
+        if (check && (check.status === 1 || check.commitStatus === true)) {
+          console.log(`[paymentResponse] transId ${transId} confirmed by concurrent thread. Returning success.`);
+          return res.status(StatusCodes.OK).json({
+            status: StatusCodes.OK,
+            message: "Booking confirmed",
+            redirectUrl: `/confirmation-screen?transId=${transId}`,
+          });
+        }
+        if (!check?.isCommitting) break;
+      }
+      const finalTx = await Transaction.findOne({ initTransId: transId }).lean();
+      if (finalTx && (finalTx.status === 1 || finalTx.commitStatus === true)) {
+        return res.status(StatusCodes.OK).json({
+          status: StatusCodes.OK,
+          message: "Booking confirmed",
+          redirectUrl: `/confirmation-screen?transId=${transId}`,
+        });
+      }
+    }
+
     // ── 5. Load booking data ──────────────────────────────────────────────────
     const bookingData = await Transaction.findOne(
       { initTransId: transId },
@@ -468,96 +536,130 @@ export const paymentResponse = async (req, res) => {
 
     console.log("VISTA request config:", vistaConfig);
 
-    // ── 16. Call Vista — use .then/.catch (same pattern as CCAvenue) ──────────
+    // ── 16. Refresh seat reservation hold if session is older than 3 minutes
+    if (sessionAgeMinutes > 3 && cinemaId && transId) {
+      try {
+        await continueTransService({ cinemaId, strTransId: transId });
+        console.log(`[ContinueTrans] Pre-commit reservation hold refreshed for ${transId}`);
+      } catch (ctErr) {
+        console.warn(`[ContinueTrans] Non-fatal pre-commit refresh warning for ${transId}:`, ctErr?.message);
+      }
+    }
+
+    // ── 17. Call Vista CommitBookingEx with retries & timeout protection ──────
     try {
-      callVistaCommitWithRetry(vistaConfig, 2, 1000)
-        .then(async (response) => {
-          console.log("VISTA response:", response.data);
+      let response = null;
+      let commitError = null;
 
-          if (response.data?.Status == 1) {
-            // ── 15a. Vista success — status: 1 ─────────────────────────────
-         
-            createLog({
-              transaction_id: transId,
-              type: "Booking",
-              step: {
-                success: true,
-                logType: "vistaBookingResponse",
-                response: response.data,
-                message: "Ticket Booked Successfully",
-                timestamp: new Date().toISOString(),
-              },
-            });
+      try {
+        response = await callVistaCommitWithRetry(vistaConfig, 3, 1200);
+      } catch (err) {
+        commitError = err;
+      }
 
-            await _handleBookingSuccess(transId, response, user);
+      console.log("VISTA commit result for", transId, ":", response?.data || commitError?.message);
 
+      const respData = response?.data;
+      const dataStr = JSON.stringify(respData || commitError?.response?.data || commitError?.message || "");
+
+      // Auto-detect Vista success or already-committed recovery
+      const isAlreadyCommitted =
+        dataStr.toLowerCase().includes("already committed") ||
+        dataStr.toLowerCase().includes("already finalised") ||
+        dataStr.toLowerCase().includes("already finalized") ||
+        dataStr.toLowerCase().includes("already booked") ||
+        dataStr.toLowerCase().includes("already processed") ||
+        dataStr.toLowerCase().includes("cannot commit a completed transaction");
+
+      if (respData?.Status == 1 || isAlreadyCommitted) {
+        // ── Vista success — status: 1 ─────────────────────────────
+        createLog({
+          transaction_id: transId,
+          type: "Booking",
+          step: {
+            success: true,
+            logType: "vistaBookingResponse",
+            response: respData || { status: "already_committed_recovered" },
+            message: isAlreadyCommitted
+              ? "Ticket Booked Successfully (Recovered from already committed state)"
+              : "Ticket Booked Successfully",
+            timestamp: new Date().toISOString(),
+          },
+        });
+
+        await _handleBookingSuccess(transId, response || { data: { Status: 1, data: bookingData.addSeatData } }, user);
+        await Transaction.updateOne({ initTransId: transId }, { $set: { isCommitting: false } }).catch(() => {});
+
+        return res.status(StatusCodes.OK).json({
+          status: StatusCodes.OK,
+          message: "Booking confirmed",
+          redirectUrl: `/confirmation-screen?transId=${transId}`,
+        });
+      }
+
+      // Check if network timeout occurred - verify with Vista before failing
+      const isNetworkTimeout =
+        commitError?.code === "ECONNABORTED" ||
+        commitError?.code === "ETIMEDOUT" ||
+        commitError?.message?.includes("timeout");
+
+      if (isNetworkTimeout) {
+        console.warn(`[VistaTimeout] Network timeout occurred for ${transId}. Verifying transaction state before failing...`);
+        try {
+          const verifyRes = await axios.request({ ...vistaConfig, timeout: 8000 });
+          const verifyStr = JSON.stringify(verifyRes?.data || "");
+          if (
+            verifyRes?.data?.Status == 1 ||
+            verifyStr.toLowerCase().includes("already committed") ||
+            verifyStr.toLowerCase().includes("already finalised") ||
+            verifyStr.toLowerCase().includes("already finalized") ||
+            verifyStr.toLowerCase().includes("already booked")
+          ) {
+            console.log(`[VistaTimeout] Recovered booking ${transId} on verification retry!`);
+            await _handleBookingSuccess(transId, verifyRes, user);
+            await Transaction.updateOne({ initTransId: transId }, { $set: { isCommitting: false } }).catch(() => {});
             return res.status(StatusCodes.OK).json({
               status: StatusCodes.OK,
               message: "Booking confirmed",
               redirectUrl: `/confirmation-screen?transId=${transId}`,
             });
-          } else {
-            // ── 15b. Vista returned non-success Status ─────────────────────
-     
-            createLog({
-              transaction_id: transId,
-              type: "Booking",
-              step: {
-                success: false,
-                logType: "vistaBookingResponse",
-                message: "Ticket Booking Failed",
-                response: response.data,
-                timestamp: new Date().toISOString(),
-              },
-            });
-
-            await _handleTicketFailed(
-              transId,
-              razorpayPaymentData,
-              user,
-              userId,
-              response.data
-            );
-
-            return res.status(StatusCodes.OK).json({
-              status: StatusCodes.OK,
-              message: "Booking failed",
-              redirectUrl: `/transaction-failed?transId=${transId}`,
-            });
           }
-        })
-        .catch(async (error) => {
-          // ── 15c. Vista network / HTTP error ──────────────────────────────
-       
-          createLog({
-            transaction_id: transId,
-            type: "Booking",
-            step: {
-              success: false,
-              logType: "vistaBookingResponse",
-              message: "Ticket Booking Failed",
-              error: error?.message,
-              timestamp: new Date().toISOString(),
-            },
-          });
+        } catch (verifyErr) {
+          console.warn(`[VistaTimeout] Verification retry error for ${transId}:`, verifyErr.message);
+        }
+      }
 
-          console.error("Error in VISTA request:", error);
+      // ── Vista returned non-success / definitive failure ─────────────────────
+      createLog({
+        transaction_id: transId,
+        type: "Booking",
+        step: {
+          success: false,
+          logType: "vistaBookingResponse",
+          message: "Ticket Booking Failed",
+          response: respData || commitError?.response?.data || commitError?.message,
+          timestamp: new Date().toISOString(),
+        },
+      });
 
-          await _handleTicketFailed(
-            transId,
-            razorpayPaymentData,
-            user,
-            userId,
-            error?.response
-          );
+      console.error("Definitive Vista commit failure for", transId, ":", respData || commitError?.message);
 
-          return res.status(StatusCodes.OK).json({
-            status: StatusCodes.OK,
-            message: "Booking failed",
-            redirectUrl: `/transaction-failed?transId=${transId}`,
-          });
-        });
+      await _handleTicketFailed(
+        transId,
+        razorpayPaymentData,
+        user,
+        userId,
+        respData || commitError?.response?.data || { error: commitError?.message }
+      );
+      await Transaction.updateOne({ initTransId: transId }, { $set: { isCommitting: false } }).catch(() => {});
+
+      return res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        message: "Booking failed",
+        redirectUrl: `/transaction-failed?transId=${transId}`,
+      });
     } catch (error) {
+      await Transaction.updateOne({ initTransId: transId }, { $set: { isCommitting: false } }).catch(() => {});
       createLog({
         transaction_id: transId,
         type: "Booking",
@@ -602,6 +704,7 @@ export const _handleBookingSuccess = async (strTransId, vistaResponse, user) => 
     commitStatus: true,
     discountCouponStatus: true,
     finalPrice: tx?.finalBookingCalculation?.finalAmount,
+    isCommitting: false,
   };
 
   const ticketCart = tx?.finalBookingCalculation?.ticketCart;
@@ -726,6 +829,13 @@ export const _handleTicketFailed = async (
   userId,
   vistaErrorResponse
 ) => {
+  // CRITICAL GUARD: Never issue a refund if the transaction was already successfully committed!
+  const currentTx = await Transaction.findOne({ initTransId: strTransId }, { status: 1, commitStatus: 1 }).lean();
+  if (currentTx && (currentTx.status === 1 || currentTx.commitStatus === true)) {
+    console.warn(`[Guard] Blocked refund in _handleTicketFailed: Transaction ${strTransId} is already confirmed (status: 1).`);
+    return;
+  }
+
   const shouldRefund = process.env.VISTA_TICKET_REFUND !== "false";
   const paymentId =
     razorpayPaymentData?.razorpay_payment_id ||
@@ -757,6 +867,7 @@ export const _handleTicketFailed = async (
         userId,
         commitStatus: false,
         vistaErrorResponse,
+        isCommitting: false,
       },
       $push: { logs: { ticketFailed: new Date() } },
     },
@@ -1226,34 +1337,43 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
     };
 
     try {
-      axios
-        .request(vistaConfig)
-        .then(async (response) => {
-          if (response.data?.Status == 1) {
-            await _handleBookingSuccess(transId, response, user);
-            return res.status(StatusCodes.OK).json({
-              status: StatusCodes.OK,
-              message: "Booking confirmed",
-              redirectUrl: `/confirmation-screen?transId=${transId}`,
-            });
-          } else {
-            await _handleTicketFailed(transId, zeroPaymentData, user, userId, response.data);
-            return res.status(StatusCodes.OK).json({
-              status: StatusCodes.OK,
-              message: "Booking failed",
-              redirectUrl: `/transaction-failed?transId=${transId}`,
-            });
-          }
-        })
-        .catch(async (error) => {
-          console.error("Error in VISTA direct booking:", error);
-          await _handleTicketFailed(transId, zeroPaymentData, user, userId, error?.response);
-          return res.status(StatusCodes.OK).json({
-            status: StatusCodes.OK,
-            message: "Booking failed",
-            redirectUrl: `/transaction-failed?transId=${transId}`,
-          });
+      let response = null;
+      let commitError = null;
+      try {
+        response = await callVistaCommitWithRetry(vistaConfig, 3, 1000);
+      } catch (err) {
+        commitError = err;
+      }
+
+      const respData = response?.data;
+      const dataStr = JSON.stringify(respData || commitError?.response?.data || commitError?.message || "");
+      const isAlreadyCommitted =
+        dataStr.toLowerCase().includes("already committed") ||
+        dataStr.toLowerCase().includes("already finalised") ||
+        dataStr.toLowerCase().includes("already finalized") ||
+        dataStr.toLowerCase().includes("already booked");
+
+      if (respData?.Status == 1 || isAlreadyCommitted) {
+        await _handleBookingSuccess(transId, response || { data: { Status: 1 } }, user);
+        return res.status(StatusCodes.OK).json({
+          status: StatusCodes.OK,
+          message: "Booking confirmed",
+          redirectUrl: `/confirmation-screen?transId=${transId}`,
         });
+      } else {
+        await _handleTicketFailed(
+          transId,
+          zeroPaymentData,
+          user,
+          userId,
+          respData || commitError?.response?.data || { error: commitError?.message }
+        );
+        return res.status(StatusCodes.OK).json({
+          status: StatusCodes.OK,
+          message: "Booking failed",
+          redirectUrl: `/transaction-failed?transId=${transId}`,
+        });
+      }
     } catch (error) {
       console.error("Error in razorpayBookDirectly commit:", error);
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({

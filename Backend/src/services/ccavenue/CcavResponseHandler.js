@@ -215,47 +215,44 @@ export const paymentResponse = async (req, res) => {
             //   }
             // };
 
-            callVistaCommitWithRetry(config, 3, 1000)
-              .then(async (response) => {
-                console.log("VISTA response:", response.data);
-                if (response.data.Status == 1) {
-                  // createVistaLog(
-                  //   strTransId,
-                  //   userId,
-                  //   "Ticket",
-                  //   "CommitBookingEx",
-                  //   vistaLogRequest,
-                  //   response.data,
-                  //   "Success"
-                  // );
+            try {
+              let response = null;
+              let commitError = null;
 
-                  createLog({
-                    transaction_id: strTransId,
-                    type: "Booking",
-                    step: {
-                      success: true,
-                      logType: "vistaBookingResponse",
-                      response: response.data,
-                      message: "Ticket Booked Successfully",
-                      timestamp: new Date().toISOString(),
-                    },
-                  });
-                  ticketBooked(res, strTransId, response, user);
-                  // } else {
-                  //   createVistaLog(
-                  //     strTransId,
-                  //     userId,
-                  //     "Ticket",
-                  //     "CommitBookingEx",
-                  //     vistaLogRequest,
-                  //     response.data,
-                  //     "Failed"
-                  //   );
-                }
-              })
-              .catch(async (error) => {
-                //Handle cancellation here if error encountered
+              try {
+                response = await callVistaCommitWithRetry(config, 3, 1000);
+              } catch (err) {
+                commitError = err;
+              }
 
+              console.log("VISTA response (CCAvenue):", response?.data || commitError?.message);
+
+              const respData = response?.data;
+              const dataStr = JSON.stringify(respData || commitError?.response?.data || commitError?.message || "");
+
+              const isAlreadyCommitted =
+                dataStr.toLowerCase().includes("already committed") ||
+                dataStr.toLowerCase().includes("already finalised") ||
+                dataStr.toLowerCase().includes("already finalized") ||
+                dataStr.toLowerCase().includes("already booked") ||
+                dataStr.toLowerCase().includes("cannot commit a completed transaction");
+
+              if (respData?.Status == 1 || isAlreadyCommitted) {
+                createLog({
+                  transaction_id: strTransId,
+                  type: "Booking",
+                  step: {
+                    success: true,
+                    logType: "vistaBookingResponse",
+                    response: respData || { status: "already_committed_recovered" },
+                    message: isAlreadyCommitted
+                      ? "Ticket Booked Successfully (Recovered from already committed state)"
+                      : "Ticket Booked Successfully",
+                    timestamp: new Date().toISOString(),
+                  },
+                });
+                ticketBooked(res, strTransId, response || { data: { Status: 1, data: bookingData.addSeatData } }, user);
+              } else {
                 createLog({
                   transaction_id: strTransId,
                   type: "Booking",
@@ -263,29 +260,42 @@ export const paymentResponse = async (req, res) => {
                     success: false,
                     logType: "vistaBookingResponse",
                     message: "Ticket Booking Failed",
-                    error: error,
+                    error: respData || commitError?.message,
                     timestamp: new Date().toISOString(),
                   },
                 });
-                console.error("Error in VISTA request:", error);
-                // createVistaLog(
-                //   strTransId,
-                //   userId,
-                //   "Ticket",
-                //   "CommitBookingEx",
-                //   vistaLogRequest,
-                //   error.response.data,
-                //   "Failed"
-                // );
+                console.error("Error in VISTA request (CCAvenue):", respData || commitError?.message);
                 ticketFailed(
                   res,
                   strTransId,
                   paymentData,
                   user,
                   userId,
-                  error.response
+                  respData || commitError?.response?.data || { error: commitError?.message }
                 );
+              }
+            } catch (innerCommitErr) {
+              createLog({
+                transaction_id: strTransId,
+                type: "Booking",
+                step: {
+                  success: false,
+                  logType: "vistaBookingResponse",
+                  message: "Ticket Booking Failed",
+                  error: innerCommitErr?.message,
+                  timestamp: new Date().toISOString(),
+                },
               });
+              console.error("Error in commit booking:", innerCommitErr);
+              ticketFailed(
+                res,
+                strTransId,
+                paymentData,
+                user,
+                userId,
+                { error: innerCommitErr?.message }
+              );
+            }
           } catch (error) {
             createLog({
               transaction_id: strTransId,
@@ -548,6 +558,15 @@ export const ticketFailed = async (
   userId,
   vistaErrorResponse = null
 ) => {
+  // CRITICAL GUARD: Never issue a refund if the transaction was already successfully committed!
+  const currentTx = await Transaction.findOne({ initTransId: strTransId }, { status: 1, commitStatus: 1 }).lean();
+  if (currentTx && (currentTx.status === 1 || currentTx.commitStatus === true)) {
+    console.warn(`[Guard] Blocked refund in Ccav ticketFailed: Transaction ${strTransId} is already confirmed (status: 1).`);
+    return res.send(
+      `<script>window.location.replace('${process.env.FRONTEND_BASE_URL}/confirmation-screen?transId=${strTransId}')</script>`
+    );
+  }
+
   if (process.env.VISTA_TICKET_REFUND == "true") {
     const refundResult = await refundCcavenue(
       paymentData.payment.tracking_id, //referenceNo
@@ -573,6 +592,7 @@ export const ticketFailed = async (
         userId,
         commitStatus: false,
         vistaErrorResponse,
+        isCommitting: false,
       },
       $push: {
         logs: {
@@ -620,6 +640,7 @@ export const ticketBooked = async (res, strTransId, response, user) => {
     commitStatus: true,
     discountCouponStatus: true,
     finalPrice: tx?.finalBookingCalculation?.finalAmount,
+    isCommitting: false,
   };
 
   const ticketCart = tx?.finalBookingCalculation?.ticketCart;
