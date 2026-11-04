@@ -1340,6 +1340,8 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
         finalBookingCalculation: true,
         addSeatData: true,
         setSeatData: true,
+        foodAndBvgResponse: true,
+        vistaOrderUpdated: true,
       }
     ).sort({ createdAt: -1 });
 
@@ -1454,19 +1456,27 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
       });
     }
 
-    // Vista CommitBooking
+    // Vista CommitBookingEx
     const name = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
+
+    const { multipayment } = buildMultiPaymentDetails({
+      finalBooking: bookingData?.finalBookingCalculation,
+      addSeatData: bookingData?.addSeatData,
+      foodAndBvgResponse: bookingData?.foodAndBvgResponse,
+      vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
+    });
 
     const vistaConfig = {
       method: "get",
       maxBodyLength: Infinity,
       url:
-        `${process.env.VISTA_URL_BOOKING_URL}/CommitBooking` +
+        `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
         `?strCinemaId=${cinemaId}` +
         `&strTransId=${transId}` +
         `&lngSessId=${sessionId}` +
         `&Name=${name}` +
-        `&MobileNo=${user?.mobileNumber}`,
+        `&MobileNo=${user?.mobileNumber}` +
+        `&MultiPaymentDetails=${multipayment}`,
       headers: {},
     };
 
@@ -1488,7 +1498,7 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
         dataStr.toLowerCase().includes("already booked");
 
       if (respData?.Status == 1 || isAlreadyCommitted) {
-        await _handleBookingSuccess(transId, response || { data: { Status: 1 } }, user);
+        await _handleBookingSuccess(transId, response || { data: { Status: 1, data: bookingData.addSeatData } }, user);
         return res.status(StatusCodes.OK).json({
           status: StatusCodes.OK,
           message: "Booking confirmed",
