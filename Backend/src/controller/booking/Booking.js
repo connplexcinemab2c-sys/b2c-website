@@ -346,19 +346,15 @@ export const addSeats = async (req, res) => {
       if (response.data.Status == 1) {
         const properties = response.data.data || {};
 
-        const intException =
-          properties.intException !== undefined && properties.intException !== null
-            ? Number(properties.intException)
-            : 0;
-        const hasNoSeats = !properties.strSeatInfo || String(properties.strSeatInfo).trim() === "";
-        const hasNoBookId = !properties.intBookId || Number(properties.intBookId) === 0;
+        const hasNoBookId =
+          (!properties.intBookId || Number(properties.intBookId) === 0) &&
+          (!properties.strBookId || String(properties.strBookId).trim() === "");
 
-        // CRITICAL GUARD: In Vista POS API, Status==1 only means SOAP call succeeded.
-        // If intException !== 0, no seats were allocated and Vista threw an allocation error.
-        if (intException !== 0 || hasNoSeats || hasNoBookId) {
+        // If Vista failed to create a booking session/ID, then reject
+        if (hasNoBookId) {
           const errMsg =
             properties.strException ||
-            "Could not allocate seats in a contiguous block. Please select different seats.";
+            "Could not initialize seat reservation. Please try again.";
 
           createLog({
             transaction_id: strTransId,
@@ -366,9 +362,8 @@ export const addSeats = async (req, res) => {
             type: "Booking",
             step: {
               success: false,
-              message: "Add Seats Failed (Vista Allocation Error)",
+              message: "Add Seats Failed (No Booking ID)",
               error: errMsg,
-              intException,
               timestamp: new Date().toISOString(),
             },
           });
