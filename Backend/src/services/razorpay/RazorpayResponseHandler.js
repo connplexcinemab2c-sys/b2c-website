@@ -391,6 +391,7 @@ export const paymentResponse = async (req, res) => {
         paymentResponse: true,
         finalBookingCalculation: true,
         addSeatData: true,
+        setSeatData: true,
         foodAndBvgResponse: true,
         vistaOrderUpdated: true,
       }
@@ -509,17 +510,26 @@ export const paymentResponse = async (req, res) => {
     }
 
     // ── 14.1 Pre-Commit Seat Reservation Integrity Guard ─────────────────────
-    const addSeatEx = bookingData?.addSeatData?.intException;
-    const hasAddSeatEx =
-      addSeatEx !== undefined && addSeatEx !== null && Number(addSeatEx) !== 0;
-    const hasNoSeats =
-      !bookingData?.addSeatData?.strSeatInfo && !bookingData?.setSeatData?.strSeatInfo;
-    const hasNoValidBookId =
-      (!bookingData?.addSeatData?.intBookId || Number(bookingData?.addSeatData?.intBookId) === 0) &&
-      (!bookingData?.setSeatData?.intBookId || Number(bookingData?.setSeatData?.intBookId) === 0);
+    const hasSeats = Boolean(
+      bookingData?.setSeatData?.strSeatInfo?.trim() ||
+      bookingData?.addSeatData?.strSeatInfo?.trim()
+    );
+    const hasValidBookId = Boolean(
+      (bookingData?.setSeatData?.intBookId && Number(bookingData?.setSeatData?.intBookId) !== 0) ||
+      (bookingData?.addSeatData?.intBookId && Number(bookingData?.addSeatData?.intBookId) !== 0) ||
+      bookingData?.addSeatData?.strBookId ||
+      bookingData?.setSeatData?.strBookId
+    );
+    const setSeatEx = bookingData?.setSeatData?.intException;
+    const hasSetSeatEx =
+      setSeatEx !== undefined && setSeatEx !== null && Number(setSeatEx) !== 0;
 
-    if (hasAddSeatEx || (hasNoSeats && hasNoValidBookId)) {
+    // A valid ticket booking requires allocated seats and a valid Vista booking reference.
+    // Note: addSeatData.intException is NOT checked here because Vista returns intException: 3
+    // ("Could not allocate all seats in a contiguous block") when seats are manually chosen via SetSeats.
+    if (!hasSeats || !hasValidBookId || hasSetSeatEx) {
       const seatFailReason =
+        bookingData?.setSeatData?.strException ||
         bookingData?.addSeatData?.strException ||
         "No valid seat reservation found in Vista. Seats could not be allocated.";
       console.error(
@@ -1324,7 +1334,13 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
 
     const bookingData = await Transaction.findOne(
       { initTransId: transId },
-      { createdAt: true, paymentResponse: true, finalBookingCalculation: true }
+      {
+        createdAt: true,
+        paymentResponse: true,
+        finalBookingCalculation: true,
+        addSeatData: true,
+        setSeatData: true,
+      }
     ).sort({ createdAt: -1 });
 
     if (!bookingData) {
@@ -1381,17 +1397,23 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
     await checkAndGrantWelcomeGift(userId);
 
     // ── Pre-Commit Seat Reservation Integrity Guard ─────────────────────
-    const directAddSeatEx = bookingData?.addSeatData?.intException;
-    const directHasAddSeatEx =
-      directAddSeatEx !== undefined && directAddSeatEx !== null && Number(directAddSeatEx) !== 0;
-    const directHasNoSeats =
-      !bookingData?.addSeatData?.strSeatInfo && !bookingData?.setSeatData?.strSeatInfo;
-    const directHasNoValidBookId =
-      (!bookingData?.addSeatData?.intBookId || Number(bookingData?.addSeatData?.intBookId) === 0) &&
-      (!bookingData?.setSeatData?.intBookId || Number(bookingData?.setSeatData?.intBookId) === 0);
+    const directHasSeats = Boolean(
+      bookingData?.setSeatData?.strSeatInfo?.trim() ||
+      bookingData?.addSeatData?.strSeatInfo?.trim()
+    );
+    const directHasValidBookId = Boolean(
+      (bookingData?.setSeatData?.intBookId && Number(bookingData?.setSeatData?.intBookId) !== 0) ||
+      (bookingData?.addSeatData?.intBookId && Number(bookingData?.addSeatData?.intBookId) !== 0) ||
+      bookingData?.addSeatData?.strBookId ||
+      bookingData?.setSeatData?.strBookId
+    );
+    const directSetSeatEx = bookingData?.setSeatData?.intException;
+    const directHasSetSeatEx =
+      directSetSeatEx !== undefined && directSetSeatEx !== null && Number(directSetSeatEx) !== 0;
 
-    if (directHasAddSeatEx || (directHasNoSeats && directHasNoValidBookId)) {
+    if (!directHasSeats || !directHasValidBookId || directHasSetSeatEx) {
       const seatFailReason =
+        bookingData?.setSeatData?.strException ||
         bookingData?.addSeatData?.strException ||
         "No valid seat reservation found in Vista. Seats could not be allocated.";
       console.error(

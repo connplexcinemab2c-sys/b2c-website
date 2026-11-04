@@ -99,6 +99,7 @@ export const paymentResponse = async (req, res) => {
           commitStatus: true,
           commitBookingData: true,
           addSeatData: true,
+          setSeatData: true,
           foodAndBvgResponse: true,
           vistaOrderUpdated: true,
         }
@@ -194,17 +195,23 @@ export const paymentResponse = async (req, res) => {
         await checkAndGrantWelcomeGift(userId);
 
         // ── Pre-Commit Seat Reservation Integrity Guard ─────────────────────
-        const ccavAddSeatEx = bookingData?.addSeatData?.intException;
-        const ccavHasAddSeatEx =
-          ccavAddSeatEx !== undefined && ccavAddSeatEx !== null && Number(ccavAddSeatEx) !== 0;
-        const ccavHasNoSeats =
-          !bookingData?.addSeatData?.strSeatInfo && !bookingData?.setSeatData?.strSeatInfo;
-        const ccavHasNoValidBookId =
-          (!bookingData?.addSeatData?.intBookId || Number(bookingData?.addSeatData?.intBookId) === 0) &&
-          (!bookingData?.setSeatData?.intBookId || Number(bookingData?.setSeatData?.intBookId) === 0);
+        const ccavHasSeats = Boolean(
+          bookingData?.setSeatData?.strSeatInfo?.trim() ||
+          bookingData?.addSeatData?.strSeatInfo?.trim()
+        );
+        const ccavHasValidBookId = Boolean(
+          (bookingData?.setSeatData?.intBookId && Number(bookingData?.setSeatData?.intBookId) !== 0) ||
+          (bookingData?.addSeatData?.intBookId && Number(bookingData?.addSeatData?.intBookId) !== 0) ||
+          bookingData?.addSeatData?.strBookId ||
+          bookingData?.setSeatData?.strBookId
+        );
+        const ccavSetSeatEx = bookingData?.setSeatData?.intException;
+        const ccavHasSetSeatEx =
+          ccavSetSeatEx !== undefined && ccavSetSeatEx !== null && Number(ccavSetSeatEx) !== 0;
 
-        if (ccavHasAddSeatEx || (ccavHasNoSeats && ccavHasNoValidBookId)) {
+        if (!ccavHasSeats || !ccavHasValidBookId || ccavHasSetSeatEx) {
           const seatFailReason =
+            bookingData?.setSeatData?.strException ||
             bookingData?.addSeatData?.strException ||
             "No valid seat reservation found in Vista. Seats could not be allocated.";
           console.error(
