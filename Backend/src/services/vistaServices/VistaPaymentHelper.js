@@ -15,19 +15,51 @@ export const buildMultiPaymentDetails = ({
 }) => {
   // 1. Determine Vista POS exact required reservation total (in paise)
   // Vista requires udsCommitBook tender amounts to sum exactly to the reservation total held in Vista.
-  const reservationTotal = Number(
-    foodAndBvgResponse?.curTotal ?? addSeatData?.curTotal ?? 0
-  );
-  const vistaTotalPaise = Math.max(0, Math.round(reservationTotal * 100));
-
-  // 2. Determine Vista POS exact concession/F&B amount (in paise)
-  // In 3D shows, Vista auto-attaches mandatory 3D glasses in addSeatData.curFoodTotal.
-  // When food is added separately, Vista's foodAndBvgResponse includes both 3D glasses and food.
   const vistaFood = Number(
     foodAndBvgResponse?.curFoodTotal !== undefined && foodAndBvgResponse?.curFoodTotal !== null
       ? foodAndBvgResponse.curFoodTotal
       : (addSeatData?.curFoodTotal || 0)
   );
+  const curBookingFee = Number(
+    foodAndBvgResponse?.curBookingFee !== undefined && foodAndBvgResponse?.curBookingFee !== null
+      ? foodAndBvgResponse.curBookingFee
+      : (addSeatData?.curBookingFee || 0)
+  );
+
+  let reservationTotal;
+  if (vistaOrderUpdated) {
+    reservationTotal = Number(
+      foodAndBvgResponse?.curTotal ?? addSeatData?.curTotal ?? 0
+    );
+  } else {
+    // When direct order update was not performed in Vista, Vista POS holds the original gross ticket price!
+    const grossTicket = Number(
+      addSeatData?.grossTicketsTotal ||
+      (foodAndBvgResponse?.curTicketsTotal !== undefined && foodAndBvgResponse?.curTicketsTotal !== null
+        ? foodAndBvgResponse.curTicketsTotal
+        : (addSeatData?.curTicketsTotal || addSeatData?.curTotal || 0))
+    );
+    reservationTotal = grossTicket + vistaFood + curBookingFee;
+  }
+
+  // Safety Fallback: A ticket reservation held in Vista can never be 0 paise.
+  if (reservationTotal <= 0) {
+    const fallbackGross = Number(
+      addSeatData?.grossTicketsTotal ||
+      finalBooking?.ticketCart?.ticketTotal ||
+      finalBooking?.ticketCart?.basePrice ||
+      0
+    );
+    if (fallbackGross > 0) {
+      reservationTotal = fallbackGross + vistaFood + curBookingFee;
+    }
+  }
+
+  const vistaTotalPaise = Math.max(0, Math.round(reservationTotal * 100));
+
+  // 2. Determine Vista POS exact concession/F&B amount (in paise)
+  // In 3D shows, Vista auto-attaches mandatory 3D glasses in addSeatData.curFoodTotal.
+  // When food is added separately, Vista's foodAndBvgResponse includes both 3D glasses and food.
   let fnbPaise = Math.max(0, Math.round(vistaFood * 100));
   if (fnbPaise > vistaTotalPaise) {
     fnbPaise = vistaTotalPaise;
