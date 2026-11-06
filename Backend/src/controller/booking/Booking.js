@@ -1195,17 +1195,21 @@ export const showTimeByCinemaIdAndMovie = async (req, res) => {
       .format("YYYY-MM-DD");
 
     const cinema = await Cinema.findOne({ _id: cinemaId, deletedStatus: 0 });
-    let movieDetails = await Movie.findById({ _id: movieId });
-    const uniqueCode = movieDetails.uniqueFilmCode;
-    const moviesByUniqueCode = await Movie.find({
-      uniqueFilmCode: uniqueCode,
-      deletedStatus: 0,
-    });
-
-    const filmCodes = moviesByUniqueCode
-      .map((movieDetails) => movieDetails?.filmCode)
-      .filter(Boolean)
-      .map((filmCodeSlice) => new RegExp(filmCodeSlice, "i"));
+    let movieDetails = await Movie.findById({ _id: movieId }).lean();
+    const uniqueCode = movieDetails?.uniqueFilmCode;
+    let filmCodes = [];
+    if (uniqueCode) {
+      const moviesByUniqueCode = await Movie.find(
+        { uniqueFilmCode: uniqueCode, deletedStatus: 0 },
+        { filmCode: 1 }
+      ).lean();
+      filmCodes = moviesByUniqueCode
+        .map((m) => m?.filmCode)
+        .filter(Boolean)
+        .map((filmCodeSlice) => new RegExp(filmCodeSlice, "i"));
+    } else if (movieDetails?.filmCode) {
+      filmCodes = [new RegExp(movieDetails.filmCode, "i")];
+    }
 
     let showTimings = [];
     if (cinema.displayName && cinema.poster) {

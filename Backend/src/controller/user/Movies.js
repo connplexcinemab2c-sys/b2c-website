@@ -829,24 +829,14 @@ export const moviesShowByCinema = async (req, res) => {
     const sitesetting = await SiteSetting.findOne();
     cinemaDetails.showExtendedDays = sitesetting?.showExtendedDays || 10;
 
-    const moviesDetails = await Movie.find({
-      deletedStatus: 0,
-      cinemaObjectId: cinemaId,
-    });
-
-    const uniqueCodes = moviesDetails.map((movie) => movie.uniqueFilmCode);
-    //   console.log("uniqueCodes",uniqueCodes)
-
-    const moviesByUniqueCode = await Movie.find({
-      uniqueFilmCode: { $in: uniqueCodes },
-      deletedStatus: 0,
-    });
-    // console.log("moviesByUniqueCode",moviesByUniqueCode)
-    const cinemas = await Cinema.find({
-      deletedStatus: 0,
-      isActive: true,
-      _id: cinemaId,
-    });
+    const cinemaIds = [];
+    if (
+      cinemaDetails &&
+      (!regionId || cinemaDetails.regionId?.toString() == regionId?.toString()) &&
+      cinemaDetails.displayName
+    ) {
+      cinemaIds.push(cinemaDetails._id);
+    }
 
     const movieDetailsWithShows = await Show.aggregate([
       {
@@ -930,18 +920,7 @@ export const moviesShowByCinema = async (req, res) => {
       (movie) => movie.movieDetails.uniqueFilmCode
     );
 
-    const cinemaIds = [];
-    cinemas.map((cinema) => {
-      if (
-        cinema?.regionId?.toString() == regionId.toString() &&
-        cinema.displayName &&
-        cinema.poster
-      ) {
-        cinemaIds.push(cinema._id);
-      }
-    });
-
-    let matchstage = {
+        let matchstage = {
       cinemaObjectId: { $in: cinemaIds },
       sessionFilmFirstShow: {
         $gte: new Date(`${showDate}T00:00:00`),
@@ -954,15 +933,7 @@ export const moviesShowByCinema = async (req, res) => {
     };
     // console.log("archid", matchstage);
 
-    if (moviesDetails.uniqueFilmCode) {
-      const filmCodes = moviesByUniqueCode
-        .map((movieDetails) => movieDetails.filmCode)
-        .filter(Boolean)
-        .map((filmCodeSlice) => new RegExp(filmCodeSlice, "i"));
-      matchstage.filmCode = {
-        $in: filmCodes,
-      };
-    }
+    
     const showTimings = await Show.aggregate([
       {
         $match: matchstage,

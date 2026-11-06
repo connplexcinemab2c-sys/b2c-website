@@ -1,0 +1,15 @@
+{
+  "InstanceIds": ["i-01c1713a8fb9544b9"],
+  "DocumentName": "AWS-RunShellScript",
+  "Parameters": {
+    "commands": [
+      "ls -la /root/.pm2 /home/ubuntu/.pm2 /etc/.pm2 2>/dev/null",
+      "echo '=== TRY RESURRECT ROOT ==='",
+      "pm2 resurrect",
+      "pm2 list",
+      "echo '=== TRY RESURRECT UBUNTU ==='",
+      "su - ubuntu -c 'pm2 resurrect'",
+      "su - ubuntu -c 'pm2 list'"
+    ]
+  }
+}

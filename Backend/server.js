@@ -266,20 +266,20 @@ razorpayRecoveryJob.start();
 
 
 
-const optimizedSync = new CronJob('*/15 * * * *', async () => {
-  console.log('Running cinema sync job...');
-
+// Cinema sync should not run on an aggressive 15-minute interval inside the customer-facing web process,
+// as synchronizing 52 cinemas locks the Node.js event loop and saturates memory.
+// Sync can be triggered manually from the Admin panel or run via dedicated background worker.
+/*
+const optimizedSync = new CronJob('0 4 * * *', async () => {
+  console.log('Running nightly cinema sync job...');
   try {
     await syncAllCinema();
-
     console.log('Cinema sync completed successfully');
   } catch (error) {
     console.error('Cinema sync failed:', error);
   }
-} , null, true, 'Asia/Kolkata');
-
-
-optimizedSync.start();
+}, null, false, 'Asia/Kolkata');
+*/
 
 
 

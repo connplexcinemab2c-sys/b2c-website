@@ -1,0 +1,11 @@
+{
+  "InstanceIds": ["i-01c1713a8fb9544b9"],
+  "DocumentName": "AWS-RunShellScript",
+  "Parameters": {
+    "commands": [
+      "df -h",
+      "export PM2_HOME=/root/.pm2",
+      "pm2 status"
+    ]
+  }
+}

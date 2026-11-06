@@ -552,7 +552,7 @@ export const couponCart = async (req, res) => {
 
             // Always sync local transaction's addSeatData with discounted total
             const curBookingFee = Number(findTx.addSeatData.curBookingFee) || 0;
-            const updatedVistaTotal = newTicketsTotal + curBookingFee;
+            const updatedVistaTotal = (Number(cart.ticketCart?.total) || 0) + curBookingFee;
             const grossTicketsTotal = String(
               findTx.addSeatData.grossTicketsTotal ||
               findTx.commitBookingData?.grossTicketsTotal ||

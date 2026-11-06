@@ -1,0 +1,14 @@
+{
+  "InstanceIds": ["i-01c1713a8fb9544b9"],
+  "DocumentName": "AWS-RunShellScript",
+  "Parameters": {
+    "commands": [
+      "node -e \"const fs = require('fs'); let c = fs.readFileSync('/home/ubuntu/connplex_backend/server.js', 'utf8'); c = c.replace('optimizedSync.start();', '// optimizedSync.start();'); fs.writeFileSync('/home/ubuntu/connplex_backend/server.js', c); console.log('OPTIMIZED_SYNC_DISABLED');\"",
+      "grep -n 'optimizedSync.start' /home/ubuntu/connplex_backend/server.js",
+      "export PM2_HOME=/root/.pm2",
+      "pm2 restart connplex_backend",
+      "sleep 4",
+      "curl -m 5 -i http://localhost:3021/api/user/get-region | head -n 25"
+    ]
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "grandTotals": {
+    "totalSessions": 186,
+    "totalBookings": 61,
+    "totalTickets": 150,
+    "totalTicketRevenue": 49638.5,
+    "totalFnbRevenue": 171.43,
+    "totalConvFee": 3540,
+    "grandTotalRevenue": 53363.09
+  },
+  "sortedMovies": [
+    {
+      "movieName": "DRISHYAM : THE CONCLUSION (HINDI)",
+      "bookings": 52,
+      "tickets": 127,
+      "ticketRevenue": 43499.5,
+      "fnbRevenue": 171.43,
+      "convFee": 2997.2,
+      "totalRevenue": 46681.29
+    },
+    {
+      "movieName": "RAJINI : THE JAILER 2 (HINDI)",
+      "bookings": 5,
+      "tickets": 13,
+      "ticketRevenue": 3617.25,
+      "fnbRevenue": 0,
+      "convFee": 306.8,
+      "totalRevenue": 3924.05
+    },
+    {
+      "movieName": "UDTA TEER (HINDI)",
+      "bookings": 2,
+      "tickets": 4,
+      "ticketRevenue": 1121.75,
+      "fnbRevenue": 0,
+      "convFee": 94.4,
+      "totalRevenue": 1216.15
+    },
+    {
+      "movieName": "THE VVAAN - FORCE OF THE FORREST (HINDI)",
+      "bookings": 1,
+      "tickets": 4,
+      "ticketRevenue": 1000,
+      "fnbRevenue": 0,
+      "convFee": 94.4,
+      "totalRevenue": 1094.4
+    },
+    {
+      "movieName": "PEHLA PYAAR DOOSRI BAAR (HINDI)",
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 400,
+      "fnbRevenue": 0,
+      "convFee": 47.2,
+      "totalRevenue": 447.2
+    }
+  ],
+  "sortedDates": [
+    {
+      "date": "2026-10-01",
+      "bookings": 2,
+      "tickets": 6,
+      "ticketRevenue": 1800,
+      "totalRevenue": 1941.6
+    },
+    {
+      "date": "2026-10-02",
+      "bookings": 18,
+      "tickets": 42,
+      "ticketRevenue": 15475,
+      "totalRevenue": 16476.2
+    },
+    {
+      "date": "2026-10-03",
+      "bookings": 12,
+      "tickets": 32,
+      "ticketRevenue": 11274,
+      "totalRevenue": 12029.2
+    },
+    {
+      "date": "2026-10-04",
+      "bookings": 6,
+      "tickets": 13,
+      "ticketRevenue": 4642.5,
+      "totalRevenue": 5123.9
+    },
+    {
+      "date": "2026-10-05",
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 1100,
+      "totalRevenue": 1147.2
+    },
+    {
+      "date": "2026-10-07",
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 700,
+      "totalRevenue": 747.2
+    },
+    {
+      "date": "2026-10-08",
+      "bookings": 3,
+      "tickets": 6,
+      "ticketRevenue": 1830,
+      "totalRevenue": 1971.6
+    },
+    {
+      "date": "2026-10-09",
+      "bookings": 1,
+      "tickets": 3,
+      "ticketRevenue": 750,
+      "totalRevenue": 820.8
+    },
+    {
+      "date": "2026-10-10",
+      "bookings": 3,
+      "tickets": 14,
+      "ticketRevenue": 3850,
+      "totalRevenue": 4180.39
+    },
+    {
+      "date": "2026-10-11",
+      "bookings": 2,
+      "tickets": 4,
+      "ticketRevenue": 1260,
+      "totalRevenue": 1354.4
+    },
+    {
+      "date": "2026-10-15",
+      "bookings": 1,
+      "tickets": 4,
+      "ticketRevenue": 1000,
+      "totalRevenue": 1094.4
+    },
+    {
+      "date": "2026-10-16",
+      "bookings": 3,
+      "tickets": 5,
+      "ticketRevenue": 1466,
+      "totalRevenue": 1584
+    },
+    {
+      "date": "2026-10-17",
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 451.25,
+      "totalRevenue": 498.45
+    },
+    {
+      "date": "2026-10-19",
+      "bookings": 2,
+      "tickets": 5,
+      "ticketRevenue": 1600,
+      "totalRevenue": 1718
+    },
+    {
+      "date": "2026-10-20",
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 418,
+      "totalRevenue": 465.2
+    },
+    {
+      "date": "2026-10-23",
+      "bookings": 2,
+      "tickets": 4,
+      "ticketRevenue": 1121.75,
+      "totalRevenue": 1216.15
+    },
+    {
+      "date": "2026-10-27",
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 500,
+      "totalRevenue": 547.2
+    },
+    {
+      "date": "2026-10-30",
+      "bookings": 1,
+      "tickets": 2,
+      "ticketRevenue": 400,
+      "totalRevenue": 447.2
+    }
+  ]
+}

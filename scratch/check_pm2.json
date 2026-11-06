@@ -1,0 +1,10 @@
+{
+  "InstanceIds": ["i-01c1713a8fb9544b9"],
+  "DocumentName": "AWS-RunShellScript",
+  "Parameters": {
+    "commands": [
+      "sudo pm2 status",
+      "sudo pm2 logs connplex_backend --lines 40 --nostream"
+    ]
+  }
+}
