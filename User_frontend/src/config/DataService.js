@@ -1,16 +1,17 @@
 import axios from "axios";
 
-const API_ENDPOINT =
-  import.meta.env.VITE_BASE_URL ||
-  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-    ? "http://localhost:3020/api"
-    : "https://backend.theconnplex.com/api");
+const isLocal =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
 
-export const IMAGES_API_ENDPOINT =
-  import.meta.env.VITE_IMAGE_URL ||
-  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-    ? "http://localhost:3020/api/uploads"
-    : "https://backend.theconnplex.com/api/uploads");
+const API_ENDPOINT = isLocal
+  ? (import.meta.env.VITE_BASE_URL || "http://localhost:3020/api")
+  : "https://backend.theconnplex.com/api";
+
+export const IMAGES_API_ENDPOINT = isLocal
+  ? (import.meta.env.VITE_IMAGE_URL || "http://localhost:3020/api/uploads")
+  : "https://backend.theconnplex.com/api/uploads";
 
 export const DataService = axios.create({
   baseURL: API_ENDPOINT,
