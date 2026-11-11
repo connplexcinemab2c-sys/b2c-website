@@ -595,6 +595,7 @@ function DetailTabContent({
             priceDetails: res?.priceDetails,
             sessionId: res?.sid,
             showId: res?.showId,
+            pGroupCode: res?.pGroupCode,
           },
         });
       } else {
@@ -619,6 +620,7 @@ function DetailTabContent({
               filmCode: movieDetail?.filmCode,
               sessionId: res?.sid,
               showId: res?.showId,
+              pGroupCode: res?.pGroupCode,
             },
           }
         );

@@ -76,8 +76,12 @@ function SeatManagement() {
     location.state?.show_Time
   );
 
-  const [selectedSessionId, setSelectedSessionId] = useState("");
-  const [pGroupCode, setPGroupCode] = useState("");
+  const [selectedSessionId, setSelectedSessionId] = useState(
+    location.state?.sessionId || ""
+  );
+  const [pGroupCode, setPGroupCode] = useState(
+    location.state?.pGroupCode || ""
+  );
   const [showId, setShowId] = useState("");
   const [movieData, setMovieData] = useState({});
   const [cinemaData, setCinemaData] = useState({});
@@ -235,6 +239,9 @@ function SeatManagement() {
             PagesIndex.moment(selectedShow.sessionRealShow).format("hh:mm A")
           );
         }
+        if (matchedPGroupCode) {
+          getSeatLayout(matchedPGroupCode);
+        }
       })
       .catch(() => {});
     dispatch(PagesIndex.hideLoader());
@@ -262,7 +269,11 @@ function SeatManagement() {
   };
   console.log(seatLayout, ":seatLayout");
   const getAreaPriceList = (seatLayout, customPGroupCode) => {
-    const activePGroupCode = customPGroupCode || pGroupCode;
+    const activePGroupCode =
+      customPGroupCode ||
+      pGroupCode ||
+      showTimingsData?.find((s) => String(s.sessionId) === String(selectedSessionId))?.pGroupCode ||
+      location.state?.pGroupCode;
     console.log(seatLayout, ":seatLayout173", activePGroupCode);
     if (!activePGroupCode) return;
     PagesIndex.apiGetHandler(
@@ -274,7 +285,7 @@ function SeatManagement() {
         setAreaPriceDetailsList(res.data);
         setSeatLayout(modifyData(seatLayout, res.data));
       } else {
-        PagesIndex.toast.error("Something went wrong");
+        PagesIndex.toast.error(res?.message || "Failed to load seat prices");
       }
     }).catch(() => {});
   };
@@ -402,12 +413,22 @@ function SeatManagement() {
 
   const handleSeatSelection = async (index1, index2, index3) => {
     const selectedArea = areaPriceDetailsList?.find(
-      (item) => item?.areaCatCode === seatLayout[index1].strAreaCode
+      (item) => String(item?.areaCatCode) === String(seatLayout[index1].strAreaCode)
     );
     if (
       seatLayout[index1]?.rowData[index2]?.seatData[index3]?.strSeatStatus ===
       "0"
     ) {
+      const seatsToSelect = getSeatsToSelect(index1, index2, index3);
+      const availableSeats = seatsToSelect.filter(
+        (s) => seatLayout[index1].rowData[s.index2].seatData[s.index3].strSeatStatus === "0"
+      );
+
+      if (seatsToSelect.length > 1 && availableSeats.length !== seatsToSelect.length) {
+        PagesIndex.toast.error("Both seats of the couple lounger must be available to select.");
+        return;
+      }
+
       setSelectedAreaData(selectedArea);
       if (seatLayout[index1].strGroupSeatsData) {
         isCoupleSeats = true;
@@ -427,11 +448,6 @@ function SeatManagement() {
 
       }
       handleChangeArea(index1, index2, index3);
-      
-      const seatsToSelect = getSeatsToSelect(index1, index2, index3);
-      const availableSeats = seatsToSelect.filter(
-        (s) => seatLayout[index1].rowData[s.index2].seatData[s.index3].strSeatStatus === "0"
-      );
 
       if (selectedSeats.length + availableSeats.length <= 10) {
         handleSeatSelect(index1, index2, index3);
@@ -667,9 +683,15 @@ function SeatManagement() {
       showTimingsData?.find((s) => s.sessionId === selectedSessionId)?._id ||
       location.state?.showId;
 
+    const matchedPrice =
+      areaPriceDetailsList?.find(
+        (p) => String(p.areaCatCode) === String(seatDetails[0]?.areaCode)
+      );
+
     const activeTTypeCode =
       selectedAreaData?.tTypeCode ||
-      areaPriceDetailsList?.find((p) => p.areaCatCode === seatDetails[0]?.areaCode)?.tTypeCode ||
+      matchedPrice?.tTypeCode ||
+      areaPriceDetailsList?.[0]?.tTypeCode ||
       "0001";
 
     const urlEncoded = new URLSearchParams();
@@ -686,7 +708,14 @@ function SeatManagement() {
           const vistaTotal = Number(res.data?.data?.curTicketsTotal) || Number(res.data?.data?.curTotal) || 0;
           await setSeats(newStrTransId, bookingSessionId, vistaTotal);
         } else {
-          PagesIndex.toast.error(res?.message || res?.data || "Seat reservation failed. Please retry.");
+          const errMsg =
+            (res?.message && res.message !== "Bad request" ? res.message : null) ||
+            (typeof res?.data?.data === "string" ? res.data.data : null) ||
+            (typeof res?.data?.msg === "string" && res.data.msg !== "fail" ? res.data.msg : null) ||
+            (typeof res?.data === "string" ? res.data : null) ||
+            (typeof res?.message === "string" ? res.message : null) ||
+            "Seat reservation failed. Please retry.";
+          PagesIndex.toast.error(errMsg);
           dispatch(PagesIndex.hideLoader());
         }
       })
@@ -792,7 +821,14 @@ function SeatManagement() {
         } else if (res?.data?.data == "Invalid License Code !!!") {
           PagesIndex.toast.error(res?.data?.data);
         } else {
-          PagesIndex.toast.error("Something went wrong");
+          const errMsg =
+            (res?.message && res.message !== "Bad request" ? res.message : null) ||
+            (typeof res?.data?.data === "string" ? res.data.data : null) ||
+            (typeof res?.data?.msg === "string" && res.data.msg !== "fail" ? res.data.msg : null) ||
+            (typeof res?.data === "string" ? res.data : null) ||
+            (typeof res?.message === "string" ? res.message : null) ||
+            "Could not lock selected seats. Please select different seats.";
+          PagesIndex.toast.error(errMsg);
         }
       })
       .catch((err) => {

@@ -923,6 +923,7 @@ export default function CinemaInner({ props }) {
                                                   showDate: selectedDate,
                                                   sessionId: res?.sessionId,
                                                   showId: res?._id,
+                                                  pGroupCode: res?.pGroupCode,
                                                 },
                                               }
                                             );
@@ -949,6 +950,7 @@ export default function CinemaInner({ props }) {
                                                   showDate: selectedDate,
                                                   sessionId: res?.sessionId,
                                                   showId: res?._id,
+                                                  pGroupCode: res?.pGroupCode,
                                                 },
                                               }
                                             );

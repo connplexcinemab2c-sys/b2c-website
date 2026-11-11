@@ -154,9 +154,11 @@ export const initBooking = async (req, res) => {
           //   "Failed"
           // );
 
+          const rawErr = response.data?.data || response.data?.msg || "Failed to initialize booking session";
+          const errMsg = typeof rawErr === "string" ? rawErr : JSON.stringify(rawErr);
           return res.status(400).json({
             status: StatusCodes.BAD_REQUEST,
-            message: ResponseMessage.BAD_REQUEST,
+            message: errMsg,
             data: response.data,
           });
         }
@@ -437,10 +439,14 @@ export const addSeats = async (req, res) => {
             timestamp: new Date().toISOString(),
           },
         });
+        const errMsg =
+          (typeof response.data.data === "string" && response.data.data) ||
+          (typeof response.data.msg === "string" && response.data.msg !== "fail" && response.data.msg) ||
+          "Seats could not be reserved. Please select different seats.";
         return res.status(400).json({
           status: StatusCodes.BAD_REQUEST,
-          message: ResponseMessage.BAD_REQUEST,
-          data: response.data.data || response.data.msg || "Vista seat blocking failed",
+          message: errMsg,
+          data: response.data.data || response.data.msg || errMsg,
         });
       }
     } catch (error) {
@@ -644,7 +650,7 @@ export const setSeats = async (req, res) => {
     let config = {
       method: "get",
       maxBodyLength: Infinity,
-      url: `${process.env.VISTA_URL}/api.asmx/SetSeats?strCinemaId=${cinemaId}&strTransId=${strTransId}&lngSessionId=${lngSessionId}&strSelectedSeats=${strSelectedSeats}`,
+      url: `${process.env.VISTA_URL}/api.asmx/SetSeats?strCinemaId=${cinemaId}&strTransId=${strTransId}&lngSessionId=${lngSessionId}&strSelectedSeats=${encodeURIComponent(strSelectedSeats)}`,
       timeout: 15000,
     };
 
@@ -754,9 +760,11 @@ export const setSeats = async (req, res) => {
               timestamp: new Date().toISOString(),
             },
           });
+          const rawErr = response.data?.data || response.data?.msg || "Could not lock selected seats";
+          const errMsg = typeof rawErr === "string" ? rawErr : JSON.stringify(rawErr);
           return res.status(400).json({
             status: StatusCodes.BAD_REQUEST,
-            message: ResponseMessage.BAD_REQUEST,
+            message: errMsg,
             data: response.data,
           });
         }
@@ -1153,9 +1161,11 @@ export const getSeatLayout = async (req, res) => {
             data: response.data,
           });
         } else {
+          const rawErr = response.data?.data || response.data?.msg || "Failed to fetch seat layout";
+          const errMsg = typeof rawErr === "string" ? rawErr : JSON.stringify(rawErr);
           return res.status(400).json({
             status: StatusCodes.BAD_REQUEST,
-            message: ResponseMessage.BAD_REQUEST,
+            message: errMsg,
             data: response.data,
           });
         }
@@ -1547,9 +1557,11 @@ export const tempCancel = async (req, res) => {
           //   response.data,
           //   "Failed"
           // );
+          const rawErr = response.data?.data || response.data?.msg || "Failed to cancel transaction";
+          const errMsg = typeof rawErr === "string" ? rawErr : JSON.stringify(rawErr);
           return res.status(400).json({
             status: StatusCodes.BAD_REQUEST,
-            message: ResponseMessage.BAD_REQUEST,
+            message: errMsg,
             data: response.data,
           });
         }
