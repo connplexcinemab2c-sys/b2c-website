@@ -216,6 +216,11 @@ console.log({selectedFood});
       .map((item) => item.quantity)
       .reduce((a, b) => a + b, 0);
 
+    const effectiveTicketTotal =
+      ticketCart?.ticketTotal ||
+      stateData?.cinemaData?.ticketPriceDetails?.total ||
+      0;
+
     const coupanPayload = {
       // cinema_id: "0001",
        cinema_id:  stateData?.cinemaData?.cinemaData?._id,
@@ -232,7 +237,7 @@ console.log({selectedFood});
       filme_ho_code: stateData?.cinemaData?.movieData?.filmCode,
       coupan_code: appliedCoupon,
       sale_channel: 1234,
-      total_ticket_amount: stateData?.cinemaData?.ticketPriceDetails?.total,
+      total_ticket_amount: effectiveTicketTotal,
       total_concession_amount: totalFoodAmount,
       total_inventory: totalFoodCount,
       work_station_code: "W001",
@@ -249,7 +254,7 @@ console.log({selectedFood});
       couponDetails: coupanPayload,
       coupons: appliedCoupon,
       selectedFood: selectedFood,
-      ticketTotal: stateData?.cinemaData?.ticketPriceDetails?.total,
+      ticketTotal: effectiveTicketTotal,
       // ticketTotal: ticketCart?.total,
       fnbprice: snackPrice ? snackPrice : 0,
       cityId: regionId,
