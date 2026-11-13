@@ -814,24 +814,40 @@ export const setSeats = async (req, res) => {
 export const moviesDetailsWithshow = async (req, res) => {
   try {
     let { id } = req.body;
-    const regionId = id.split("|")[0];
-    const movieId = id.split("|")[2];
-    const date = id.split("|")[1];
-
-    const moviesDetails = await Movie.findOne({
-      _id: movieId,
-      deletedStatus: 0,
-    });
-
-    const uniqueCode = moviesDetails.uniqueFilmCode;
-
-    if (!uniqueCode) {
+    if (!id || typeof id !== "string" || !id.includes("|")) {
       return res.status(200).json({
         status: StatusCodes.OK,
         message: ResponseMessage.MOVIES_DETAILS,
         data: [],
       });
     }
+    const parts = id.split("|");
+    const regionId = (parts[0] || "").trim();
+    const date = (parts[1] || "").trim();
+    const movieId = (parts[2] || "").trim();
+
+    if (!movieId || !mongoose.Types.ObjectId.isValid(movieId)) {
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: ResponseMessage.MOVIES_DETAILS,
+        data: [],
+      });
+    }
+
+    const moviesDetails = await Movie.findOne({
+      _id: new mongoose.Types.ObjectId(movieId),
+      deletedStatus: 0,
+    });
+
+    if (!moviesDetails || !moviesDetails.uniqueFilmCode) {
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: ResponseMessage.MOVIES_DETAILS,
+        data: [],
+      });
+    }
+
+    const uniqueCode = moviesDetails.uniqueFilmCode;
 
     const moviesByUniqueCode = await Movie.find({
       uniqueFilmCode: uniqueCode,
@@ -841,11 +857,10 @@ export const moviesDetailsWithshow = async (req, res) => {
     const cinemas = await Cinema.find({ deletedStatus: 0, isActive: true });
 
     const cinemaIds = [];
-    cinemas.map((cinema) => {
+    cinemas.forEach((cinema) => {
       if (
-        cinema?.regionId?.toString() == regionId.toString() &&
-        cinema.displayName &&
-        cinema.poster
+        (!regionId || (cinema?.regionId && cinema.regionId.toString() === regionId)) &&
+        cinema.displayName
       ) {
         cinemaIds.push(cinema._id);
       }

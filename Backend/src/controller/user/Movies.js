@@ -812,8 +812,28 @@ export const moviesShowByCinema = async (req, res) => {
     // ) {
     //   return false;
     // }
-    let cinemaDetails = await Cinema.findById(
-      { _id: cinemaId, isActive: true },
+    if (!cinemaId || cinemaId === "null" || cinemaId === "undefined") {
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: ResponseMessage.MOVIES_DETAILS,
+        data: {
+          movieDetailsWithShows: [],
+          cinemaDetails: null,
+          uniqueFilteredMovies: [],
+          timingCinemawise: [],
+        },
+      });
+    }
+
+    let cinemaQuery;
+    if (mongoose.Types.ObjectId.isValid(cinemaId)) {
+      cinemaQuery = { _id: new mongoose.Types.ObjectId(cinemaId), isActive: true, deletedStatus: 0 };
+    } else {
+      cinemaQuery = { cinemaId: String(cinemaId).trim().toUpperCase(), isActive: true, deletedStatus: 0 };
+    }
+
+    let cinemaDetails = await Cinema.findOne(
+      cinemaQuery,
       {
         displayName: true,
         address: true,
@@ -823,25 +843,33 @@ export const moviesShowByCinema = async (req, res) => {
         cinemaAmenities: true,
         lat: true,
         long: true,
+        regionId: true,
       }
     ).lean();
+
+    if (!cinemaDetails) {
+      return res.status(200).json({
+        status: StatusCodes.OK,
+        message: "Cinema not found",
+        data: {
+          movieDetailsWithShows: [],
+          cinemaDetails: null,
+          uniqueFilteredMovies: [],
+          timingCinemawise: [],
+        },
+      });
+    }
 
     const sitesetting = await SiteSetting.findOne();
     cinemaDetails.showExtendedDays = sitesetting?.showExtendedDays || 10;
 
-    const cinemaIds = [];
-    if (
-      cinemaDetails &&
-      (!regionId || cinemaDetails.regionId?.toString() == regionId?.toString()) &&
-      cinemaDetails.displayName
-    ) {
-      cinemaIds.push(cinemaDetails._id);
-    }
+    const targetCinemaObjectId = cinemaDetails._id;
+    const cinemaIds = [targetCinemaObjectId];
 
     const movieDetailsWithShows = await Show.aggregate([
       {
         $match: {
-          cinemaObjectId: new mongoose.Types.ObjectId(cinemaId),
+          cinemaObjectId: targetCinemaObjectId,
           sessionRealShow: {
             $gte: new Date(`${showDate}T00:00:00`),
             $lte: new Date(`${showDate}T23:59:59`),
