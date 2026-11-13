@@ -5,7 +5,7 @@ async function run() {
     await mongoose.connect('mongodb://connplex:connple222023@13.234.166.228:27017/connplex?authSource=admin');
     const db = mongoose.connection.db;
 
-    // 1. Find all movies with Ramayana or similar
+    // 1. Search movies for "ramayana" or similar
     const movies = await db.collection('movies').find({
       $or: [
         { name: { $regex: /ramayan/i } },
@@ -14,102 +14,75 @@ async function run() {
       ]
     }).toArray();
 
-    console.log('Matching movies count:', movies.length);
-    for (const m of movies) {
-      console.log(`Movie ID: ${m._id}, Name: ${m.name || m.title || m.movieName}, code: ${m.code || m.vistaMovieId}`);
-    }
+    console.log(`Found ${movies.length} matching movies:`);
+    movies.forEach(m => {
+      console.log(`- ID: ${m._id}, Name: ${m.name || m.title || m.movieName}, Status: ${m.status}`);
+    });
 
     const movieIds = movies.map(m => m._id);
 
-    // Also check shows collection
+    // Also check shows
     const shows = await db.collection('shows').find({
       $or: [
+        { filmObjectId: { $in: movieIds } },
         { movieId: { $in: movieIds } },
-        { 'movieData.name': { $regex: /ramayan/i } },
-        { movieName: { $regex: /ramayan/i } }
+        { movieName: { $regex: /ramayan/i } },
+        { 'movieData.name': { $regex: /ramayan/i } }
       ]
     }).toArray();
-    console.log('Matching shows count:', shows.length);
+
+    console.log(`Found ${shows.length} matching shows`);
     const showIds = shows.map(s => s._id);
 
-    // 2. Query transactions
+    // Query transactions with utm_source: whatsapp
     const query = {
-      $and: [
-        { utm_source: { $regex: /whatsapp/i } },
-        {
-          $or: [
-            { movieId: { $in: movieIds } },
-            { showId: { $in: showIds } },
-            { 'movieData.name': { $regex: /ramayan/i } },
-            { 'movieData.title': { $regex: /ramayan/i } },
-            { movieName: { $regex: /ramayan/i } }
-          ]
-        }
+      utm_source: { $regex: /whatsapp/i },
+      $or: [
+        { movieId: { $in: movieIds } },
+        { showId: { $in: showIds } },
+        { movieName: { $regex: /ramayan/i } },
+        { 'movieData.name': { $regex: /ramayan/i } }
       ]
     };
 
     const txs = await db.collection('transactions').find(query).sort({ createdAt: -1 }).toArray();
-    console.log('Matching transactions count:', txs.length);
+    console.log(`Found ${txs.length} transactions with utm_source=whatsapp for Ramayana.`);
 
-    // Let's also check if there are ANY transactions for ramayana, regardless of utm_source
-    const allRamayanaTxCount = await db.collection('transactions').countDocuments({
-      $or: [
-        { movieId: { $in: movieIds } },
-        { showId: { $in: showIds } },
-        { 'movieData.name': { $regex: /ramayan/i } },
-        { 'movieData.title': { $regex: /ramayan/i } },
-        { movieName: { $regex: /ramayan/i } }
-      ]
-    });
-    console.log('All Ramayana transactions count (any utm_source):', allRamayanaTxCount);
+    // If 0, let's also check all transactions matching ramayana regardless of utm_source to see what utm_source values they have
+    if (txs.length === 0) {
+      const allRamayanaTx = await db.collection('transactions').find({
+        $or: [
+          { movieId: { $in: movieIds } },
+          { showId: { $in: showIds } },
+          { movieName: { $regex: /ramayan/i } },
+          { 'movieData.name': { $regex: /ramayan/i } }
+        ]
+      }).limit(50).toArray();
+      console.log(`Total transactions for Ramayana (any utm_source): ${allRamayanaTx.length}`);
+      const utmSources = [...new Set(allRamayanaTx.map(t => t.utm_source))];
+      console.log('Distinct utm_source values in Ramayana txs:', utmSources);
+    } else {
+      console.log(JSON.stringify(txs.slice(0, 5), null, 2));
+    }
 
-    // Distinct utm_sources for ramayana
-    const distinctSourcesRamayana = await db.collection('transactions').distinct('utm_source', {
-      $or: [
-        { movieId: { $in: movieIds } },
-        { showId: { $in: showIds } },
-        { 'movieData.name': { $regex: /ramayan/i } },
-        { 'movieData.title': { $regex: /ramayan/i } },
-        { movieName: { $regex: /ramayan/i } }
-      ]
-    });
-    console.log('Distinct utm_source for Ramayana:', distinctSourcesRamayana);
-
-    // If transactions found, let's print summary
-    if (txs.length > 0) {
-      console.log('\n--- Transactions Details ---');
-      txs.forEach((t, i) => {
-        console.log(`\n#${i + 1}:`);
-        console.log({
-          _id: t._id,
-          bookingId: t.bookingId || t.userBookingId,
-          createdAt: t.createdAt,
-          status: t.status,
-          paymentsStatus: t.paymentsStatus,
-          commitStatus: t.commitStatus,
-          orderId: t.orderId,
-          cinemaId: t.cinemaId,
-          cinemaName: t.cinemaData?.name,
-          movieName: t.movieData?.name || t.movieName,
-          showDate: t.showDate || t.showData?.showDate,
-          showTime: t.showTime || t.showData?.showTime,
-          userPhone: t.userPhone || t.userData?.phone || t.mobile,
-          userEmail: t.userEmail || t.userData?.email || t.email,
-          userName: t.userName || t.userData?.name || t.name,
-          ticketCount: t.finalBookingCalculation?.ticketCart?.selectedSeats?.length || t.seats?.length,
-          seats: t.finalBookingCalculation?.ticketCart?.selectedSeats?.map(s => s.seatNumber || s.strSeatNumber) || t.seats,
-          ticketTotal: t.finalBookingCalculation?.ticketCart?.ticketTotal,
-          finalAmount: t.finalBookingCalculation?.finalAmount || (t.paymentResponse?.amount ? t.paymentResponse.amount / 100 : t.amount),
-          utm_source: t.utm_source,
-          utm_medium: t.utm_medium,
-          utm_campaign: t.utm_campaign
-        });
-      });
+    // Also let's check all distinct movie names or searches in transactions if nothing matched
+    if (movies.length === 0) {
+      const sampleTx = await db.collection('transactions').find({
+        utm_source: { $regex: /whatsapp/i }
+      }).limit(10).toArray();
+      console.log('Sample WA transactions:', sampleTx.map(t => ({
+        movieId: t.movieId,
+        movieName: t.movieName,
+        movieData: t.movieData?.name,
+        utm_source: t.utm_source,
+        createdAt: t.createdAt
+      })));
     }
 
     await mongoose.disconnect();
   } catch (err) {
-    console.error(err);
+    console.error('Error:', err);
+    process.exit(1);
   }
 }
 
