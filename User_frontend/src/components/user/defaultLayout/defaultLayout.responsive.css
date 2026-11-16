@@ -102,6 +102,29 @@
     .select-city-modal .popular-city-wrapper{
         grid-template-columns: repeat(4, 1fr);
     }
+
+    .select-city-modal .auto-detect-location-bar {
+        padding: 10px 12px;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .select-city-modal .auto-detect-text {
+        font-size: 13px !important;
+    }
+
+    .select-city-modal .auto-detect-desc {
+        font-size: 11px !important;
+    }
+
+    .select-city-modal .auto-detect-icon-box {
+        width: 32px;
+        height: 32px;
+    }
+
+    .select-city-modal .auto-detect-icon {
+        font-size: 18px !important;
+    }
 }
 
 @media (max-width: 549px) {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Index from "../../Index";
 import PagesIndex from "../../PagesIndex";
 import LogoNew from "../../../assets/images/png/logoNew.png";
+import { autoDetectNearestRegion } from "../../../utils/locationHelper";
 
 function Header() {
   const dispatch = PagesIndex.useDispatch();
@@ -51,58 +52,82 @@ function Header() {
     setAnchorEl(null);
     window.scroll(0, 0);
   };
-  const getLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(getGeoLocation, errorCallback);
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleAutoDetectLocation = async (
+    availableRegions = regionList,
+    isAutoInitial = false
+  ) => {
+    setIsLocating(true);
+    const targetList =
+      availableRegions && availableRegions.length > 0
+        ? availableRegions
+        : regionList;
+
+    const result = await autoDetectNearestRegion(
+      targetList,
+      PagesIndex.apiGetHandler,
+      PagesIndex.Api
+    );
+
+    setIsLocating(false);
+
+    if (result.success && result.region) {
+      setSelectedRegion(result.region);
+      dispatch(PagesIndex.changeRegion(result.region));
+      if (isAutoInitial) {
+        PagesIndex.toast.info(
+          `📍 Auto-detected nearest location: ${result.region.region}`
+        );
+      } else {
+        const distStr = result.distanceKm ? ` (~${result.distanceKm} km away)` : "";
+        PagesIndex.toast.success(
+          `📍 Nearest location selected: ${result.region.region}${distStr}`
+        );
+      }
+      changeCityClose();
     } else {
-      PagesIndex.toast.error("Geo tagging not supported");
+      if (isAutoInitial) {
+        changeCityOpen();
+      } else {
+        if (result.code === "PERMISSION_DENIED") {
+          PagesIndex.toast.error(
+            "Location access denied. Please select your city manually below."
+          );
+        } else {
+          PagesIndex.toast.error(
+            result.message || "Failed to detect nearest location. Please choose manually."
+          );
+        }
+      }
     }
   };
-  function errorCallback(error) {
-    if (error) {
-      console.log(error, "GEOLOCATION DENIED");
-      // PagesIndex.toast.error(error?.message);
-    }
-  }
 
   const getRegionList = () => {
     PagesIndex.apiGetHandler(PagesIndex.Api.GET_REGION).then((res) => {
       if (res?.status === 200) {
-        setRegionList(res?.data);
-        setFilteredRegionList(res?.data);
+        const fetchedRegions = res?.data || [];
+        setRegionList(fetchedRegions);
+        setFilteredRegionList(fetchedRegions);
+
         if (regionId && !region) {
-          const regionData = res.data?.find((data) => data?._id === regionId);
-          setSelectedRegion(regionData);
-          dispatch(PagesIndex.changeRegion(regionData));
-        }
-        if (regionId && region) {
+          const regionData = fetchedRegions.find((data) => data?._id === regionId);
+          if (regionData) {
+            setSelectedRegion(regionData);
+            dispatch(PagesIndex.changeRegion(regionData));
+          } else {
+            handleAutoDetectLocation(fetchedRegions, true);
+          }
+        } else if (regionId && region) {
           setSelectedRegion(region);
           dispatch(PagesIndex.changeRegion(region));
+        } else if (!regionId && !region) {
+          handleAutoDetectLocation(fetchedRegions, true);
+        } else if (region) {
+          setSelectedRegion(region);
         }
-        if (!regionId && !region) {
-          // setSelectedRegion(res?.data[0]);
-          // dispatch(PagesIndex.changeRegion(res?.data[0]));
-          getLocation();
-        }
-        // if (!regionId && region) {
-        //   setSelectedRegion(region);
-        //   dispatch(PagesIndex.changeRegion(region));
-        // }
       }
       dispatch(PagesIndex.hideLoader());
-    });
-  };
-  const getGeoLocation = (position) => {
-    PagesIndex.apiGetHandler(
-      PagesIndex.Api.GET_GEO_LOCATION,
-      `${position.coords.latitude}/${position.coords.longitude}`
-    ).then((res) => {
-      if (res?.status === 200) {
-        if (!regionId) {
-          setSelectedRegion(res?.data);
-          dispatch(PagesIndex.changeRegion(res?.data));
-        }
-      }
     });
   };
   const changeCityOpen = () => {
@@ -552,6 +577,40 @@ function Header() {
                     <Index.SearchIcon />
                   </Index.Box>
                 </Index.Box>
+              </Index.Box>
+              {/* Auto-detect Location Button */}
+              <Index.Box
+                className={`auto-detect-location-bar ${isLocating ? "locating" : ""}`}
+                onClick={() =>
+                  !isLocating && handleAutoDetectLocation(regionList, false)
+                }
+                role="button"
+                tabIndex={0}
+              >
+                <Index.Box className="auto-detect-icon-box">
+                  <Index.MyLocationIcon
+                    className={`auto-detect-icon ${isLocating ? "detect-spin" : ""}`}
+                  />
+                </Index.Box>
+                <Index.Box className="auto-detect-content">
+                  <Index.Typography className="auto-detect-text">
+                    {isLocating
+                      ? "Detecting Nearest Location..."
+                      : "Auto-detect My Location"}
+                  </Index.Typography>
+                  <Index.Typography className="auto-detect-desc">
+                    {isLocating
+                      ? "Finding the closest cinema to your current GPS position..."
+                      : "Use current GPS location to find nearest cinema"}
+                  </Index.Typography>
+                </Index.Box>
+                {isLocating && (
+                  <Index.Box className="auto-detect-spinner" />
+                )}
+              </Index.Box>
+
+              <Index.Box className="popular-city-divider">
+                <span>OR SELECT MANUALLY</span>
               </Index.Box>
               <Index.Box className="popular-city-wrapper-main cus-scrollbar">
                 <Index.Box className="popular-city-wrapper">

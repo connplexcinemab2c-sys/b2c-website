@@ -9,6 +9,7 @@ import {
 } from "../../../redux/user/action";
 import LogoNew from "../../../assets/images/png/logoNew.png";
 import { getStoredUtm } from "../../../utils/utmTracker";
+import { autoDetectNearestRegion } from "../../../utils/locationHelper";
 
 function CustomHeader() {
   const dispatch = PagesIndex.useDispatch();
@@ -119,41 +120,78 @@ function CustomHeader() {
     window.scroll(0, 0);
     setAnchorEl(null);
   };
-  const getLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(getGeoLocation, errorCallback);
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleAutoDetectLocation = async (
+    availableRegions = regionList,
+    isAutoInitial = false
+  ) => {
+    setIsLocating(true);
+    const targetList =
+      availableRegions && availableRegions.length > 0
+        ? availableRegions
+        : regionList;
+
+    const result = await autoDetectNearestRegion(
+      targetList,
+      PagesIndex.apiGetHandler,
+      PagesIndex.Api
+    );
+
+    setIsLocating(false);
+
+    if (result.success && result.region) {
+      handleChangedropdown(result.region);
+      if (isAutoInitial) {
+        PagesIndex.toast.info(
+          `📍 Auto-detected nearest location: ${result.region.region}`
+        );
+      } else {
+        const distStr = result.distanceKm ? ` (~${result.distanceKm} km away)` : "";
+        PagesIndex.toast.success(
+          `📍 Nearest location selected: ${result.region.region}${distStr}`
+        );
+      }
+      changeCityClose();
     } else {
-      PagesIndex.toast.error("Geo tagging not supported");
+      if (isAutoInitial) {
+        // If initial auto-fetch was denied or failed, open manual selection modal
+        changeCityOpen();
+      } else {
+        if (result.code === "PERMISSION_DENIED") {
+          PagesIndex.toast.error(
+            "Location access denied. Please select your city manually below."
+          );
+        } else {
+          PagesIndex.toast.error(
+            result.message || "Failed to detect nearest location. Please choose manually."
+          );
+        }
+      }
     }
   };
-  function errorCallback(error) {
-    if (error) {
-      console.log(error, "GEOLOCATION DENIED");
-      // PagesIndex.toast.error(error?.message);
-    }
-  }
 
   const getRegionList = () => {
     PagesIndex.apiGetHandler(PagesIndex.Api.GET_REGION).then((res) => {
       if (res?.status === 200) {
-        setRegionList(res?.data);
-        setFilteredRegionList(res?.data);
+        const fetchedRegions = res?.data || [];
+        setRegionList(fetchedRegions);
+        setFilteredRegionList(fetchedRegions);
 
         const activeRegionId = regionId || region?._id;
 
         if (activeRegionId) {
-          const regionData = res.data?.find(
+          const regionData = fetchedRegions.find(
             (data) => data?._id === activeRegionId
           );
           if (!regionData?.region) {
-            getLocation();
-            changeCityOpen();
+            handleAutoDetectLocation(fetchedRegions, true);
           } else {
             dispatch(PagesIndex.changeRegion(regionData));
           }
         } else {
-          getLocation();
-          changeCityOpen();
+          // When customer opens website/app without a chosen location, auto-detect nearest
+          handleAutoDetectLocation(fetchedRegions, true);
         }
       } else if (res?.status === 400) {
         dispatch(PagesIndex.changeRegion([]));
@@ -163,20 +201,10 @@ function CustomHeader() {
     });
   };
 
-  const getGeoLocation = (position) => {
-    PagesIndex.apiGetHandler(
-      PagesIndex.Api.GET_GEO_LOCATION,
-      `${position.coords.latitude}/${position.coords.longitude}`
-    ).then((res) => {
-      if (res?.status === 200) {
-        if (!regionId) {
-          dispatch(PagesIndex.changeRegion(res?.data));
-        }
-      }
-    });
-  };
   const changeCityOpen = () => {
     setSelectCity(true);
+    setSearchQuery("");
+    setFilteredRegionList(regionList);
   };
   const changeCityClose = () => {
     dispatch(closeLocationModel());
@@ -776,6 +804,40 @@ function CustomHeader() {
                       <Index.SearchIcon />
                     </Index.Box>
                   </Index.Box>
+                </Index.Box>
+                {/* Auto-detect Location Button */}
+                <Index.Box
+                  className={`auto-detect-location-bar ${isLocating ? "locating" : ""}`}
+                  onClick={() =>
+                    !isLocating && handleAutoDetectLocation(regionList, false)
+                  }
+                  role="button"
+                  tabIndex={0}
+                >
+                  <Index.Box className="auto-detect-icon-box">
+                    <Index.MyLocationIcon
+                      className={`auto-detect-icon ${isLocating ? "detect-spin" : ""}`}
+                    />
+                  </Index.Box>
+                  <Index.Box className="auto-detect-content">
+                    <Index.Typography className="auto-detect-text">
+                      {isLocating
+                        ? "Detecting Nearest Location..."
+                        : "Auto-detect My Location"}
+                    </Index.Typography>
+                    <Index.Typography className="auto-detect-desc">
+                      {isLocating
+                        ? "Finding the closest cinema to your current GPS position..."
+                        : "Use current GPS location to find nearest cinema"}
+                    </Index.Typography>
+                  </Index.Box>
+                  {isLocating && (
+                    <Index.Box className="auto-detect-spinner" />
+                  )}
+                </Index.Box>
+
+                <Index.Box className="popular-city-divider">
+                  <span>OR SELECT MANUALLY</span>
                 </Index.Box>
                 <Index.Box className="popular-city-wrapper-main cus-scrollbar">
                   <Index.Box className="popular-city-wrapper">

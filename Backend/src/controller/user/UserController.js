@@ -513,7 +513,7 @@ export const getRegion = async (req, res) => {
         deletedStatus: 0,
         isActive: true,
       },
-      { region: true, image: true }
+      { region: true, image: true, lat: true, long: true }
     ).sort({ region: "asc" });
 
     if (regions.length > 0) {

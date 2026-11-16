@@ -22,6 +22,7 @@ import { Link } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import LanguageIcon from "@mui/icons-material/Language";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
 import GoogleIcon from "@mui/icons-material/Google";
 import AppleIcon from "@mui/icons-material/Apple";
 import FacebookIcon from "@mui/icons-material/Facebook";
@@ -82,6 +83,7 @@ const Index = {
   SearchIcon,
   LanguageIcon,
   LocationOnIcon,
+  MyLocationIcon,
   GoogleIcon,
   AppleIcon,
   FacebookIcon,

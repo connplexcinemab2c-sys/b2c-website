@@ -255,44 +255,162 @@ export const PropertyListUpcoming = async (req, res) => {
     return handleErrorResponse(res, error);
   }
 };
+const KNOWN_REGION_COORDINATES = {
+  PATNA: { lat: 25.5941, long: 85.1376 },
+  VADODARA: { lat: 22.3072, long: 73.1812 },
+  SURAT: { lat: 21.1702, long: 72.8311 },
+  JAMMU: { lat: 32.7266, long: 74.8570 },
+  DARBHANGA: { lat: 26.1542, long: 85.8918 },
+  SOLAPUR: { lat: 17.6599, long: 75.9064 },
+  JAGDALPUR: { lat: 19.0748, long: 82.0090 },
+  JAMSHEDPUR: { lat: 22.8046, long: 86.2029 },
+  SHEIKHPURA: { lat: 25.1408, long: 85.8580 },
+  AHMEDABAD: { lat: 23.0225, long: 72.5714 },
+  RAJKOT: { lat: 22.3039, long: 70.8022 },
+  MUMBAI: { lat: 19.0760, long: 72.8777 },
+  PUNE: { lat: 18.5204, long: 73.8567 },
+  DELHI: { lat: 28.7041, long: 77.1025 },
+  GANDHINAGAR: { lat: 23.2156, long: 72.6369 },
+  BHAVNAGAR: { lat: 21.7645, long: 72.1519 },
+  JAMNAGAR: { lat: 22.4707, long: 70.0577 },
+  JUNAGADH: { lat: 21.5222, long: 70.4579 },
+  ANAND: { lat: 22.5645, long: 72.9289 },
+  NADIAD: { lat: 22.6916, long: 72.8634 },
+  MEHSANA: { lat: 23.5880, long: 72.3693 },
+  BHARUCH: { lat: 21.7051, long: 72.9959 },
+  ANKLESHWAR: { lat: 21.6264, long: 73.0033 },
+  VAPI: { lat: 20.3893, long: 72.9106 },
+  VALSAD: { lat: 20.5992, long: 72.9342 },
+  NAVSARI: { lat: 20.9500, long: 72.9300 },
+  MORBI: { lat: 22.8120, long: 70.8384 },
+  GAYA: { lat: 24.7914, long: 85.0002 },
+  MUZAFFARPUR: { lat: 26.1209, long: 85.3647 },
+  BHAGALPUR: { lat: 25.2425, long: 86.9842 },
+  RANCHI: { lat: 23.3441, long: 85.3096 },
+  RAIPUR: { lat: 21.2514, long: 81.6296 },
+  JAIPUR: { lat: 26.9124, long: 75.7873 },
+  INDORE: { lat: 22.7196, long: 75.8577 },
+  BHOPAL: { lat: 23.2599, long: 77.4126 },
+  LUCKNOW: { lat: 26.8467, long: 80.9462 },
+  KANPUR: { lat: 26.4499, long: 80.3319 },
+};
+
+const haversineDistanceKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
 export const calculateRegionDistance = async (req, res) => {
   try {
-    let { lat, long } = req.params;
+    const { lat, long } = req.params;
+    const userLat = parseFloat(lat);
+    const userLong = parseFloat(long);
+
+    if (isNaN(userLat) || isNaN(userLong)) {
+      return res.status(400).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: "Invalid latitude or longitude coordinates",
+        data: null,
+      });
+    }
+
     const regionsDetails = await Region.find({
       deletedStatus: 0,
+      isActive: true,
     }).sort({ region: 1 });
-    const calculateNearRegion = await Promise.all(
-      regionsDetails.map(async (ele) => {
-        const calculation = await getDistance(lat, long, ele.lat, ele.long);
-        if (calculation && calculation.distance) {
-          const distanceWithoutCommas = parseInt(
-            calculation.distance.replace(/,/g, ""),
-            10
-          );
-          return {
-            _id: ele._id,
-            region: ele.region,
-            distance: distanceWithoutCommas,
-          };
-        } else {
-          return null;
-        }
-      })
-    );
-    const validRegion = calculateNearRegion.filter((region) => region !== null);
-    // Find the region with the shortest distance
+
+    if (!regionsDetails || regionsDetails.length === 0) {
+      return res.status(400).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: ResponseMessage.REGION_NOT_FOUND,
+        data: null,
+      });
+    }
+
+    // Query active cinemas to get coordinates for regions that may lack lat/long
+    const cinemas = await Cinema.find({
+      deletedStatus: 0,
+      isActive: true,
+    }).select("regionId lat long cinemaName");
+
     let nearestRegion = null;
     let minDistance = Number.MAX_SAFE_INTEGER;
-    validRegion.forEach((region) => {
-      if (region.distance < minDistance) {
-        minDistance = region.distance;
-        nearestRegion = region;
+    let bestCoords = null;
+
+    for (const reg of regionsDetails) {
+      let regLat = parseFloat(reg.lat);
+      let regLong = parseFloat(reg.long);
+
+      // Check if coordinates exist directly on Region
+      if (isNaN(regLat) || isNaN(regLong)) {
+        // Fallback: check cinemas belonging to this region
+        const regCinemas = cinemas.filter(
+          (c) =>
+            c.regionId &&
+            c.regionId.toString() === reg._id.toString() &&
+            c.lat &&
+            c.long &&
+            !isNaN(parseFloat(c.lat)) &&
+            !isNaN(parseFloat(c.long))
+        );
+
+        if (regCinemas.length > 0) {
+          regLat = parseFloat(regCinemas[0].lat);
+          regLong = parseFloat(regCinemas[0].long);
+        } else {
+          // Fallback: lookup by region name
+          const normalizedName = (reg.region || "").trim().toUpperCase();
+          if (KNOWN_REGION_COORDINATES[normalizedName]) {
+            regLat = KNOWN_REGION_COORDINATES[normalizedName].lat;
+            regLong = KNOWN_REGION_COORDINATES[normalizedName].long;
+          }
+        }
       }
-    });
+
+      if (!isNaN(regLat) && !isNaN(regLong)) {
+        const distanceKm = haversineDistanceKm(
+          userLat,
+          userLong,
+          regLat,
+          regLong
+        );
+        if (distanceKm < minDistance) {
+          minDistance = distanceKm;
+          nearestRegion = reg;
+          bestCoords = { lat: regLat, long: regLong };
+        }
+      }
+    }
+
+    // If no coordinates could be matched for any region, default to first region
+    if (!nearestRegion) {
+      nearestRegion = regionsDetails[0];
+      minDistance = 0;
+    }
+
+    const responseData = {
+      _id: nearestRegion._id,
+      region: nearestRegion.region,
+      image: nearestRegion.image || "",
+      isActive: nearestRegion.isActive,
+      lat: bestCoords ? bestCoords.lat : nearestRegion.lat,
+      long: bestCoords ? bestCoords.long : nearestRegion.long,
+      distance: Math.round(minDistance * 10) / 10,
+    };
+
     return res.status(200).json({
       status: StatusCodes.OK,
       message: ResponseMessage.NEAREST_REGION_FETCHED,
-      data: nearestRegion,
+      data: responseData,
     });
   } catch (error) {
     return handleErrorResponse(res, error);
