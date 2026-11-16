@@ -22,9 +22,12 @@ function Header() {
   const [regionList, setRegionList] = useState([]);
   const [filteredRegionList, setFilteredRegionList] = useState([]);
   const openMenu = Boolean(anchorEl);
-  const handleChangedropdown = (data) => {
+  const handleChangedropdown = (data, isManual = false) => {
     setSelectedRegion(data);
     dispatch(PagesIndex.changeRegion(data));
+    if (isManual) {
+      sessionStorage.setItem("connplex_manual_city_selected", "true");
+    }
     changeCityClose();
   };
   const handleOpen = (id) => {
@@ -73,11 +76,11 @@ function Header() {
     setIsLocating(false);
 
     if (result.success && result.region) {
-      setSelectedRegion(result.region);
-      dispatch(PagesIndex.changeRegion(result.region));
+      sessionStorage.removeItem("connplex_manual_city_selected");
+      handleChangedropdown(result.region, false);
       if (isAutoInitial) {
         PagesIndex.toast.info(
-          `📍 Auto-detected nearest location: ${result.region.region}`
+          `📍 Nearest location automatically detected: ${result.region.region}`
         );
       } else {
         const distStr = result.distanceKm ? ` (~${result.distanceKm} km away)` : "";
@@ -88,6 +91,9 @@ function Header() {
       changeCityClose();
     } else {
       if (isAutoInitial) {
+        if (!region?._id && targetList.length > 0) {
+          handleChangedropdown(targetList[0], false);
+        }
         changeCityOpen();
       } else {
         if (result.code === "PERMISSION_DENIED") {
@@ -110,7 +116,10 @@ function Header() {
         setRegionList(fetchedRegions);
         setFilteredRegionList(fetchedRegions);
 
-        if (regionId && !region) {
+        const isManuallySelected =
+          sessionStorage.getItem("connplex_manual_city_selected") === "true";
+
+        if (regionId) {
           const regionData = fetchedRegions.find((data) => data?._id === regionId);
           if (regionData) {
             setSelectedRegion(regionData);
@@ -118,13 +127,17 @@ function Header() {
           } else {
             handleAutoDetectLocation(fetchedRegions, true);
           }
-        } else if (regionId && region) {
-          setSelectedRegion(region);
-          dispatch(PagesIndex.changeRegion(region));
-        } else if (!regionId && !region) {
+        } else if (isManuallySelected && region?._id) {
+          const regionData = fetchedRegions.find((data) => data?._id === region._id);
+          if (regionData) {
+            setSelectedRegion(regionData);
+            dispatch(PagesIndex.changeRegion(regionData));
+          } else {
+            handleAutoDetectLocation(fetchedRegions, true);
+          }
+        } else {
+          // On website open: automatically fetch nearest location!
           handleAutoDetectLocation(fetchedRegions, true);
-        } else if (region) {
-          setSelectedRegion(region);
         }
       }
       dispatch(PagesIndex.hideLoader());
@@ -621,7 +634,7 @@ function Header() {
                         className={`popular-city-item ${
                           selectedRegion?._id === item._id ? "active" : ""
                         }`}
-                        onClick={() => handleChangedropdown(item)}
+                        onClick={() => handleChangedropdown(item, true)}
                       >
                         <img
                           src={

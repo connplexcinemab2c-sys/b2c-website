@@ -132,15 +132,16 @@ export const findNearestRegion = (userLat, userLong, regionList = []) => {
 
 /**
  * Request user's current GPS coordinates using the browser Geolocation API.
+ * Uses high accuracy = false and a 4s timeout for fast, non-blocking response.
  */
 export const getCurrentUserCoordinates = (
-  options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  options = { enableHighAccuracy: false, timeout: 4000, maximumAge: 300000 }
 ) => {
   return new Promise((resolve, reject) => {
     if (!navigator || !navigator.geolocation) {
       reject({
         code: "NOT_SUPPORTED",
-        message: "Geolocation is not supported by your browser or device.",
+        message: "Geolocation is not supported by your browser.",
       });
       return;
     }
@@ -151,11 +152,12 @@ export const getCurrentUserCoordinates = (
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy,
+          source: "gps",
         });
       },
       (error) => {
         let code = "UNKNOWN";
-        let message = "Unable to retrieve your location.";
+        let message = "Unable to retrieve GPS location.";
 
         switch (error.code) {
           case error.PERMISSION_DENIED:
@@ -164,7 +166,7 @@ export const getCurrentUserCoordinates = (
             break;
           case error.POSITION_UNAVAILABLE:
             code = "POSITION_UNAVAILABLE";
-            message = "Location information is currently unavailable.";
+            message = "Location information is unavailable.";
             break;
           case error.TIMEOUT:
             code = "TIMEOUT";
@@ -182,68 +184,158 @@ export const getCurrentUserCoordinates = (
 };
 
 /**
- * Auto-detect user's current location and find the nearest region.
- * Uses the backend API `/near-by-region/:lat/:long` with an instant client-side
- * Haversine fallback if the backend is slow or returns empty data.
+ * Fallback to IP-based geolocation when GPS is denied, timed out, or unavailable.
+ * Calls free, CORS-enabled IP geolocation APIs.
+ */
+export const getIpBasedCoordinates = async () => {
+  // 1. Try ipwho.is (fast, free, CORS-enabled)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch("https://ipwho.is/", {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.latitude && data.longitude) {
+        return {
+          latitude: parseFloat(data.latitude),
+          longitude: parseFloat(data.longitude),
+          city: data.city,
+          source: "ip",
+        };
+      }
+    }
+  } catch (e) {
+    // Continue to next fallback
+  }
+
+  // 2. Try freeipapi.com
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch("https://freeipapi.com/api/json", {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.latitude && data.longitude) {
+        return {
+          latitude: parseFloat(data.latitude),
+          longitude: parseFloat(data.longitude),
+          city: data.cityName,
+          source: "ip",
+        };
+      }
+    }
+  } catch (e) {
+    // Both failed
+  }
+
+  return null;
+};
+
+/**
+ * Auto-detect user's current location and find the nearest cinema / region.
+ * 1. Tries GPS coordinates first.
+ * 2. If GPS fails or is denied, falls back to IP-based geolocation.
+ * 3. Matches nearest region using backend API and client-side Haversine formula.
  */
 export const autoDetectNearestRegion = async (
   regionList = [],
   apiGetHandler,
   Api
 ) => {
+  let coords = null;
+
+  // Step 1: Try browser GPS
   try {
-    const coords = await getCurrentUserCoordinates();
+    coords = await getCurrentUserCoordinates();
+  } catch (gpsError) {
+    // GPS unavailable or denied - try IP geolocation
+    coords = await getIpBasedCoordinates();
+  }
 
-    // 1. Try backend near-by-region endpoint
-    if (apiGetHandler && Api && Api.GET_GEO_LOCATION) {
-      try {
-        const res = await apiGetHandler(
-          Api.GET_GEO_LOCATION,
-          `${coords.latitude}/${coords.longitude}`
-        );
+  // If GPS didn't throw but returned null, try IP
+  if (!coords) {
+    coords = await getIpBasedCoordinates();
+  }
 
-        if (res?.status === 200 && res?.data && res.data._id) {
-          // If returned data doesn't have image/other props, enrich from regionList
-          const fullRegion =
-            regionList.find((r) => r._id === res.data._id) || res.data;
-          return {
-            success: true,
-            region: fullRegion,
-            distanceKm: res.data.distance,
-            coords,
-          };
-        }
-      } catch (apiErr) {
-        console.warn("Backend near-by-region failed, falling back to local:", apiErr);
-      }
-    }
-
-    // 2. Client-side fallback matching
-    const match = findNearestRegion(
-      coords.latitude,
-      coords.longitude,
-      regionList
-    );
-
-    if (match && match.region) {
+  // If no coordinates could be determined, fallback to first region
+  if (!coords) {
+    if (regionList && regionList.length > 0) {
       return {
         success: true,
-        region: match.region,
-        distanceKm: match.distanceKm,
-        coords,
+        region: regionList[0],
+        distanceKm: 0,
+        source: "fallback",
       };
     }
-
     return {
       success: false,
-      message: "No cinemas found near your location.",
-      code: "NO_CINEMA_FOUND",
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error?.message || "Could not detect location.",
-      code: error?.code || "ERROR",
+      message: "Could not detect location.",
+      code: "NO_COORDS",
     };
   }
+
+  // Step 2: Try backend near-by-region endpoint
+  if (apiGetHandler && Api && Api.GET_GEO_LOCATION) {
+    try {
+      const res = await apiGetHandler(
+        Api.GET_GEO_LOCATION,
+        `${coords.latitude}/${coords.longitude}`
+      );
+
+      if (res?.status === 200 && res?.data && res.data._id) {
+        const fullRegion =
+          regionList.find((r) => r._id === res.data._id) || res.data;
+        return {
+          success: true,
+          region: fullRegion,
+          distanceKm: res.data.distance,
+          coords,
+          source: coords.source || "gps",
+        };
+      }
+    } catch (apiErr) {
+      console.warn("Backend near-by-region failed, using client-side calculation:", apiErr);
+    }
+  }
+
+  // Step 3: Client-side Haversine distance matching
+  const match = findNearestRegion(
+    coords.latitude,
+    coords.longitude,
+    regionList
+  );
+
+  if (match && match.region) {
+    return {
+      success: true,
+      region: match.region,
+      distanceKm: match.distanceKm,
+      coords,
+      source: coords.source || "gps",
+    };
+  }
+
+  // Final fallback to first region in list
+  if (regionList && regionList.length > 0) {
+    return {
+      success: true,
+      region: regionList[0],
+      distanceKm: 0,
+      source: "fallback",
+    };
+  }
+
+  return {
+    success: false,
+    message: "No cinemas found near your location.",
+    code: "NO_CINEMA_FOUND",
+  };
 };

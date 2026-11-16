@@ -41,8 +41,12 @@ function CustomHeader() {
   const openMenu = Boolean(anchorEl);
 
   const hideCityDropdownLocation = ["/seat-management", "/add-snacks"];
-  const handleChangedropdown = (data) => {
+  const handleChangedropdown = (data, isManual = false) => {
     dispatch(PagesIndex.changeRegion(data));
+
+    if (isManual) {
+      sessionStorage.setItem("connplex_manual_city_selected", "true");
+    }
 
     const currentParams = new URLSearchParams(location.search);
     if (data?._id) {
@@ -141,10 +145,12 @@ function CustomHeader() {
     setIsLocating(false);
 
     if (result.success && result.region) {
-      handleChangedropdown(result.region);
+      // Clear manual override when auto-detecting
+      sessionStorage.removeItem("connplex_manual_city_selected");
+      handleChangedropdown(result.region, false);
       if (isAutoInitial) {
         PagesIndex.toast.info(
-          `📍 Auto-detected nearest location: ${result.region.region}`
+          `📍 Nearest location automatically detected: ${result.region.region}`
         );
       } else {
         const distStr = result.distanceKm ? ` (~${result.distanceKm} km away)` : "";
@@ -155,7 +161,10 @@ function CustomHeader() {
       changeCityClose();
     } else {
       if (isAutoInitial) {
-        // If initial auto-fetch was denied or failed, open manual selection modal
+        // If initial auto-fetch failed/denied and no city is set, open manual selection modal
+        if (!region?._id && targetList.length > 0) {
+          handleChangedropdown(targetList[0], false);
+        }
         changeCityOpen();
       } else {
         if (result.code === "PERMISSION_DENIED") {
@@ -178,19 +187,31 @@ function CustomHeader() {
         setRegionList(fetchedRegions);
         setFilteredRegionList(fetchedRegions);
 
-        const activeRegionId = regionId || region?._id;
+        const isManuallySelected =
+          sessionStorage.getItem("connplex_manual_city_selected") === "true";
 
-        if (activeRegionId) {
+        if (regionId) {
+          // If URL contains ?rId=..., use that specific region
           const regionData = fetchedRegions.find(
-            (data) => data?._id === activeRegionId
+            (data) => data?._id === regionId
           );
-          if (!regionData?.region) {
-            handleAutoDetectLocation(fetchedRegions, true);
-          } else {
+          if (regionData) {
             dispatch(PagesIndex.changeRegion(regionData));
+          } else {
+            handleAutoDetectLocation(fetchedRegions, true);
+          }
+        } else if (isManuallySelected && region?._id) {
+          // Customer explicitly chose a city during this active session
+          const regionData = fetchedRegions.find(
+            (data) => data?._id === region._id
+          );
+          if (regionData) {
+            dispatch(PagesIndex.changeRegion(regionData));
+          } else {
+            handleAutoDetectLocation(fetchedRegions, true);
           }
         } else {
-          // When customer opens website/app without a chosen location, auto-detect nearest
+          // Customer opens website/app: auto-fetch nearest location!
           handleAutoDetectLocation(fetchedRegions, true);
         }
       } else if (res?.status === 400) {
@@ -848,7 +869,7 @@ function CustomHeader() {
                           className={`popular-city-item ${
                             region?._id === item._id ? "active" : ""
                           }`}
-                          onClick={() => handleChangedropdown(item)}
+                          onClick={() => handleChangedropdown(item, true)}
                         >
                           <img
                             src={
