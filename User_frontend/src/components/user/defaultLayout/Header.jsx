@@ -78,11 +78,7 @@ function Header() {
     if (result.success && result.region) {
       sessionStorage.removeItem("connplex_manual_city_selected");
       handleChangedropdown(result.region, false);
-      if (isAutoInitial) {
-        PagesIndex.toast.info(
-          `📍 Nearest location automatically detected: ${result.region.region}`
-        );
-      } else {
+      if (!isAutoInitial) {
         const distStr = result.distanceKm ? ` (~${result.distanceKm} km away)` : "";
         PagesIndex.toast.success(
           `📍 Nearest location selected: ${result.region.region}${distStr}`
@@ -94,7 +90,7 @@ function Header() {
         if (!region?._id && targetList.length > 0) {
           handleChangedropdown(targetList[0], false);
         }
-        changeCityOpen();
+        changeCityClose();
       } else {
         if (result.code === "PERMISSION_DENIED") {
           PagesIndex.toast.error(
@@ -137,6 +133,10 @@ function Header() {
           }
         } else {
           // On website open: automatically fetch nearest location!
+          if (!region?._id && fetchedRegions.length > 0) {
+            setSelectedRegion(fetchedRegions[0]);
+            dispatch(PagesIndex.changeRegion(fetchedRegions[0]));
+          }
           handleAutoDetectLocation(fetchedRegions, true);
         }
       }
@@ -150,24 +150,11 @@ function Header() {
   const changeCityClose = () => setSelectCity(false);
 
   useEffect(() => {
-    window.addEventListener("load", pageOpened, false);
-
-    return () => {
-      window.addEventListener("load", pageOpened, false);
-    };
+    setSelectCity(false);
   }, []);
 
   const pageOpened = () => {
-    console.log(region?.region, selectedRegion?.region, "121");
     getRegionList();
-    if (
-      window.document.body.innerText.includes("Select your current location")
-    ) {
-      if (toggle == false) {
-        changeCityOpen();
-        setSelectCity(true);
-      }
-    }
   };
 
   const [scroll, setScroll] = useState(true);

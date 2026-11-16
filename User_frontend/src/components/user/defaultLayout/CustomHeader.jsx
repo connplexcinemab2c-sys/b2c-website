@@ -148,11 +148,7 @@ function CustomHeader() {
       // Clear manual override when auto-detecting
       sessionStorage.removeItem("connplex_manual_city_selected");
       handleChangedropdown(result.region, false);
-      if (isAutoInitial) {
-        PagesIndex.toast.info(
-          `📍 Nearest location automatically detected: ${result.region.region}`
-        );
-      } else {
+      if (!isAutoInitial) {
         const distStr = result.distanceKm ? ` (~${result.distanceKm} km away)` : "";
         PagesIndex.toast.success(
           `📍 Nearest location selected: ${result.region.region}${distStr}`
@@ -161,11 +157,11 @@ function CustomHeader() {
       changeCityClose();
     } else {
       if (isAutoInitial) {
-        // If initial auto-fetch failed/denied and no city is set, open manual selection modal
+        // Fallback to first active region silently without opening modal
         if (!region?._id && targetList.length > 0) {
           handleChangedropdown(targetList[0], false);
         }
-        changeCityOpen();
+        changeCityClose();
       } else {
         if (result.code === "PERMISSION_DENIED") {
           PagesIndex.toast.error(
@@ -212,6 +208,10 @@ function CustomHeader() {
           }
         } else {
           // Customer opens website/app: auto-fetch nearest location!
+          // Immediately enter first region as safe placeholder so site is never empty
+          if (!region?._id && fetchedRegions.length > 0) {
+            dispatch(PagesIndex.changeRegion(fetchedRegions[0]));
+          }
           handleAutoDetectLocation(fetchedRegions, true);
         }
       } else if (res?.status === 400) {
@@ -366,35 +366,11 @@ function CustomHeader() {
 
   //
 
+  // Ensure location modal is closed on mount and never forces auto-popup on website open
   useEffect(() => {
-    window.addEventListener("load", pageOpened, false);
-
-    return () => {
-      window.addEventListener("load", pageOpened, false);
-    };
+    dispatch(closeLocationModel());
+    setSelectCity(false);
   }, []);
-
-  const pageOpened = () => {
-    if (
-      window.document.body.innerText.includes("Select your current location")
-    ) {
-      getLocation();
-      changeCityOpen();
-      setSelectCity(true);
-    }
-  };
-
-  useEffect(() => {
-    pageOpened();
-  }, []);
-
-  useEffect(() => {
-    if (!region?.region) {
-      if (toggle == false) {
-        dispatch(openLocationModel());
-      }
-    }
-  }, [location?.pathname]);
 
   const getMembershipList = () => {
     PagesIndex.apiGetHandler(
