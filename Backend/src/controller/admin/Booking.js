@@ -9,6 +9,8 @@ import mongoose from "mongoose";
 import moment from "moment";
 import momentTimezone from "moment-timezone";
 
+const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 //#region allBookingsAdmin
 // export const getAllBookingAdmin = async (req, res) => {
 //   try {
@@ -425,7 +427,6 @@ export const getAllBookingAdmin = async (req, res) => {
     }
 
     const query = {
-      deletedStatus: 0,
       cinemaId: { $exists: true, $ne: null },
       movieId: { $exists: true, $ne: null },
     };
@@ -441,6 +442,7 @@ export const getAllBookingAdmin = async (req, res) => {
       query.cinemaId = new mongoose.Types.ObjectId(cinemaId);
     }
     const timezone = "Asia/Kolkata";
+    const cleanSearch = (search || "").toString().trim();
 
     if (startDate && endDate) {
       console.log("Old Date&Time", {
@@ -457,6 +459,32 @@ export const getAllBookingAdmin = async (req, res) => {
           .tz(endDate, "YYYY-MM-DD", timezone)
           .endOf("day")
           .toDate(),
+      };
+    } else if (startDate) {
+      query.createdAt = {
+        $gte: momentTimezone
+          .tz(startDate, "YYYY-MM-DD", timezone)
+          .startOf("day")
+          .toDate(),
+        $lte: momentTimezone.tz(timezone).endOf("day").toDate(),
+      };
+    } else if (endDate) {
+      query.createdAt = {
+        $gte: momentTimezone.tz(timezone).subtract(30, "days").startOf("day").toDate(),
+        $lte: momentTimezone
+          .tz(endDate, "YYYY-MM-DD", timezone)
+          .endOf("day")
+          .toDate(),
+      };
+    } else if (cleanSearch) {
+      // When searching without explicit dates, search the last 30 days for fast performance
+      query.createdAt = {
+        $gte: momentTimezone
+          .tz(timezone)
+          .subtract(30, "days")
+          .startOf("day")
+          .toDate(),
+        $lte: momentTimezone.tz(timezone).endOf("day").toDate(),
       };
     } else {
       query.createdAt = {
@@ -599,16 +627,22 @@ export const getAllBookingAdmin = async (req, res) => {
     }
 
     // Construct search regex
-    // let regex = new RegExp(search, "i");
     const searchConditions = [];
-    if (search) {
-      const regex = new RegExp(search, "i");
+    if (cleanSearch) {
+      const escaped = escapeRegex(cleanSearch);
+      const regex = new RegExp(escaped, "i");
       searchConditions.push(
         { "commitBookingData.strBookId": regex },
+        { "addSeatData.strBookId": regex },
+        { "setSeatData.strBookId": regex },
         { initTransId: regex },
+        { razorpayOrderId: regex },
+        { razorpayPaymentId: regex },
         { "paymentResponse.tracking_id": regex },
         { "paymentResponse.amount": regex },
         { "paymentResponse.order_id": regex },
+        { "paymentResponse.id": regex },
+        { "paymentResponse.contact": regex },
         { "userData.email": regex },
         { "userData.firstName": regex },
         { "userData.lastName": regex },
@@ -617,8 +651,8 @@ export const getAllBookingAdmin = async (req, res) => {
         { "movieData.name": regex }
       );
 
-      if (!isNaN(Number(search))) {
-        searchConditions.push({ "userData.mobileNumber": Number(search) });
+      if (!isNaN(Number(cleanSearch))) {
+        searchConditions.push({ "userData.mobileNumber": Number(cleanSearch) });
       }
     }
 
@@ -986,7 +1020,6 @@ export const getAllFailedBooking = async (req, res) => {
 
     // Base Query: Only genuine paid ticket commit failures, excluding user-aborted/cancelled transactions
     let query = {
-      deletedStatus: 0,
       paymentsStatus: true,
       status: { $nin: [1, 2] },
       "paymentResponse.order_status": {
@@ -1032,22 +1065,31 @@ export const getAllFailedBooking = async (req, res) => {
     }
 
     // Search conditions
+    const cleanSearch = (search || "").toString().trim();
     const searchConditions = [];
-    if (search) {
-      const regex = new RegExp(search, "i");
+    if (cleanSearch) {
+      const escaped = escapeRegex(cleanSearch);
+      const regex = new RegExp(escaped, "i");
       searchConditions.push(
+        { "commitBookingData.strBookId": regex },
         { "addSeatData.strBookId": regex },
+        { "setSeatData.strBookId": regex },
         { initTransId: regex },
+        { razorpayOrderId: regex },
+        { razorpayPaymentId: regex },
         { "paymentResponse.tracking_id": regex },
+        { "paymentResponse.amount": regex },
         { "paymentResponse.order_id": regex },
+        { "paymentResponse.id": regex },
+        { "paymentResponse.contact": regex },
         { "userData.email": regex },
         { "userData.firstName": regex },
         { "userData.lastName": regex },
         { "cinemaData.cinemaName": regex },
         { "movieData.name": regex }
       );
-      if (!isNaN(Number(search))) {
-        searchConditions.push({ "userData.mobileNumber": Number(search) });
+      if (!isNaN(Number(cleanSearch))) {
+        searchConditions.push({ "userData.mobileNumber": Number(cleanSearch) });
       }
     }
 

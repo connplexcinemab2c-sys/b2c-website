@@ -592,6 +592,8 @@ const TransactionHistory = () => {
     setCurrentPage(1);
     setIsBtnLoading(true);
     getBookingsList(1);
+    setOpenDrawer(false);
+    setIsOpen(false);
   };
 
   const debounce = useEffect(() => {
@@ -808,9 +810,10 @@ const TransactionHistory = () => {
                               scope="row"
                               className="table-td"
                             >
-                              {item?.addSeatData?.strBookId
-                                ? item?.addSeatData?.strBookId
-                                : "-"}
+                              {item?.commitBookingData?.strBookId ||
+                                item?.addSeatData?.strBookId ||
+                                item?.setSeatData?.strBookId ||
+                                "-"}
                             </Index.TableCell>
 
                             <Index.TableCell>
@@ -1584,9 +1587,10 @@ const TransactionHistory = () => {
                   />
                   <Index.Box className="booking-detail-id">
                     <Index.Typography className="booking-detail-id-value">
-                      {data?.addSeatData?.strBookId
-                        ? data?.addSeatData?.strBookId
-                        : data?.addSeatData || "-"}
+                      {data?.commitBookingData?.strBookId ||
+                        data?.addSeatData?.strBookId ||
+                        data?.setSeatData?.strBookId ||
+                        "-"}
                     </Index.Typography>
                     <Index.Typography className="booking-detail-id-label">
                       (Booking Id)

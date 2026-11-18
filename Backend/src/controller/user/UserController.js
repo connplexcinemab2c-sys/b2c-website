@@ -718,12 +718,7 @@ export const removeUserAccount = async (req, res) => {
           ).exec()
         );
 
-        promises.push(
-          await Transaction.updateMany(
-            { userId: userAccountId },
-            { $set: { deletedStatus: 1 } }
-          ).exec()
-        );
+        // Note: Transactions are audited financial records and must NOT be marked deletedStatus: 1 when a user deletes their account.
 
         promises.push(
           await TicketCancel.updateMany(
