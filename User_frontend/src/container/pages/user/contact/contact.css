@@ -157,6 +157,12 @@
     flex-direction: column;
     gap: 5px;
 }
+.main-contact .contact-info .contact-info-cin{
+    color: #000;
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 400;
+}
 .main-contact .contact-experience-left .owner-name.owner-after-remover:after {
     display: none;
 }

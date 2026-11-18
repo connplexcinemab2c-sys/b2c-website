@@ -412,7 +412,10 @@ function Contact() {
                 component="p"
                 className="contact-info-content"
               >
-                {settingsState?.address1}
+                <span>{settingsState?.address1}</span>
+                <span className="contact-info-cin">
+                  CIN: {settingsState?.cinNumber || settingsState?.cin || "L59141GJ2015PLC111882"}
+                </span>
               </Index.Typography>
             </Index.Box>
             <Index.Box className="contact-info-col">
