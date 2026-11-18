@@ -139,7 +139,8 @@ function CustomHeader() {
     const result = await autoDetectNearestRegion(
       targetList,
       PagesIndex.apiGetHandler,
-      PagesIndex.Api
+      PagesIndex.Api,
+      { isAutoInitial }
     );
 
     setIsLocating(false);
@@ -207,11 +208,7 @@ function CustomHeader() {
             handleAutoDetectLocation(fetchedRegions, true);
           }
         } else {
-          // Customer opens website/app: auto-fetch nearest location!
-          // Immediately enter first region as safe placeholder so site is never empty
-          if (!region?._id && fetchedRegions.length > 0) {
-            dispatch(PagesIndex.changeRegion(fetchedRegions[0]));
-          }
+          // Customer opens website/app: auto-fetch nearest location directly without asking!
           handleAutoDetectLocation(fetchedRegions, true);
         }
       } else if (res?.status === 400) {

@@ -70,7 +70,8 @@ function Header() {
     const result = await autoDetectNearestRegion(
       targetList,
       PagesIndex.apiGetHandler,
-      PagesIndex.Api
+      PagesIndex.Api,
+      { isAutoInitial }
     );
 
     setIsLocating(false);
@@ -132,11 +133,7 @@ function Header() {
             handleAutoDetectLocation(fetchedRegions, true);
           }
         } else {
-          // On website open: automatically fetch nearest location!
-          if (!region?._id && fetchedRegions.length > 0) {
-            setSelectedRegion(fetchedRegions[0]);
-            dispatch(PagesIndex.changeRegion(fetchedRegions[0]));
-          }
+          // On website open: automatically fetch nearest location directly without asking!
           handleAutoDetectLocation(fetchedRegions, true);
         }
       }
