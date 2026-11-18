@@ -412,9 +412,25 @@ function Contact() {
                 component="p"
                 className="contact-info-content"
               >
-                <span>{settingsState?.address1}</span>
+                {settingsState?.address1}
+              </Index.Typography>
+            </Index.Box>
+            <Index.Box className="contact-info-col">
+              <Index.Typography
+                variant="span"
+                component="span"
+                className="contact-info-icon"
+              >
+                <Index.BusinessIcon />
+              </Index.Typography>
+              <Index.Typography
+                variant="p"
+                component="p"
+                className="contact-info-content"
+              >
+                <span className="contact-info-cin-title">CIN Number</span>
                 <span className="contact-info-cin">
-                  CIN: {settingsState?.cinNumber || settingsState?.cin || "L59141GJ2015PLC111882"}
+                  {settingsState?.cinNumber || settingsState?.cin || "L59141GJ2015PLC111882"}
                 </span>
               </Index.Typography>
             </Index.Box>

@@ -134,6 +134,7 @@
     display: flex;
     justify-content: space-evenly;
     gap: 20px;
+    flex-wrap: wrap;
 }
 .main-contact .contact-info .contact-info-col{
     display: flex;
@@ -157,11 +158,18 @@
     flex-direction: column;
     gap: 5px;
 }
-.main-contact .contact-info .contact-info-cin{
+.main-contact .contact-info .contact-info-cin-title{
     color: #000;
     font-size: 16px;
     line-height: 22px;
+    font-weight: 600;
+}
+.main-contact .contact-info .contact-info-cin{
+    color: #000;
+    font-size: 15px;
+    line-height: 22px;
     font-weight: 400;
+    word-break: break-word;
 }
 .main-contact .contact-experience-left .owner-name.owner-after-remover:after {
     display: none;

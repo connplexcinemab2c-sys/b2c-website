@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import CountUp from "react-countup";
 import HomeIcon from "@mui/icons-material/Home";
+import BusinessIcon from "@mui/icons-material/Business";
 import CallIcon from "@mui/icons-material/Call";
 import MailIcon from "@mui/icons-material/Mail";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
@@ -108,6 +109,7 @@ const Index = {
   Link,
   CountUp,
   HomeIcon,
+  BusinessIcon,
   CallIcon,
   MailIcon,
   ThumbUpAltIcon,

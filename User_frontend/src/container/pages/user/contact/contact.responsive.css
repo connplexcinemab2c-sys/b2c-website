@@ -41,6 +41,7 @@
     .main-contact .contact-info .contact-info-box {
         flex-direction: column;
         justify-content: center;
+        gap: 20px;
     }
 
     .main-contact .contact-info .contact-info-col {
