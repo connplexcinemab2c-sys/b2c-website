@@ -1098,9 +1098,17 @@ export const moviesDetailsWithshow = async (req, res) => {
               data.sessionId === tim.sessionId &&
               data.area === price.areaCatCode
           );
-          const availableSeats = seatsData ? seatsData.seatsAvail : (tim.sessionSeatsAvail || 50);
-          const totalSeats = seatsData ? seatsData.seatsTotal : (tim.sessionSeatsTotal || 50);
-          if (totalSeats) {
+          const availableSeats = seatsData
+            ? seatsData.seatsAvail
+            : tim.sessionSeatsAvail !== undefined && tim.sessionSeatsAvail !== null
+            ? tim.sessionSeatsAvail
+            : 50;
+          const totalSeats = seatsData
+            ? seatsData.seatsTotal
+            : tim.sessionSeatsTotal !== undefined && tim.sessionSeatsTotal !== null
+            ? tim.sessionSeatsTotal
+            : 50;
+          if (totalSeats > 0 && Number(price.currentPrice) > 0 && availableSeats > 0) {
             area.push({
               code: price.areaCatCode,
               label: price.tTypeDescription,

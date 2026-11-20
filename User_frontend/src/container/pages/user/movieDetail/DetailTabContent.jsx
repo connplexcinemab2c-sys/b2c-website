@@ -328,26 +328,32 @@ function DetailTabContent({
     }
   };
   const renderTimingTooltip = (resItem) => {
+    const availableAreas = (resItem?.areas || []).filter(
+      (area) =>
+        Number(area?.price) > 0 &&
+        (area?.aSeats === undefined || Number(area?.aSeats) > 0)
+    );
+    if (!availableAreas.length) return null;
     return (
       <Index.Box className="movie-timing-tooltip">
-        {resItem.areas.map((resItem, key) => {
-          const availabilityClass = getAvailabilityClass(resItem.statusColour);
-          const availabilityStatus = getAvailabilityStatus(resItem);
+        {availableAreas.map((areaItem, key) => {
+          const availabilityClass = getAvailabilityClass(areaItem.statusColour);
+          const availabilityStatus = getAvailabilityStatus(areaItem);
           return (
-            <Index.Box key={resItem.code}>
+            <Index.Box key={areaItem.code || key}>
               <Index.Typography
                 variant="p"
                 component="p"
                 className="timing-tooltip-price"
               >
-                ₹{resItem.price}
+                ₹{areaItem.price}
               </Index.Typography>
               <Index.Typography
                 variant="p"
                 component="p"
                 className="timing-tooltip-class"
               >
-                {resItem.label}
+                {areaItem.label}
               </Index.Typography>
               <Index.Typography
                 variant="p"
@@ -406,7 +412,15 @@ function DetailTabContent({
               >
                 {renderTimingLabel(res)}
 
-                {res.areas.length > 0 ? renderTimingTooltip(res) : <></>}
+                {res.areas?.filter(
+                  (a) =>
+                    Number(a?.price) > 0 &&
+                    (a?.aSeats === undefined || Number(a?.aSeats) > 0)
+                ).length > 0 ? (
+                  renderTimingTooltip(res)
+                ) : (
+                  <></>
+                )}
               </Index.Box>
             );
           })}

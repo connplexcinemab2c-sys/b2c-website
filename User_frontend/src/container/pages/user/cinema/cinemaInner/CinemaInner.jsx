@@ -188,16 +188,33 @@ export default function CinemaInner({ props }) {
         let filteredRes = res.data?.movieDetailsWithShows.map((data) => {
           return {
             ...data,
-            shows: data.shows?.filter((item) => {
-              let startTime = PagesIndex.moment(item?.sessionRealShow).format(
-                "YYYY-MM-DDTHH:mm:ss.SSS[Z]"
-              );
-              let currentTime = PagesIndex.moment().format(
-                "YYYY-MM-DDTHH:mm:ss.SSS[Z]"
-              );
-              let timeisGt = startTime < currentTime;
-              return !timeisGt;
-            }),
+            shows: data.shows
+              ?.filter((item) => {
+                let startTime = PagesIndex.moment(item?.sessionRealShow).format(
+                  "YYYY-MM-DDTHH:mm:ss.SSS[Z]"
+                );
+                let currentTime = PagesIndex.moment().format(
+                  "YYYY-MM-DDTHH:mm:ss.SSS[Z]"
+                );
+                let timeisGt = startTime < currentTime;
+                return !timeisGt;
+              })
+              .map((show) => {
+                if (show.timing?.areas) {
+                  return {
+                    ...show,
+                    timing: {
+                      ...show.timing,
+                      areas: show.timing.areas.filter(
+                        (area) =>
+                          Number(area.price) > 0 &&
+                          (area.aSeats === undefined || Number(area.aSeats) > 0)
+                      ),
+                    },
+                  };
+                }
+                return show;
+              }),
           };
         });
         setSearchFilteredMovieShows(filteredRes)
@@ -969,14 +986,25 @@ export default function CinemaInner({ props }) {
                                         {attributes}
                                       </Index.Typography>
 
-                                      {res?.timing?.areas.length > 0 ? (
+                                      {res?.timing?.areas?.filter(
+                                        (resItem) =>
+                                          Number(resItem.price) > 0 &&
+                                          (resItem.aSeats === undefined ||
+                                            Number(resItem.aSeats) > 0)
+                                      ).length > 0 ? (
                                         <Index.Box
                                           key={key}
                                           className="movie-timing-tooltip"
                                         >
-                                          {res?.timing?.areas.map(
-                                            (resItem, key) => (
-                                              <Index.Box key={key}>
+                                          {res?.timing?.areas
+                                            ?.filter(
+                                              (resItem) =>
+                                                Number(resItem.price) > 0 &&
+                                                (resItem.aSeats === undefined ||
+                                                  Number(resItem.aSeats) > 0)
+                                            )
+                                            .map((resItem, areaKey) => (
+                                              <Index.Box key={resItem.code || areaKey}>
                                                 <Index.Typography
                                                   variant="p"
                                                   component="p"
@@ -995,25 +1023,23 @@ export default function CinemaInner({ props }) {
                                                   variant="p"
                                                   component="p"
                                                   className={`timing-tooltip-availability ${
-                                                    resItem === "Y"
+                                                    resItem.statusColour === "Y"
                                                       ? "filling-fast"
-                                                      : resItem === "R"
+                                                      : resItem.statusColour === "R"
                                                       ? "sold-out"
                                                       : "available"
                                                   }`}
                                                 >
-                                                  {resItem === "Y"
+                                                  {resItem.statusColour === "Y"
                                                     ? "Filling Fast"
-                                                    : resItem === "R"
-                                                    ? resItem === "R" &&
-                                                      resItem.aSeats
+                                                    : resItem.statusColour === "R"
+                                                    ? resItem.aSeats
                                                       ? "Almost Full"
                                                       : "Sold Out"
                                                     : "Available"}
                                                 </Index.Typography>
                                               </Index.Box>
-                                            )
-                                          )}
+                                            ))}
                                         </Index.Box>
                                       ) : (
                                         <></>
