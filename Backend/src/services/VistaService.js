@@ -93,6 +93,7 @@ export const movieData = async () => {
               $set: {
                 cinemaId: cinemaId,
                 cinemaObjectId: cinema ? cinema._id : null,
+                name: ele.Film_strTitle,
                 [!exist.isDurationEdit ? "category" : ""]: ele.Film_strContent,
                 filmCode: ele.Film_strCode,
                 censorRating: ele.Film_strCensor,

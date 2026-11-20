@@ -86,7 +86,29 @@ export const movieSync = async (strCinemaId, preFetchedData = null, cinemaMap = 
         const openingDate = openingDateMatch ? new Date(parseInt(openingDateMatch[0], 10)) : new Date();
 
         if (exist) {
-          // Existing movie already in DB
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: exist._id },
+              update: {
+                $set: {
+                  name: ele.Film_strTitle,
+                  signText: ele.Film_strSignText,
+                  shortName: ele.Film_strShortName,
+                  censorRating: ele.Film_strCensor,
+                  description: ele.Film_strDescription,
+                  filmDescriptionLong: ele.Film_strDescriptionLong,
+                  filmOpeningDate: openingDate,
+                  duration: ele.Film_intDuration,
+                  languages: languages,
+                  filmStatus: ele.Film_strStatus,
+                  filmUpcomingFlag: ele.Film_strUpcomingFlag,
+                  filmFeatureFlag: ele.Film_strFeatureFlag,
+                  filmNowShowingFlag: ele.Film_strNowShowingFlag,
+                  cinemaObjectId: cinema ? cinema._id : null,
+                },
+              },
+            },
+          });
         } else {
           const newMovieData = {
             cinemaId,
