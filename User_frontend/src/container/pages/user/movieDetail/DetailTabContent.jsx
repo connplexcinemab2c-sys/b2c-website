@@ -329,9 +329,7 @@ function DetailTabContent({
   };
   const renderTimingTooltip = (resItem) => {
     const availableAreas = (resItem?.areas || []).filter(
-      (area) =>
-        Number(area?.price) > 0 &&
-        (area?.aSeats === undefined || Number(area?.aSeats) > 0)
+      (area) => Number(area?.price) > 0
     );
     if (!availableAreas.length) return null;
     return (
@@ -340,7 +338,7 @@ function DetailTabContent({
           const availabilityClass = getAvailabilityClass(areaItem.statusColour);
           const availabilityStatus = getAvailabilityStatus(areaItem);
           return (
-            <Index.Box key={areaItem.code || key}>
+            <Index.Box key={areaItem.code || key} className="timing-tooltip-item">
               <Index.Typography
                 variant="p"
                 component="p"
@@ -412,11 +410,7 @@ function DetailTabContent({
               >
                 {renderTimingLabel(res)}
 
-                {res.areas?.filter(
-                  (a) =>
-                    Number(a?.price) > 0 &&
-                    (a?.aSeats === undefined || Number(a?.aSeats) > 0)
-                ).length > 0 ? (
+                {res.areas?.filter((a) => Number(a?.price) > 0).length > 0 ? (
                   renderTimingTooltip(res)
                 ) : (
                   <></>

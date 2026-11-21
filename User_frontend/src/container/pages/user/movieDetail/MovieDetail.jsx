@@ -153,9 +153,7 @@ function MovieDetail() {
           timings: cinema.timings?.map((timing) => ({
             ...timing,
             areas: (timing.areas || []).filter(
-              (area) =>
-                Number(area.price) > 0 &&
-                (area.aSeats === undefined || Number(area.aSeats) > 0)
+              (area) => Number(area.price) > 0
             ),
           })),
         }));

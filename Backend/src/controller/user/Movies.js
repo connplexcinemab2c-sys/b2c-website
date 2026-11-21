@@ -18,6 +18,7 @@ import { Region } from "../../models/Region.js";
 import cacheHelper from "../../utils/cacheHelper.js";
 import cacheKeys from "../../utils/cacheKeys.js";
 import { SiteSetting } from "../../models/SiteSetting.js";
+import Price from "../../models/Price.js";
 
 //#region movieDetailsByMovieId
 export const getMoviesById = async (req, res) => {
@@ -935,6 +936,9 @@ export const moviesShowByCinema = async (req, res) => {
           "shows.pGroupCode": 1,
           "shows.cinemaId": 1,
           "shows._id": 1,
+          "shows.sessionId": 1,
+          "shows.sessionSeatsTotal": 1,
+          "shows.sessionSeatsAvail": 1,
         },
       },
       {
@@ -948,14 +952,13 @@ export const moviesShowByCinema = async (req, res) => {
       (movie) => movie.movieDetails.uniqueFilmCode
     );
 
-        let matchstage = {
+    let matchstage = {
       cinemaObjectId: { $in: cinemaIds },
-      sessionFilmFirstShow: {
+      sessionRealShow: {
         $gte: new Date(`${showDate}T00:00:00`),
         $lte: new Date(`${showDate}T23:59:59`),
       },
       screenStatus: { $ne: "C" },
-      sessionRealShow: { $gte: new Date() },
       isActive: true,
       deletedStatus: 0,
     };
@@ -1045,16 +1048,6 @@ export const moviesShowByCinema = async (req, res) => {
       },
       {
         $unwind: "$timings",
-      },
-      {
-        $match: {
-          "timings.startTime": { $gte: new Date() },
-        },
-      },
-      {
-        $match: {
-          "timings.startTime": { $gte: new Date() },
-        },
       },
       {
         $sort: {
@@ -1168,31 +1161,48 @@ export const moviesShowByCinema = async (req, res) => {
       const mtimings = [];
       for (const tim of timing.timings) {
         const area = [];
-        for (const price of tim.priceDetails) {
+        const seenLabels = new Set();
+        let pricesList = tim.priceDetails || [];
+        if (!pricesList.length) {
+          const fallbackPrices = await Price.find({
+            cinemaId: timing.cinemaId,
+            currentPrice: { $gt: 0 },
+            deletedStatus: 0,
+          }).limit(6).lean();
+          pricesList = fallbackPrices;
+        }
+
+        for (const price of pricesList) {
+          if (price.priceChildTicket === "Y") continue;
+          const label = price.tTypeDescription?.trim();
+          if (!label || seenLabels.has(label)) continue;
+
           const seatsData = seatData.find(
             (data) =>
               data.sessionId === tim.sessionId &&
               data.area === price.areaCatCode
           );
           const availableSeats = seatsData
-            ? seatsData.seatsAvail
+            ? Number(seatsData.seatsAvail || 0)
             : tim.sessionSeatsAvail !== undefined && tim.sessionSeatsAvail !== null
-            ? tim.sessionSeatsAvail
+            ? Number(tim.sessionSeatsAvail)
             : 50;
-          const totalSeats = seatsData
-            ? seatsData.seatsTotal
-            : tim.sessionSeatsTotal !== undefined && tim.sessionSeatsTotal !== null
-            ? tim.sessionSeatsTotal
-            : 50;
-          if (totalSeats > 0 && Number(price.currentPrice) > 0 && availableSeats > 0) {
+          const totalSeats = (seatsData && Number(seatsData.seatsTotal) > 0)
+            ? Number(seatsData.seatsTotal)
+            : (tim.sessionSeatsTotal && Number(tim.sessionSeatsTotal) > 0)
+            ? Number(tim.sessionSeatsTotal)
+            : Math.max(availableSeats, 50);
+
+          if (Number(price.currentPrice) > 0) {
+            seenLabels.add(label);
             area.push({
               code: price.areaCatCode,
-              label: price.tTypeDescription,
+              label: label,
               pGCode: price.pGroupCode,
               price: price.currentPrice,
               aSeats: availableSeats,
               tSeats: totalSeats,
-              statusColour: getSeatStatus(availableSeats, totalSeats),
+              statusColour: availableSeats === 0 ? "R" : getSeatStatus(availableSeats, totalSeats),
             });
           }
         }
@@ -1211,38 +1221,34 @@ export const moviesShowByCinema = async (req, res) => {
     // console.log("cinemaMap",cinemaMap);
     let timingCinemawise = response
       .filter((item) => {
-        if (item.cinemaDetails._id.toString() == cinemaDetails._id.toString()) {
+        if (item.cinemaDetails?._id?.toString() == cinemaDetails?._id?.toString()) {
           return true;
         }
       })
       .map((row) => row.timings)
       .flatMap((item) => item);
-    // console.log("timingCinemawise",timingCinemawise);
-    function addTimingsToShow(arr, timings) {
-      // Iterate through each movieDetail object
-      let Data = arr.map((movieDetail) => {
-        // Iterate through each show within the current movieDetail
-        movieDetail.shows.map((show) => {
-          // Find the matching timing for the current show based on showId
-          // console.log(show , ":show734")
-          const matchingTiming = timings.find(
-            (timing) => timing.showId.toString() == show._id.toString()
-          );
 
-          // If a matching timing is found, add it to the current show object
-          if (matchingTiming) {
-            // You can adjust what information from the timing you want to add to the show here
-            show.timing = matchingTiming; // Example: adding the entire matching timing object
-          }
+    function addTimingsToShow(arr, timings) {
+      return arr.map((movieDetail) => {
+        const updatedShows = (movieDetail.shows || []).map((show) => {
+          const matchingTiming = timings.find(
+            (timing) => timing.showId?.toString() == show._id?.toString()
+          );
           return {
             ...show,
-            timing: matchingTiming,
+            timing: matchingTiming || {
+              showId: show._id,
+              sid: show.sessionId,
+              startTime: show.sessionRealShow,
+              areas: [],
+            },
           };
         });
-        return movieDetail;
+        return {
+          ...movieDetail,
+          shows: updatedShows,
+        };
       });
-
-      return Data;
     }
 
     let filterData = addTimingsToShow(uniqueFilteredMovies, timingCinemawise);

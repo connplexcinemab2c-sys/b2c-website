@@ -206,9 +206,7 @@ export default function CinemaInner({ props }) {
                     timing: {
                       ...show.timing,
                       areas: show.timing.areas.filter(
-                        (area) =>
-                          Number(area.price) > 0 &&
-                          (area.aSeats === undefined || Number(area.aSeats) > 0)
+                        (area) => Number(area.price) > 0
                       ),
                     },
                   };
@@ -987,10 +985,7 @@ export default function CinemaInner({ props }) {
                                       </Index.Typography>
 
                                       {res?.timing?.areas?.filter(
-                                        (resItem) =>
-                                          Number(resItem.price) > 0 &&
-                                          (resItem.aSeats === undefined ||
-                                            Number(resItem.aSeats) > 0)
+                                        (resItem) => Number(resItem.price) > 0
                                       ).length > 0 ? (
                                         <Index.Box
                                           key={key}
@@ -999,18 +994,16 @@ export default function CinemaInner({ props }) {
                                           {res?.timing?.areas
                                             ?.filter(
                                               (resItem) =>
-                                                Number(resItem.price) > 0 &&
-                                                (resItem.aSeats === undefined ||
-                                                  Number(resItem.aSeats) > 0)
+                                                Number(resItem.price) > 0
                                             )
                                             .map((resItem, areaKey) => (
-                                              <Index.Box key={resItem.code || areaKey}>
+                                              <Index.Box key={resItem.code || areaKey} className="timing-tooltip-item">
                                                 <Index.Typography
                                                   variant="p"
                                                   component="p"
                                                   className="timing-tooltip-price"
                                                 >
-                                                  {resItem.price}
+                                                  ₹{resItem.price}
                                                 </Index.Typography>
                                                 <Index.Typography
                                                   variant="p"

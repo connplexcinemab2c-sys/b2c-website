@@ -205,6 +205,7 @@ function SeatManagement() {
             pGroupCode: item?.pGroupCode,
             sessionAdditionalData: item?.sessionAdditionalData,
             _id: item?._id,
+            areas: item?.areas || [],
           };
           if (!timeisGt) {
             shows.push(objData);
@@ -965,6 +966,51 @@ function SeatManagement() {
                     >
                       {attributes}
                     </Index.Typography>
+
+                    {item?.areas?.filter((a) => Number(a?.price) > 0).length > 0 && (
+                      <Index.Box className="movie-timing-tooltip">
+                        {item.areas
+                          .filter((a) => Number(a?.price) > 0)
+                          .map((areaItem, areaKey) => (
+                            <Index.Box
+                              key={areaItem.code || areaKey}
+                              className="timing-tooltip-item"
+                            >
+                              <Index.Typography
+                                variant="p"
+                                component="p"
+                                className="timing-tooltip-price"
+                              >
+                                ₹{areaItem.price}
+                              </Index.Typography>
+                              <Index.Typography
+                                variant="p"
+                                component="p"
+                                className="timing-tooltip-class"
+                              >
+                                {areaItem.label}
+                              </Index.Typography>
+                              <Index.Typography
+                                variant="p"
+                                component="p"
+                                className={`timing-tooltip-availability ${
+                                  areaItem.statusColour === "Y"
+                                    ? "filling-fast"
+                                    : areaItem.statusColour === "R"
+                                    ? "sold-out"
+                                    : "available"
+                                }`}
+                              >
+                                {areaItem.statusColour === "Y"
+                                  ? "Filling Fast"
+                                  : areaItem.statusColour === "R"
+                                  ? (areaItem.aSeats ? "Almost Full" : "Sold Out")
+                                  : "Available"}
+                              </Index.Typography>
+                            </Index.Box>
+                          ))}
+                      </Index.Box>
+                    )}
                   </PagesIndex.Button>
                 );
               })}

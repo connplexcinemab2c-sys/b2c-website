@@ -19,6 +19,7 @@ import { bookingSuccess } from "../../utils/Mailers.js";
 import SeatFilter from "../../models/SessionAreaCount.js";
 import { rollbackCoupanService } from "../../services/vistaServices/promotionCoupan.js";
 import BookingSession from "../../models/BookingSession.js";
+import Price from "../../models/Price.js";
 import { createLog } from "../../services/LogsServices.js";
 import { addSeatsExService, updateOrderService, continueTransService } from "../../services/vistaServices/AddSeatsExService.js";
 
@@ -1091,7 +1092,22 @@ export const moviesDetailsWithshow = async (req, res) => {
       const mtimings = [];
       for (const tim of timing.timings) {
         const area = [];
-        for (const price of tim.priceDetails) {
+        const seenLabels = new Set();
+        let pricesList = tim.priceDetails || [];
+        if (!pricesList.length) {
+          const fallbackPrices = await Price.find({
+            cinemaId: timing.cinemaId,
+            currentPrice: { $gt: 0 },
+            deletedStatus: 0,
+          }).limit(6).lean();
+          pricesList = fallbackPrices;
+        }
+
+        for (const price of pricesList) {
+          if (price.priceChildTicket === "Y") continue;
+          const label = price.tTypeDescription?.trim();
+          if (!label || seenLabels.has(label)) continue;
+
           // Find the corresponding seat data for the session and area code
           const seatsData = seatData.find(
             (data) =>
@@ -1099,24 +1115,26 @@ export const moviesDetailsWithshow = async (req, res) => {
               data.area === price.areaCatCode
           );
           const availableSeats = seatsData
-            ? seatsData.seatsAvail
+            ? Number(seatsData.seatsAvail || 0)
             : tim.sessionSeatsAvail !== undefined && tim.sessionSeatsAvail !== null
-            ? tim.sessionSeatsAvail
+            ? Number(tim.sessionSeatsAvail)
             : 50;
-          const totalSeats = seatsData
-            ? seatsData.seatsTotal
-            : tim.sessionSeatsTotal !== undefined && tim.sessionSeatsTotal !== null
-            ? tim.sessionSeatsTotal
-            : 50;
-          if (totalSeats > 0 && Number(price.currentPrice) > 0 && availableSeats > 0) {
+          const totalSeats = (seatsData && Number(seatsData.seatsTotal) > 0)
+            ? Number(seatsData.seatsTotal)
+            : (tim.sessionSeatsTotal && Number(tim.sessionSeatsTotal) > 0)
+            ? Number(tim.sessionSeatsTotal)
+            : Math.max(availableSeats, 50);
+
+          if (Number(price.currentPrice) > 0) {
+            seenLabels.add(label);
             area.push({
               code: price.areaCatCode,
-              label: price.tTypeDescription,
+              label: label,
               pGCode: price.pGroupCode,
               price: price.currentPrice,
               aSeats: availableSeats,
               tSeats: totalSeats,
-              statusColour: getSeatStatus(availableSeats, totalSeats),
+              statusColour: availableSeats === 0 ? "R" : getSeatStatus(availableSeats, totalSeats),
             });
           }
         }
@@ -1280,6 +1298,8 @@ export const showTimeByCinemaIdAndMovie = async (req, res) => {
             cinemaObjectId: 1,
             pGroupCode: 1,
             sessionAdditionalData: 1,
+            sessionSeatsTotal: 1,
+            sessionSeatsAvail: 1,
           },
         },
         {
@@ -1288,6 +1308,52 @@ export const showTimeByCinemaIdAndMovie = async (req, res) => {
           },
         },
       ]);
+
+      const pGroupCodes = Array.from(new Set(showTimings.map(s => s.pGroupCode).filter(Boolean)));
+      const allPrices = await Price.find({
+        cinemaId: cinema.cinemaId,
+        $or: [
+          { pGroupCode: { $in: pGroupCodes } },
+          { currentPrice: { $gt: 0 } },
+        ],
+        deletedStatus: 0,
+      }).lean();
+
+      showTimings = showTimings.map((st) => {
+        let matchingPrices = allPrices.filter(p => p.pGroupCode === st.pGroupCode);
+        if (!matchingPrices.length) {
+          matchingPrices = allPrices.filter(p => p.currentPrice > 0).slice(0, 6);
+        }
+        const area = [];
+        const seenLabels = new Set();
+        for (const price of matchingPrices) {
+          if (price.priceChildTicket === "Y") continue;
+          const label = price.tTypeDescription?.trim();
+          if (!label || seenLabels.has(label)) continue;
+          seenLabels.add(label);
+          const availableSeats = (st.sessionSeatsAvail !== undefined && st.sessionSeatsAvail !== null)
+            ? Number(st.sessionSeatsAvail)
+            : 50;
+          const totalSeats = (st.sessionSeatsTotal && Number(st.sessionSeatsTotal) > 0)
+            ? Number(st.sessionSeatsTotal)
+            : Math.max(availableSeats, 50);
+          if (Number(price.currentPrice) > 0) {
+            area.push({
+              code: price.areaCatCode,
+              label: label,
+              pGCode: price.pGroupCode,
+              price: price.currentPrice,
+              aSeats: availableSeats,
+              tSeats: totalSeats,
+              statusColour: availableSeats === 0 ? "R" : getSeatStatus(availableSeats, totalSeats),
+            });
+          }
+        }
+        return {
+          ...st,
+          areas: area,
+        };
+      });
     }
 
     const movie = await Movie.findOne({ _id: movieId, deletedStatus: 0 });
