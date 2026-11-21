@@ -254,6 +254,15 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
 
         const parsedSessionId = parseInt(ele.Session_lngSessionId, 10);
 
+        let screenStatus = ele.Session_strStatus;
+        if (
+          cinemaIdUpper === "CN34" &&
+          screenStatus === "C" &&
+          (ele.Session_strSalesChannel?.includes("WWW") || ele.Session_intSeatsAvail > 0)
+        ) {
+          screenStatus = "O";
+        }
+
         const showData = {
           sessionId: parsedSessionId,
           cinemaId: cinemaIdUpper,
@@ -261,7 +270,7 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
           screenNumber: ele.Screen_bytNum,
           layoutId: ele.Layout_intId,
           screenName: ele.Screen_strName,
-          screenStatus: ele.Session_strStatus,
+          screenStatus: screenStatus,
           screenType: ele.Session_strType,
           sessionRealShow: parseVistaDate(ele.Session_dtmRealShow),
           sessionFinishShow: parseVistaDate(ele.Session_dtmFinishShow),
@@ -1083,6 +1092,15 @@ export const todayShowSync = async (strCinemaId, preFetchedData = null, cinemaMa
         const sessionFinishShowMatch = (ele.Session_dtmFinishShow || "").match(/\d+/);
         const filmFirstShowMatch = (ele.Session_dtmFilmFirstShow || "").match(/\d+/);
 
+        let screenStatus = ele.Session_strStatus;
+        if (
+          String(ele.Cinema_strID).toUpperCase() === "CN34" &&
+          screenStatus === "C" &&
+          (ele.Session_strSalesChannel?.includes("WWW") || ele.Session_intSeatsAvail > 0)
+        ) {
+          screenStatus = "O";
+        }
+
         const todayShowData = {
           sessionId: ele.Session_lngSessionId,
           cinemaId: ele.Cinema_strID,
@@ -1090,7 +1108,7 @@ export const todayShowSync = async (strCinemaId, preFetchedData = null, cinemaMa
           screenNumber: ele.Screen_bytNum,
           layoutId: ele.Layout_intId,
           screenName: ele.Screen_strName,
-          screenStatus: ele.Session_strStatus,
+          screenStatus: screenStatus,
           screenType: ele.Session_strType,
           sessionRealShow: sessionRealshowMatch
             ? new Date(parseInt(sessionRealshowMatch[0], 10))

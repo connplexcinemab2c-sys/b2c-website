@@ -484,13 +484,22 @@ export const showDataSync = async () => {
           const sessionFinishShow = ele.Session_dtmFinishShow;
           const filmFirstShow = ele.Session_dtmFilmFirstShow;
 
+          let screenStatus = ele.Session_strStatus;
+          if (
+            cinemaIdUpper === "CN34" &&
+            screenStatus === "C" &&
+            (ele.Session_strSalesChannel?.includes("WWW") || ele.Session_intSeatsAvail > 0)
+          ) {
+            screenStatus = "O";
+          }
+
           const showData = {
             cinemaId: cinemaIdUpper,
             filmCode: ele.Film_strCode.toUpperCase(),
             screenNumber: ele.Screen_bytNum,
             layoutId: ele.Layout_intId,
             screenName: ele.Screen_strName,
-            screenStatus: ele.Session_strStatus,
+            screenStatus: screenStatus,
             screenType: ele.Session_strType,
             sessionRealShow: moment(sessionRealshow).utcOffset("+5:30"),
             sessionFinishShow: moment(sessionFinishShow).utcOffset("+5:30"),
