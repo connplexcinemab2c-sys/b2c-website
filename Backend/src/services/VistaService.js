@@ -486,9 +486,8 @@ export const showDataSync = async () => {
 
           let screenStatus = ele.Session_strStatus;
           if (
-            cinemaIdUpper === "CN34" &&
             screenStatus === "C" &&
-            (ele.Session_strSalesChannel?.includes("WWW") || ele.Session_intSeatsAvail > 0)
+            (ele.Session_strSalesChannel?.includes("WWW") || Number(ele.Session_intSeatsAvail) > 0)
           ) {
             screenStatus = "O";
           }

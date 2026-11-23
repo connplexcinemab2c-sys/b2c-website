@@ -256,9 +256,8 @@ export const showSync = async (Cinema_strID, globalSessions = null, cinemaMap = 
 
         let screenStatus = ele.Session_strStatus;
         if (
-          cinemaIdUpper === "CN34" &&
           screenStatus === "C" &&
-          (ele.Session_strSalesChannel?.includes("WWW") || ele.Session_intSeatsAvail > 0)
+          (ele.Session_strSalesChannel?.includes("WWW") || Number(ele.Session_intSeatsAvail) > 0)
         ) {
           screenStatus = "O";
         }
@@ -1094,9 +1093,8 @@ export const todayShowSync = async (strCinemaId, preFetchedData = null, cinemaMa
 
         let screenStatus = ele.Session_strStatus;
         if (
-          String(ele.Cinema_strID).toUpperCase() === "CN34" &&
           screenStatus === "C" &&
-          (ele.Session_strSalesChannel?.includes("WWW") || ele.Session_intSeatsAvail > 0)
+          (ele.Session_strSalesChannel?.includes("WWW") || Number(ele.Session_intSeatsAvail) > 0)
         ) {
           screenStatus = "O";
         }

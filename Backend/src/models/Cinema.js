@@ -136,6 +136,16 @@ const CinemaSchema = new mongoose.Schema(
       required: false,
       default: false,
     },
+    lastVistaDbSync: {
+      type: Date,
+      required: false,
+      default: null,
+    },
+    lastVistaDbSyncStatus: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     poster: {
       type: String,
       required: false,
