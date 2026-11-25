@@ -569,8 +569,10 @@ export const couponCart = async (req, res) => {
               { $set: { vistaOrderUpdated: updateSuccess } }
             ).catch((err) => console.warn(`Error setting vistaOrderUpdated for ${transId}:`, err.message));
 
-            const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE;
-            const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
+            const discountPaytype = (process.env.VISTA_DISCOUNT_PAYTYPE || "DISC").trim();
+            const enableDiscountTender =
+              String(process.env.ENABLE_VISTA_DISCOUNT_TENDER || "").toLowerCase().trim() === "true" ||
+              process.env.ENABLE_VISTA_DISCOUNT_TENDER === "1";
             const settlementMode = updateSuccess
               ? "DIRECT_ORDER_UPDATE"
               : enableDiscountTender && discountPaytype

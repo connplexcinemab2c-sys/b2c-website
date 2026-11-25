@@ -69,8 +69,10 @@ export const buildMultiPaymentDetails = ({
   const ticketPaise = Math.max(0, vistaTotalPaise - fnbPaise);
 
   // 4. Handle discount split if explicitly enabled in environment
-  const discountPaytype = process.env.VISTA_DISCOUNT_PAYTYPE || "DISC";
-  const enableDiscountTender = process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true";
+  const discountPaytype = (process.env.VISTA_DISCOUNT_PAYTYPE || "DISC").trim();
+  const enableDiscountTender =
+    String(process.env.ENABLE_VISTA_DISCOUNT_TENDER || "").toLowerCase().trim() === "true" ||
+    process.env.ENABLE_VISTA_DISCOUNT_TENDER === "1";
   const rawDiscount = Number(finalBooking?.ticketCart?.discountAmount) || 0;
   let discountPaise = rawDiscount > 0 ? Math.round(rawDiscount * 100) : 0;
   if (discountPaise > ticketPaise) {
@@ -80,7 +82,8 @@ export const buildMultiPaymentDetails = ({
   const tenders = [];
 
   // When discount tenders are active and discount was applied, split ticket between CW and discountPaytype
-  if (enableDiscountTender && discountPaise > 0) {
+  // If Vista order was already updated directly, Vista POS already holds the net discounted price
+  if (enableDiscountTender && discountPaise > 0 && !vistaOrderUpdated) {
     const paidTicketPaise = ticketPaise - discountPaise;
     if (paidTicketPaise > 0) {
       tenders.push({ type: "CW", amount: paidTicketPaise });
@@ -175,8 +178,9 @@ export const formatCommitBookingData = (vistaData, tx) => {
       grossTicketsTotal: grossTotal,
       discountAmount: ticketCart.discountAmount,
       discountPaytype:
-        process.env.ENABLE_VISTA_DISCOUNT_TENDER === "true" && process.env.VISTA_DISCOUNT_PAYTYPE
-          ? process.env.VISTA_DISCOUNT_PAYTYPE
+        (String(process.env.ENABLE_VISTA_DISCOUNT_TENDER || "").toLowerCase().trim() === "true" || process.env.ENABLE_VISTA_DISCOUNT_TENDER === "1") &&
+        process.env.VISTA_DISCOUNT_PAYTYPE
+          ? process.env.VISTA_DISCOUNT_PAYTYPE.trim()
           : "CW",
       curTicketsTotal: discountedTotal,
       curTicketsTax1: cgst,
