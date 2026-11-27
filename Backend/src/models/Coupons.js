@@ -73,6 +73,16 @@ const couponSchema = new mongoose.Schema(
         ref: "cinema",
       },
     ],
+    showId: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "show",
+      },
+    ],
+    fnbDiscountUpTo: {
+      type: Number,
+      required: false,
+    },
     deletedStatus: {
       type: Number,
       default: 0,

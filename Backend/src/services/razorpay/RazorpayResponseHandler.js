@@ -26,6 +26,7 @@ import { createLog } from "../LogsServices.js";
 import calculateAndSaveCoins, { processCoinRedemption } from "../../controller/user/RewardsController.js";
 import { processOrderAttribution } from "../WhatsAppConversionService.js";
 import { executeVistaCommitWithDiscountFallback, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
+import Coupon from "../../models/Coupons.js";
 import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 import { continueTransService } from "../vistaServices/AddSeatsExService.js";
 
@@ -770,6 +771,22 @@ export const _handleBookingSuccess = async (strTransId, vistaResponse, user) => 
     .populate({ path: "showId", select: ["sessionRealShow", "screenName"] })
     .populate({ path: "couponId" })
     .sort({ createdAt: -1 });
+
+  // Expire single-use / capped coupons once overall usage limit is reached
+  if (Array.isArray(bookingDetails?.couponId) && bookingDetails.couponId.length > 0) {
+    for (const couponDoc of bookingDetails.couponId) {
+      if (couponDoc?.couponCodeOverAllUsage > 0) {
+        const usedCount = await Transaction.countDocuments({
+          deletedStatus: 0,
+          status: 1,
+          couponId: couponDoc._id,
+        });
+        if (usedCount >= couponDoc.couponCodeOverAllUsage) {
+          await Coupon.updateOne({ _id: couponDoc._id }, { $set: { isActive: false } }).catch(() => {});
+        }
+      }
+    }
+  }
 
   const smsUrl = `${process.env.M_TICKET_URL}/${strTransId}`;
   const movieDate = moment(bookingDetails?.showId?.sessionRealShow).format("DD-MM-YYYY");

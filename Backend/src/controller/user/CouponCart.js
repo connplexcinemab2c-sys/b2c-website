@@ -339,6 +339,44 @@ export const couponCart = async (req, res) => {
             couponCode.toUpperCase().startsWith(c.couponTitle.toUpperCase())
           );
         }
+
+        // Enforce date, cinema, show, and overall usage limits on matched DB coupon
+        if (matchedCouponDoc) {
+          const txShowId = existingTx?.showId || req.body?.showId;
+          const txCinemaObjId = existingTx?.cinemaId || cinemaObjectId;
+
+          const isExpiredByDate =
+            (matchedCouponDoc.couponStartDate && currentDate < new Date(matchedCouponDoc.couponStartDate)) ||
+            (matchedCouponDoc.couponEndDate && currentDate > new Date(matchedCouponDoc.couponEndDate));
+
+          const failsCinemaCheck =
+            Array.isArray(matchedCouponDoc.cinemaObjectId) &&
+            matchedCouponDoc.cinemaObjectId.length > 0 &&
+            txCinemaObjId &&
+            !matchedCouponDoc.cinemaObjectId.some((id) => String(id) === String(txCinemaObjId));
+
+          const failsShowCheck =
+            Array.isArray(matchedCouponDoc.showId) &&
+            matchedCouponDoc.showId.length > 0 &&
+            (!txShowId || !matchedCouponDoc.showId.some((id) => String(id) === String(txShowId)));
+
+          let failsOverallUsage = false;
+          if (matchedCouponDoc.couponCodeOverAllUsage > 0) {
+            const usedCount = await Transaction.countDocuments({
+              deletedStatus: 0,
+              status: 1,
+              couponId: matchedCouponDoc._id,
+            });
+            if (usedCount >= matchedCouponDoc.couponCodeOverAllUsage) {
+              failsOverallUsage = true;
+              await Coupon.updateOne({ _id: matchedCouponDoc._id }, { $set: { isActive: false } }).catch(() => {});
+            }
+          }
+
+          if (isExpiredByDate || failsCinemaCheck || failsShowCheck || failsOverallUsage) {
+            matchedCouponDoc = null;
+          }
+        }
       } catch (dbErr) {
         console.warn(`[CouponCart] DB Coupon lookup error for ${couponCode}:`, dbErr.message);
       }
@@ -383,8 +421,12 @@ export const couponCart = async (req, res) => {
       }
 
       // If applied (either via Vista or DB), ensure 100% coupon discounts entire applicable base
+      const fnbCap = Number(matchedCouponDoc?.fnbDiscountUpTo) || 0;
       if (isCouponSuccessfullyApplied && isKnown100PercentCoupon) {
-        if (discountTarget === "F&B" || discountTarget === "Food") {
+        if (fnbCap > 0) {
+          discountTarget = "Cinema";
+          totalDiscount = resolvedTicketTotal + Math.min(resolvedFnbPrice, fnbCap);
+        } else if (discountTarget === "F&B" || discountTarget === "Food") {
           totalDiscount = resolvedFnbPrice;
         } else if (discountTarget === "All") {
           totalDiscount = resolvedTicketTotal + resolvedFnbPrice;
