@@ -12,6 +12,7 @@ export const buildMultiPaymentDetails = ({
   addSeatData,
   foodAndBvgResponse,
   vistaOrderUpdated = false,
+  forceStandardTender = false,
 }) => {
   // 1. Determine Vista POS exact required reservation total (in paise)
   // Vista requires udsCommitBook tender amounts to sum exactly to the reservation total held in Vista.
@@ -80,10 +81,11 @@ export const buildMultiPaymentDetails = ({
   }
 
   const tenders = [];
+  const useDiscountSplit = !forceStandardTender && enableDiscountTender && discountPaise > 0 && !vistaOrderUpdated;
 
   // When discount tenders are active and discount was applied, split ticket between CW and discountPaytype
   // If Vista order was already updated directly, Vista POS already holds the net discounted price
-  if (enableDiscountTender && discountPaise > 0 && !vistaOrderUpdated) {
+  if (useDiscountSplit) {
     const paidTicketPaise = ticketPaise - discountPaise;
     if (paidTicketPaise > 0) {
       tenders.push({ type: "CW", amount: paidTicketPaise });
@@ -138,7 +140,88 @@ export const buildMultiPaymentDetails = ({
     fnbPaise,
     totalPaise: vistaTotalPaise,
     tenders,
+    usedDiscountSplit: useDiscountSplit,
   };
+};
+
+const ALREADY_COMMITTED_MARKERS = [
+  "already committed",
+  "already finalised",
+  "already finalized",
+  "already booked",
+  "already processed",
+  "cannot commit a completed transaction",
+];
+
+/**
+ * Checks whether a Vista CommitBookingEx response or error indicates the booking was already committed.
+ */
+export const isAlreadyCommittedResponse = (response, commitError) => {
+  const dataStr = JSON.stringify(
+    response?.data || commitError?.response?.data || commitError?.message || ""
+  ).toLowerCase();
+  return ALREADY_COMMITTED_MARKERS.some((marker) => dataStr.includes(marker));
+};
+
+/**
+ * Executes Vista CommitBookingEx and, if a split discount tender fails, retries once with standard CW tender.
+ */
+export const executeVistaCommitWithDiscountFallback = async ({
+  callCommit,
+  baseUrl,
+  finalBooking,
+  addSeatData,
+  foodAndBvgResponse,
+  vistaOrderUpdated = false,
+  retries = 3,
+  delayMs = 1000,
+}) => {
+  const buildConfig = (mp) => ({
+    method: "get",
+    maxBodyLength: Infinity,
+    url: `${baseUrl}&MultiPaymentDetails=${mp}`,
+    headers: {},
+  });
+
+  let { multipayment, usedDiscountSplit } = buildMultiPaymentDetails({
+    finalBooking,
+    addSeatData,
+    foodAndBvgResponse,
+    vistaOrderUpdated,
+  });
+
+  let response = null;
+  let commitError = null;
+  try {
+    response = await callCommit(buildConfig(multipayment), retries, delayMs);
+  } catch (err) {
+    commitError = err;
+  }
+
+  let isAlreadyCommitted = isAlreadyCommittedResponse(response, commitError);
+  if (response?.data?.Status != 1 && !isAlreadyCommitted && usedDiscountSplit) {
+    console.warn(
+      `[VistaPaymentHelper] CommitBookingEx failed with discount tender split (${multipayment}); retrying with standard CW tender.`
+    );
+    const fallback = buildMultiPaymentDetails({
+      finalBooking,
+      addSeatData,
+      foodAndBvgResponse,
+      vistaOrderUpdated,
+      forceStandardTender: true,
+    });
+    multipayment = fallback.multipayment;
+    response = null;
+    commitError = null;
+    try {
+      response = await callCommit(buildConfig(multipayment), retries, delayMs);
+    } catch (err) {
+      commitError = err;
+    }
+    isAlreadyCommitted = isAlreadyCommittedResponse(response, commitError);
+  }
+
+  return { response, commitError, multipayment, usedDiscountSplit, isAlreadyCommitted };
 };
 
 /**

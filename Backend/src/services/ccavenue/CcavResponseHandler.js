@@ -31,7 +31,7 @@ import SubscriptionWelcomeGift from "../../models/SubscriptionWelcomeGift.js";
 import { processOrderAttribution } from "../WhatsAppConversionService.js";
 import GeneralSetting from "../../models/GeneralSetting.js";
 import { createLog } from "../LogsServices.js";
-import { buildMultiPaymentDetails, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
+import { executeVistaCommitWithDiscountFallback, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
 import { callVistaCommitWithRetry } from "../razorpay/RazorpayResponseHandler.js";
 dotenv.config();
 export const paymentResponse = async (req, res) => {
@@ -186,12 +186,6 @@ export const paymentResponse = async (req, res) => {
           ? `${user?.firstName} ${user?.lastName}`
           : user?.firstName;
 
-        const { multipayment } = buildMultiPaymentDetails({
-          finalBooking: bookingData?.finalBookingCalculation,
-          addSeatData: bookingData?.addSeatData,
-          foodAndBvgResponse: bookingData?.foodAndBvgResponse,
-          vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
-        });
         await checkAndGrantWelcomeGift(userId);
 
         // ── Pre-Commit Seat Reservation Integrity Guard ─────────────────────
@@ -242,48 +236,24 @@ export const paymentResponse = async (req, res) => {
 
         if (process.env.VISTA_TICKET_BOOKING == "true") {
           try {
-            let config = {
-              method: "get",
-              maxBodyLength: Infinity,
-              url: `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx?strCinemaId=${cinemaId}&strTransId=${strTransId}&lngSessId=${strSessId}&Name=${name}&MobileNo=${user?.mobileNumber}&MultiPaymentDetails=${multipayment}`,
-              headers: {},
-            };
-
-            console.log("VISTA request config:", config);
-
-            // const vistaLogRequest = {
-            //     ...config,
-            //     queryParameters: {
-            //     strCinemaId:cinemaId,
-            //     strTransId:strTransId,
-            //     lngSessId:strSessId,
-            //     Name:name,
-            //     MobileNo:user.mobileNumber,
-            //     MultiPaymentDetails: multipayment
-            //   }
-            // };
+            const vistaBaseUrl = `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx?strCinemaId=${cinemaId}&strTransId=${strTransId}&lngSessId=${strSessId}&Name=${name}&MobileNo=${user?.mobileNumber}`;
 
             try {
-              let response = null;
-              let commitError = null;
-
-              try {
-                response = await callVistaCommitWithRetry(config, 3, 1000);
-              } catch (err) {
-                commitError = err;
-              }
+              const { response, commitError, isAlreadyCommitted } =
+                await executeVistaCommitWithDiscountFallback({
+                  callCommit: callVistaCommitWithRetry,
+                  baseUrl: vistaBaseUrl,
+                  finalBooking: bookingData?.finalBookingCalculation,
+                  addSeatData: bookingData?.addSeatData,
+                  foodAndBvgResponse: bookingData?.foodAndBvgResponse,
+                  vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
+                  retries: 3,
+                  delayMs: 1000,
+                });
 
               console.log("VISTA response (CCAvenue):", response?.data || commitError?.message);
 
               const respData = response?.data;
-              const dataStr = JSON.stringify(respData || commitError?.response?.data || commitError?.message || "");
-
-              const isAlreadyCommitted =
-                dataStr.toLowerCase().includes("already committed") ||
-                dataStr.toLowerCase().includes("already finalised") ||
-                dataStr.toLowerCase().includes("already finalized") ||
-                dataStr.toLowerCase().includes("already booked") ||
-                dataStr.toLowerCase().includes("cannot commit a completed transaction");
 
               if (respData?.Status == 1 || isAlreadyCommitted) {
                 createLog({

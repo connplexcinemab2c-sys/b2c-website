@@ -16,7 +16,7 @@ import SubscriptionTransaction from "../../models/SubscriptionTransaction.js";
 import { User } from "../../models/User.js";
 import { smsSend2Digital } from "../../services/CommanService.js";
 import { createLog } from "../LogsServices.js";
-import { buildMultiPaymentDetails } from "../vistaServices/VistaPaymentHelper.js";
+import { executeVistaCommitWithDiscountFallback } from "../vistaServices/VistaPaymentHelper.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Time window for "stuck" transactions
@@ -352,33 +352,32 @@ const _commitTicketBooking = async (txn, notes, payment) => {
   if (!user) return;
 
   const name = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
-  const { multipayment } = buildMultiPaymentDetails({
-    finalBooking: txn.finalBookingCalculation,
-    addSeatData: txn.addSeatData,
-    foodAndBvgResponse: txn.foodAndBvgResponse,
-    vistaOrderUpdated: txn.vistaOrderUpdated === true,
-  });
+  const vistaBaseUrl =
+    `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
+    `?strCinemaId=${cinemaId}` +
+    `&strTransId=${transId}` +
+    `&lngSessId=${sessionId}` +
+    `&Name=${name}` +
+    `&MobileNo=${user.mobileNumber}`;
 
   try {
-    const response = await callVistaCommitWithRetry(
-      {
-        method: "get",
-        maxBodyLength: Infinity,
-        url:
-          `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
-          `?strCinemaId=${cinemaId}` +
-          `&strTransId=${transId}` +
-          `&lngSessId=${sessionId}` +
-          `&Name=${name}` +
-          `&MobileNo=${user.mobileNumber}` +
-          `&MultiPaymentDetails=${multipayment}`,
-        headers: {},
-      },
-      2,
-      1000
-    );
+    const { response, commitError, isAlreadyCommitted } =
+      await executeVistaCommitWithDiscountFallback({
+        callCommit: callVistaCommitWithRetry,
+        baseUrl: vistaBaseUrl,
+        finalBooking: txn.finalBookingCalculation,
+        addSeatData: txn.addSeatData,
+        foodAndBvgResponse: txn.foodAndBvgResponse,
+        vistaOrderUpdated: txn.vistaOrderUpdated === true,
+        retries: 2,
+        delayMs: 1000,
+      });
 
-    if (response.data?.Status == 1) {
+    if (commitError && !response) {
+      throw commitError;
+    }
+
+    if (response.data?.Status == 1 || isAlreadyCommitted) {
       createLog({
         transaction_id: transId,
         type: "Booking",

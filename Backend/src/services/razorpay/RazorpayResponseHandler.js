@@ -25,7 +25,7 @@ import { userNotification } from "../Notification.js";
 import { createLog } from "../LogsServices.js";
 import calculateAndSaveCoins, { processCoinRedemption } from "../../controller/user/RewardsController.js";
 import { processOrderAttribution } from "../WhatsAppConversionService.js";
-import { buildMultiPaymentDetails, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
+import { executeVistaCommitWithDiscountFallback, formatCommitBookingData } from "../vistaServices/VistaPaymentHelper.js";
 import { normalizePhoneNumber } from "../../utils/phoneNormalizer.js";
 import { continueTransService } from "../vistaServices/AddSeatsExService.js";
 
@@ -569,28 +569,13 @@ export const paymentResponse = async (req, res) => {
       ? `${user.firstName} ${user.lastName}`
       : user.firstName;
 
-    const { multipayment } = buildMultiPaymentDetails({
-      finalBooking: bookingData?.finalBookingCalculation,
-      addSeatData: bookingData?.addSeatData,
-      foodAndBvgResponse: bookingData?.foodAndBvgResponse,
-      vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
-    });
-
-    const vistaConfig = {
-      method: "get",
-      maxBodyLength: Infinity,
-      url:
-        `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
-        `?strCinemaId=${cinemaId}` +
-        `&strTransId=${transId}` +
-        `&lngSessId=${sessionId}` +
-        `&Name=${name}` +
-        `&MobileNo=${user?.mobileNumber}` +
-        `&MultiPaymentDetails=${multipayment}`,
-      headers: {},
-    };
-
-    console.log("VISTA request config:", vistaConfig);
+    const vistaBaseUrl =
+      `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
+      `?strCinemaId=${cinemaId}` +
+      `&strTransId=${transId}` +
+      `&lngSessId=${sessionId}` +
+      `&Name=${name}` +
+      `&MobileNo=${user?.mobileNumber}`;
 
     // ── 16. Refresh seat reservation hold if session is older than 3 minutes
     if (sessionAgeMinutes > 3 && cinemaId && transId) {
@@ -602,30 +587,23 @@ export const paymentResponse = async (req, res) => {
       }
     }
 
-    // ── 17. Call Vista CommitBookingEx with retries & timeout protection ──────
+    // ── 17. Call Vista CommitBookingEx with retries, timeout protection & CW fallback
     try {
-      let response = null;
-      let commitError = null;
-
-      try {
-        response = await callVistaCommitWithRetry(vistaConfig, 3, 1200);
-      } catch (err) {
-        commitError = err;
-      }
+      const { response, commitError, isAlreadyCommitted } =
+        await executeVistaCommitWithDiscountFallback({
+          callCommit: callVistaCommitWithRetry,
+          baseUrl: vistaBaseUrl,
+          finalBooking: bookingData?.finalBookingCalculation,
+          addSeatData: bookingData?.addSeatData,
+          foodAndBvgResponse: bookingData?.foodAndBvgResponse,
+          vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
+          retries: 3,
+          delayMs: 1200,
+        });
 
       console.log("VISTA commit result for", transId, ":", response?.data || commitError?.message);
 
       const respData = response?.data;
-      const dataStr = JSON.stringify(respData || commitError?.response?.data || commitError?.message || "");
-
-      // Auto-detect Vista success or already-committed recovery
-      const isAlreadyCommitted =
-        dataStr.toLowerCase().includes("already committed") ||
-        dataStr.toLowerCase().includes("already finalised") ||
-        dataStr.toLowerCase().includes("already finalized") ||
-        dataStr.toLowerCase().includes("already booked") ||
-        dataStr.toLowerCase().includes("already processed") ||
-        dataStr.toLowerCase().includes("cannot commit a completed transaction");
 
       if (respData?.Status == 1 || isAlreadyCommitted) {
         // ── Vista success — status: 1 ─────────────────────────────
@@ -1458,44 +1436,28 @@ export const razorpayBookDirectly = async (res, userId, transId, cinemaId, sessi
 
     // Vista CommitBookingEx
     const name = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
-
-    const { multipayment } = buildMultiPaymentDetails({
-      finalBooking: bookingData?.finalBookingCalculation,
-      addSeatData: bookingData?.addSeatData,
-      foodAndBvgResponse: bookingData?.foodAndBvgResponse,
-      vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
-    });
-
-    const vistaConfig = {
-      method: "get",
-      maxBodyLength: Infinity,
-      url:
-        `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
-        `?strCinemaId=${cinemaId}` +
-        `&strTransId=${transId}` +
-        `&lngSessId=${sessionId}` +
-        `&Name=${name}` +
-        `&MobileNo=${user?.mobileNumber}` +
-        `&MultiPaymentDetails=${multipayment}`,
-      headers: {},
-    };
+    const vistaBaseUrl =
+      `${process.env.VISTA_URL_BOOKING_URL}/CommitBookingEx` +
+      `?strCinemaId=${cinemaId}` +
+      `&strTransId=${transId}` +
+      `&lngSessId=${sessionId}` +
+      `&Name=${name}` +
+      `&MobileNo=${user?.mobileNumber}`;
 
     try {
-      let response = null;
-      let commitError = null;
-      try {
-        response = await callVistaCommitWithRetry(vistaConfig, 3, 1000);
-      } catch (err) {
-        commitError = err;
-      }
+      const { response, commitError, isAlreadyCommitted } =
+        await executeVistaCommitWithDiscountFallback({
+          callCommit: callVistaCommitWithRetry,
+          baseUrl: vistaBaseUrl,
+          finalBooking: bookingData?.finalBookingCalculation,
+          addSeatData: bookingData?.addSeatData,
+          foodAndBvgResponse: bookingData?.foodAndBvgResponse,
+          vistaOrderUpdated: bookingData?.vistaOrderUpdated === true,
+          retries: 3,
+          delayMs: 1000,
+        });
 
       const respData = response?.data;
-      const dataStr = JSON.stringify(respData || commitError?.response?.data || commitError?.message || "");
-      const isAlreadyCommitted =
-        dataStr.toLowerCase().includes("already committed") ||
-        dataStr.toLowerCase().includes("already finalised") ||
-        dataStr.toLowerCase().includes("already finalized") ||
-        dataStr.toLowerCase().includes("already booked");
 
       if (respData?.Status == 1 || isAlreadyCommitted) {
         await _handleBookingSuccess(transId, response || { data: { Status: 1, data: bookingData.addSeatData } }, user);
