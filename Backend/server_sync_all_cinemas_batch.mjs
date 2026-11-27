@@ -13,11 +13,56 @@ const MONGO_URL = process.env.MONGO_URL || 'mongodb://connplex:connple222023@13.
 const LOCK_FILE = '/tmp/connplex_sync.lock';
 
 // Max cinemas to trigger DatabaseSync for in a single cron run (keeps run time ~3-4 mins)
-const MAX_DBSYNC_PER_RUN = 18;
+const MAX_DBSYNC_PER_RUN = 12;
 // Minimum interval before a cinema is eligible for routine DatabaseSync (2 hours)
 const DBSYNC_INTERVAL_MS = 2 * 60 * 60 * 1000;
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function isUrlReachable(url, timeoutMs = 5000) {
+  if (!url) return false;
+  try {
+    const res = await axios.get(url, {
+      timeout: timeoutMs,
+      validateStatus: (status) => status < 500,
+    });
+    return res.status < 500;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveReachableCinemaUrl(cinema, cinemasCollection) {
+  const primary = cinema.cinemaWebServiceUrl?.trim();
+  const secondary = cinema.cinemaWebServiceUrl2?.trim();
+  if (primary && await isUrlReachable(primary)) {
+    return { url: primary, reachable: true, switched: false };
+  }
+  if (secondary && secondary !== primary && await isUrlReachable(secondary)) {
+    await cinemasCollection.updateOne(
+      { cinemaId: cinema.cinemaId.toUpperCase(), deletedStatus: 0 },
+      { $set: { cinemaWebServiceUrl: secondary, cinemaWebServiceUrl2: primary || null } }
+    );
+    return { url: secondary, reachable: true, switched: true };
+  }
+  return { url: primary || secondary || null, reachable: false, switched: false };
+}
+
+async function triggerDatabaseSyncWithRetry(cid) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const syncRes = await axios.get(
+      `${VISTA_URL}/api.asmx/DatabaseSync?strCinemaId=${cid}`,
+      { timeout: 60000 }
+    );
+    const isSuccess = syncRes.data?.Status == 1 || syncRes.data?.Status == '1';
+    const isDataTmpLock = String(syncRes.data?.data || '').toLowerCase().includes('data.tmp');
+    if (isSuccess || !isDataTmpLock || attempt === 2) {
+      return syncRes;
+    }
+    console.warn(`  [${cid}] Vista Central data.tmp lock on attempt ${attempt}; retrying in 3s...`);
+    await sleep(3000);
+  }
+}
 
 function acquireLock() {
   if (fs.existsSync(LOCK_FILE)) {
@@ -146,11 +191,25 @@ async function main() {
     console.log('\nExecuting Vista Central DatabaseSync sequentially...');
     for (const item of dbsyncCandidates) {
       const cid = item.cinema.cinemaId.toUpperCase();
-      const webUrl = item.cinema.cinemaWebServiceUrl;
       const startCinemaSync = Date.now();
 
       try {
-        // Step 3a: Update Web Service URL on Vista Central if available
+        // Step 3a: Pre-flight reachability check + automatic failover to cinemaWebServiceUrl2
+        const { url: webUrl, reachable, switched } = await resolveReachableCinemaUrl(item.cinema, cinemasCollection);
+        if (webUrl && !reachable) {
+          const duration = ((Date.now() - startCinemaSync) / 1000).toFixed(1);
+          console.warn(`  [${cid}] Skipping DatabaseSync in ${duration}s: POS URL unreachable (${webUrl})`);
+          await cinemasCollection.updateOne(
+            { cinemaId: cid },
+            { $set: { lastVistaDbSync: new Date(), lastVistaDbSyncStatus: false } }
+          );
+          continue;
+        }
+        if (switched) {
+          console.log(`  [${cid}] Switched active POS URL to backup cinemaWebServiceUrl2 (${webUrl})`);
+        }
+
+        // Step 3b: Update Web Service URL on Vista Central if available
         if (webUrl) {
           try {
             await axios.get(
@@ -163,11 +222,8 @@ async function main() {
           await sleep(1500);
         }
 
-        // Step 3b: Trigger DatabaseSync
-        const syncRes = await axios.get(
-          `${VISTA_URL}/api.asmx/DatabaseSync?strCinemaId=${cid}`,
-          { timeout: 35000 }
-        );
+        // Step 3c: Trigger DatabaseSync with 60s timeout and data.tmp lock retry
+        const syncRes = await triggerDatabaseSyncWithRetry(cid);
 
         const duration = ((Date.now() - startCinemaSync) / 1000).toFixed(1);
         const isSuccess = syncRes.data?.Status == 1 || syncRes.data?.Status == '1';
