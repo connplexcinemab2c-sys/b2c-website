@@ -327,7 +327,7 @@ console.log({selectedFood});
         response?.data?.ticketCart?.coupons.forEach((element) => {
           // let alreadyExis = couponArr.includes(element.couponTitle);
           // if (!alreadyExis) {
-          couponsList.push(element);
+          couponsList.push(element?.couponTitle || element);
           if (coupenCode == element.couponTitle || coupenCode == element) {
             isApplied = true;
           }
@@ -401,9 +401,9 @@ console.log({selectedFood});
     try {
       // console.log("Removing coupon:", coupon);
       await handleRollbackCoupon(coupon, stateData?.cinemaData?.transactionId);
-      const remainingCoupon = totalAppliedCoupon?.filter(
-        (item) => item !== coupon
-      );
+      const remainingCoupon = Array.isArray(totalAppliedCoupon)
+        ? totalAppliedCoupon.filter((item) => (item?.couponTitle || item) !== coupon)
+        : [];
 
       setAppliedCoupon(remainingCoupon);
     } catch (error) {
